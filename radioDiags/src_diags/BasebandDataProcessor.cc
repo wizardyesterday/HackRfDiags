@@ -608,7 +608,7 @@ void BasebandDataProcessor::modulateBasebandData(int8_t *bufferPtr,
 
     case WbFm:
     {
-      // Modulate as an FM signal.
+      // Modulate as a wideband FM signal.
       wbFmModulatorPtr->acceptData(inputBufferPtr,
                                    PCM_BLOCK_SIZE,
                                    bufferPtr,
