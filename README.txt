@@ -108,7 +108,7 @@ on an HF receiver tune to 27.125MHz using AM demodulation.
  
 The output of the help command appears below.
 
-******************** Begine Help Output ********************************
+******************** Begin Help Output ********************************
 
 select filesource
 select livesource
@@ -151,7 +151,7 @@ Type <^B><enter> key sequence to repeat last command
 
 The output of the get radioinfo command appears below.
 
-******************** Begine Get Radio Info Output **********************
+******************** Begin Get Radio Info Output **********************
 
 ------------------------------------------------------
 Radio Internal Information

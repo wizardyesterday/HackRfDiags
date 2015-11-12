@@ -146,7 +146,7 @@ static const commandEntry commandTable[] =
   {"set","txifgain",cmdSetTxIfGain},           // set txifgain gain
   {"set","rxifgain",cmdSetRxIfGain},           // set rxifgain gain
   {"set","rxbasebandgain",cmdSetRxBasebandGain},// set rxbasebandgain gain
-  {"set","frequency",cmdSetRxFrequency},   // set txfrequency frequency
+  {"set","frequency",cmdSetRxFrequency},   // set frequency frequency
   {"set","bandwidth",cmdSetRxBandwidth},   // set rxbandwidth bandwidth 
   {"set","samplerate",cmdSetRxSampleRate}, // set rxsamplerate samplerate 
   {"set","warp",cmdSetRxWarp},             // set rxwarp warp 
@@ -849,7 +849,7 @@ static void cmdSetFmModDeviation(char *bufferPtr)
   // Retrieve value
   sscanf(bufferPtr,"%f",&deviation);
 
-  if ((deviation > 0) && (deviation <= 3500))
+  if ((deviation >= 0) && (deviation <= 3500))
   {
     // Set the modulator deviation.
     diagUi_radioPtr->setFmDeviation(deviation);
@@ -858,7 +858,7 @@ static void cmdSetFmModDeviation(char *bufferPtr)
   } // if
   else
   {
-    nprintf(stderr,"Error: 0 < deviation <= 3500.\n");
+    nprintf(stderr,"Error: 0 <= deviation <= 3500.\n");
   } // else
 
   return;
@@ -894,7 +894,7 @@ static void cmdSetWbFmModDeviation(char *bufferPtr)
   // Retrieve value
   sscanf(bufferPtr,"%f",&deviation);
 
-  if ((deviation > 0) && (deviation <= 75000))
+  if ((deviation >= 0) && (deviation <= 224000))
   {
     // Set the modulator deviation.
     diagUi_radioPtr->setWbFmDeviation(deviation);
@@ -903,7 +903,7 @@ static void cmdSetWbFmModDeviation(char *bufferPtr)
   } // if
   else
   {
-    nprintf(stderr,"Error: 0 < deviation <= 75000.\n");
+    nprintf(stderr,"Error: 0 <= deviation <= 224000.\n");
   } // else
 
   return;
@@ -1313,7 +1313,7 @@ static void cmdSetRxSampleRate(char *bufferPtr)
   // Retrieve value
   sscanf(bufferPtr,"%lu",&sampleRate);
 
-  if ((sampleRate >= 256000) && (sampleRate <= 20000000))
+  if ((sampleRate >= 2000000) && (sampleRate <= 20000000))
   {
     // Set the receiver sample rate.
     success = diagUi_radioPtr->setReceiveSampleRate(sampleRate);
@@ -1329,7 +1329,7 @@ static void cmdSetRxSampleRate(char *bufferPtr)
   } // if
   else
   {
-    nprintf(stderr,"Error: 256000< = samplerate <= 20000000S/s,\n");
+    nprintf(stderr,"Error: 2000000< = samplerate <= 20000000S/s,\n");
   } // else
 
   return;
@@ -1692,7 +1692,7 @@ static void cmdStopLiveStream(char *bufferPtr)
 
   Name: cmdStartFrequencySweep
 
-  Purpose: The purpose of this function is to start sweeping the transmit
+  Purpose: The purpose of this function is to start sweeping the operational
   frequency.
 
   The syntax for the corresponding command is the following:
@@ -1728,7 +1728,7 @@ static void cmdStartFrequencySweep(char *bufferPtr)
            &count,
            &dwellTime);
 
-    if ((frequency >= 30000000) && (frequency <= 6000000000LL))
+    if ((frequency >= 1000000) && (frequency <= 6000000000LL))
     {
       // Computer upper frequency limit.
       upperFrequency = frequency + (stepSize * count);
@@ -1753,7 +1753,7 @@ static void cmdStartFrequencySweep(char *bufferPtr)
     } // if
     else
     {
-      nprintf(stderr,"Error: 30000000 <= frequency 6000000000 Hz.\n");
+      nprintf(stderr,"Error: 1000000 <= frequency 6000000000 Hz.\n");
     } // else
 
   } // if

@@ -332,7 +332,7 @@ void FmModulator::resetModulator(void)
 void FmModulator::setFrequencyDeviation(float deviation)
 {
 
-  if ((frequencyDeviation > 0) && (frequencyDeviation <= 3500))
+  if ((frequencyDeviation >= 0) && (frequencyDeviation <= 3500))
   {
     this->frequencyDeviation = deviation;
   } // if
