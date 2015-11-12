@@ -111,6 +111,12 @@ class Radio
   void tearDownReceiver(void);
   void tearDownTransmitter(void);
 
+  // Core functions used by the interface functions.
+  bool setFrequency(uint64_t frequency);
+  bool setBandwidth(uint32_t bandwidth);
+  bool setSampleRate(uint32_t sampleRate);
+  bool setWarpInPartsPerMillion(int warp);
+
   static int receiveCallbackProcedure(hackrf_transfer *transferPtr);
   static int transmitCallbackProcedure(hackrf_transfer *transferPtr);
 
