@@ -894,7 +894,7 @@ static void cmdSetWbFmModDeviation(char *bufferPtr)
   // Retrieve value
   sscanf(bufferPtr,"%f",&deviation);
 
-  if ((deviation >= 0) && (deviation <= 224000))
+  if ((deviation >= 0) && (deviation <= 112000))
   {
     // Set the modulator deviation.
     diagUi_radioPtr->setWbFmDeviation(deviation);
@@ -903,7 +903,7 @@ static void cmdSetWbFmModDeviation(char *bufferPtr)
   } // if
   else
   {
-    nprintf(stderr,"Error: 0 <= deviation <= 224000.\n");
+    nprintf(stderr,"Error: 0 <= deviation <= 112000.\n");
   } // else
 
   return;

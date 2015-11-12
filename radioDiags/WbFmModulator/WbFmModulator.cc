@@ -318,7 +318,7 @@ void WbFmModulator::resetModulator(void)
 void WbFmModulator::setFrequencyDeviation(float deviation)
 {
 
-  if ((frequencyDeviation >= 0) && (frequencyDeviation <= 224000))
+  if ((frequencyDeviation >= 0) && (frequencyDeviation <= 112000))
   {
     this->frequencyDeviation = deviation;
   } // if
