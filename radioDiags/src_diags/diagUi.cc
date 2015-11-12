@@ -899,11 +899,11 @@ static void cmdSetWbFmModDeviation(char *bufferPtr)
     // Set the modulator deviation.
     diagUi_radioPtr->setWbFmDeviation(deviation);
 
-    nprintf(stderr,"FM Modulator deviation set to %fHz.\n",deviation);
+    nprintf(stderr,"Wideband FM Modulator deviation set to %fHz.\n",deviation);
   } // if
   else
   {
-    nprintf(stderr,"Error: 0 < deviation <= 3500.\n");
+    nprintf(stderr,"Error: 0 < deviation <= 75000.\n");
   } // else
 
   return;
