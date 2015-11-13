@@ -562,7 +562,7 @@ static void cmdSetDemodMode(char *bufferPtr)
 static void cmdSetModMode(char *bufferPtr)
 {
   int mode;
-  char *displayValue[7] = {"None","AM","FM","WBFM","None","LSB","USB"};
+  char *displayValue[6] = {"None","AM","FM","WBFM","LSB","USB"};
 
   // Retrieve value
   sscanf(bufferPtr,"%d",&mode);
