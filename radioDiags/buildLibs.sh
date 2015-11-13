@@ -10,6 +10,7 @@ sh buildWbFmDemodulatorLib.sh
 sh buildSsbDemodulatorLib.sh
 sh buildAmModulatorLib.sh
 sh buildFmModulatorLib.sh
+sh buildWbFmModulatorLib.sh
 sh buildSsbModulatorLib.sh
 sh buildMsgqLib.sh
 sh buildHackRfLib.sh

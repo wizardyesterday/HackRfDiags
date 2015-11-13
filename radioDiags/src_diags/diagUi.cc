@@ -84,6 +84,7 @@ static void cmdSetWbFmDemodGain(char *bufferPtr);
 static void cmdSetSsbDemodGain(char *bufferPtr);
 static void cmdSetAmModIndex(char *bufferPtr);
 static void cmdSetFmModDeviation(char *bufferPtr);
+static void cmdSetWbFmModDeviation(char *bufferPtr);
 static void cmdEnableFrontendAmp(char *bufferPtr);
 static void cmdDisableFrontendAmp(char *bufferPtr);
 static void cmdSetTxIfGain(char *bufferPtr);
@@ -138,6 +139,8 @@ static const commandEntry commandTable[] =
   {"set","ammodindex",cmdSetAmModIndex},     // set ammodindex modulationindex 
   {"set","fmmoddeviation",cmdSetFmModDeviation},
                                              // set fmmoddeviation deviation 
+  {"set","wbfmmoddeviation",cmdSetWbFmModDeviation},
+                                             // set wbfmmoddeviation deviation 
   {"enable","frontendamp",cmdEnableFrontendAmp}, // enable frontendamp
   {"disable","frontendamp",cmdDisableFrontendAmp}, // disable frontendamp
   {"set","txifgain",cmdSetTxIfGain},           // set txifgain gain
@@ -559,7 +562,7 @@ static void cmdSetDemodMode(char *bufferPtr)
 static void cmdSetModMode(char *bufferPtr)
 {
   int mode;
-  char *displayValue[6] = {"None","AM","FM","None","LSB","USB"};
+  char *displayValue[7] = {"None","AM","FM","WBFM","None","LSB","USB"};
 
   // Retrieve value
   sscanf(bufferPtr,"%d",&mode);
@@ -569,6 +572,7 @@ static void cmdSetModMode(char *bufferPtr)
     case 0:
     case 1:
     case 2:
+    case 3:
     case 4:
     case 5:
     {
@@ -581,7 +585,7 @@ static void cmdSetModMode(char *bufferPtr)
 
     default:
     {
-      nprintf(stderr,"Error: [0 | 1 | 2 | 4 | 5]\n");
+      nprintf(stderr,"Error: [0 | 1 | 2 | 3 | 4 | 5]\n");
       break;
     } // case
   } // switch
@@ -820,8 +824,8 @@ static void cmdSetAmModIndex(char *bufferPtr)
 
   Name: cmdSetFmModDeviation
 
-  Purpose: The purpose of this function is to set the gain of the FM
-  modulator in the system.
+  Purpose: The purpose of this function is to set the frequency deviation
+  of the FM modulator in the system.
 
   The syntax for the corresponding command is the following:
 
@@ -860,6 +864,51 @@ static void cmdSetFmModDeviation(char *bufferPtr)
   return;
 
 } // cmdSetFmModDeviation
+
+/*****************************************************************************
+
+  Name: cmdSetWbFmModDeviation
+
+  Purpose: The purpose of this function is to set the frequency deviation
+  of the wideband FM modulator in the system.
+
+  The syntax for the corresponding command is the following:
+
+    "set wbfmmoddeviaton deviation"
+
+  Calling Sequence: cmdSetWbFmModDeviation(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdSetWbFmModDeviation(char *bufferPtr)
+{
+  float deviation;
+
+  // Retrieve value
+  sscanf(bufferPtr,"%f",&deviation);
+
+  if ((deviation > 0) && (deviation <= 75000))
+  {
+    // Set the modulator deviation.
+    diagUi_radioPtr->setWbFmDeviation(deviation);
+
+    nprintf(stderr,"FM Modulator deviation set to %fHz.\n",deviation);
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: 0 < deviation <= 3500.\n");
+  } // else
+
+  return;
+
+} // cmdSetWbFmModDeviation
 
 /*****************************************************************************
 
@@ -1940,7 +1989,7 @@ static void cmdHelp(void)
                    "                      | 3 (WBFM)] | 4 (LSB) | 5 (USB)>]\n");
 
   nprintf(stderr,"set modmode <mode: [0 (None) | 1 (AM) | 2 (FM)\n"
-                   "                      | 4 (LSB) | 5 (USB)>]\n");
+                   "                      | 3 (WBFM) | 4 (LSB) | 5 (USB)>]\n");
 
   nprintf(stderr,"set amdemodgain <gain>\n");
   nprintf(stderr,"set fmdemodgain <gain>\n");
@@ -1948,6 +1997,7 @@ static void cmdHelp(void)
   nprintf(stderr,"set ssbdemodgain <gain>\n");
   nprintf(stderr,"set ammodindex <modulation index>\n");
   nprintf(stderr,"set fmmoddeviation <deviation in Hz>\n");
+  nprintf(stderr,"set wbfmmoddeviation <deviation in Hz>\n");
   nprintf(stderr,"enable frontendamp\n");
   nprintf(stderr,"disable frontendamp\n");
   nprintf(stderr,"set txifgain <gain in dB>\n");

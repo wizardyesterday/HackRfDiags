@@ -329,7 +329,10 @@ void AmModulator::resetModulator(void)
 void AmModulator::setModulationIndex(float modulationIndex)
 {
 
-  this->modulationIndex = modulationIndex;
+  if ((modulationIndex >= 0) && (modulationIndex <= 1))
+  {
+    this->modulationIndex = modulationIndex;
+  } // if
 
   return;
 
@@ -349,7 +352,7 @@ void AmModulator::setModulationIndex(float modulationIndex)
 
     bufferPtr - A pointer to data to be modulated.
 
-    bufferLength - The number of bytes contained in the buffer that is
+    bufferLength - The number of samples contained in the buffer that is
     in the buffer.
 
   Outputs:
@@ -383,8 +386,12 @@ void AmModulator::acceptData(int16_t *bufferPtr,
 
   Purpose: The purpose of this function is to accept modulated IQ data
   and interpolate the data by a factor of 256.  The interpolated data will
-  be stored 
-  in the iData[] and qData[] arrays.
+  be stored in the iData[] and qData[] arrays.
+
+  Note that the modulator scales the sample values appropriately so that
+  after interpolation, the sample values will like in the range of -128
+  to 127 inclusive.  This avoids overflows when type casting the
+  interpolated result to an 8-bit signed quantity.
 
   Calling Sequence: sampleCount increaseSampleRate(bufferPtr,bufferLength)
 
@@ -392,7 +399,7 @@ void AmModulator::acceptData(int16_t *bufferPtr,
 
     bufferPtr - A pointer to the interpolated output data.
 
-    bufferLength - The number of bytes contained in the buffer.
+    bufferLength - The number of samples contained in the buffer.
 
   Outputs:
 
@@ -520,7 +527,7 @@ uint32_t AmModulator::increaseSampleRate(int8_t *bufferPtr,
 
   return (sampleCount);
 
-} // reduceSampleRate
+} // increaseSampleRate
 
 /*****************************************************************************
 
@@ -578,7 +585,13 @@ uint32_t AmModulator::modulateSignal(int16_t *bufferPtr,
     // Insert the dc term to create a carrier.
     scaledSample += 65536;
 
-    // Scale this to avoid overflow.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Scale this to avoid overflow.  Note
+    // the sample will be interpolated by a
+    // factor of 256, hence the sample values
+    // will further be reduced by a factor
+    // of 256.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     scaledSample /= 4;
 
     // Save modulated sample.

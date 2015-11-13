@@ -47,6 +47,7 @@ BasebandDataProcessor::BasebandDataProcessor(void)
   // Ensure that we don't have any dangling pointers.
   amModulatorPtr = 0;
   fmModulatorPtr = 0;
+  wbFmModulatorPtr = 0;
   ssbModulatorPtr = 0;
 
   // Indicate that the baseband readeris not requested to stop.
@@ -67,6 +68,12 @@ BasebandDataProcessor::BasebandDataProcessor(void)
     pcmBufferRing[i] = pcmBuffer[i];
   } // for
 
+  // Make sure the buffer has PCM values of zero amplitude.
+  for (i = 0; i < PCM_BLOCK_SIZE; i++)
+  {
+    zeroPcmBuffer[i] = 0;
+  } // for
+
   // Set the ring index to a sane value.
   pcmWriterIndex = PCM_RING_SIZE - 1;
   pcmReaderIndex = pcmReaderStartIndexTable[pcmWriterIndex];
@@ -74,6 +81,8 @@ BasebandDataProcessor::BasebandDataProcessor(void)
   // Clear statistics.
   buffersProduced = 0;
   buffersConsumed = 0;
+  pcmBlocksDropped = 0;
+  pcmBlocksAdded = 0;
 
   return; 
 
@@ -146,7 +155,7 @@ void BasebandDataProcessor::setAmModulator(AmModulator *modulatorPtr)
 
   Inputs:
 
-    demodulatorPtr - A pointer to an instance of an FmModulator object.
+    modulatorPtr - A pointer to an instance of an FmModulator object.
 
   Outputs:
 
@@ -162,6 +171,34 @@ void BasebandDataProcessor::setFmModulator(FmModulator *modulatorPtr)
   return;
 
 } // setFmModulator
+
+/**************************************************************************
+
+  Name: setWbFmModulator
+
+  Purpose: The purpose of this function is to associate an instance of
+  a wideband FM modulator object with this object.
+
+  Calling Sequence: setWbFmModulator(modulatorPtr)
+
+  Inputs:
+
+    modulatorPtr - A pointer to an instance of a WbFmModulator object.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void BasebandDataProcessor::setWbFmModulator(WbFmModulator *modulatorPtr)
+{
+
+  // Save for future use.
+  wbFmModulatorPtr = modulatorPtr;
+
+  return;
+
+} // setWbFmModulator
 
 /**************************************************************************
 
@@ -391,6 +428,16 @@ int16_t * BasebandDataProcessor::getNextUnfilledBuffer(void)
   streaming state is not set to Running, a default buffer will be
   referenced, and no other actions will be performed.
 
+  This function also handles the cases such that either the PCM arrival
+  rate is higher than the departure rate (dictated by the transmit callback
+  rate) or when the PCM arrival rate is lower than the departure rate (also
+  dictated by the transmit callback rate).  For the case when the arrival
+  rate is higher than the departure rate, PCM blocks are dropped in order
+  to compensate for the rate mismatch.  For the case when the arrival rate
+  is lower than the departure rate. the previous block of PCM data is resent
+  in order to compensate for the rate mismatch.  This prevents PCM data
+  overruns or underruns.
+
   Calling Sequence: bufferPtr = getNextFilledBuffer()
 
   Inputs:
@@ -406,6 +453,66 @@ int16_t * BasebandDataProcessor::getNextFilledBuffer(void)
 {
   uint32_t ringOutputIndex;
   int16_t *bufferPtr;
+  int32_t l;
+  int32_t u;
+  int32_t lag;
+  int32_t decrementerIndex;
+
+  // Grab these right away.
+  u = (int32_t)pcmWriterIndex;
+  l = (int32_t)pcmReaderIndex;
+
+  if (u < l)
+  {
+    u += PCM_RING_SIZE - 1;
+  } // if
+
+  // Compute how far behind the reader is than the writer.
+  lag = u - l;
+
+  if (lag > 10)
+  {
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // This block of code performs a modulo addition so
+    // that the current PCM block is dropped in order to
+    // prevent an overrun of the circular ring.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Increment in a modulo manner to drop buffers.
+    pcmReaderIndex++;
+    pcmReaderIndex %= PCM_RING_SIZE;
+
+    // Update the statistic.
+    pcmBlocksDropped++;
+  } // if
+  else
+  {
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // This block of code performs a modulo subtraction so
+    // that the PCM reader index can be properly adjusted.
+    // The case that is handled is when the transmitter
+    // is sending information out faster than the arrival
+    // rate of the PCM samples.  The strategy is to send
+    // the previous PCM block as filler.  This prevents an
+    // underrun of data.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    if (lag < 6)
+    {
+      // We need a signed value for the next calculations.
+      decrementerIndex = (int32_t)pcmReaderIndex - 1;
+
+      if (decrementerIndex < 0)
+      {
+        // Wrap in a modulo manner.
+        decrementerIndex += PCM_RING_SIZE;
+      } // if
+
+      // Adjust the index to resend the previous PCM block.
+      pcmReaderIndex = (uint32_t)decrementerIndex;
+
+      // Adjust the statistic.
+      pcmBlocksAdded++;
+    } // if
+  } // else
 
   if (streamState == Running)
   {
@@ -431,7 +538,7 @@ int16_t * BasebandDataProcessor::getNextFilledBuffer(void)
   else
   {
     // Set the buffer pointer to something sane.
-    bufferPtr = pcmBufferRing[0];
+    bufferPtr = zeroPcmBuffer;
   } // else
 
   return (bufferPtr);
@@ -496,6 +603,16 @@ void BasebandDataProcessor::modulateBasebandData(int8_t *bufferPtr,
                                  PCM_BLOCK_SIZE,
                                  bufferPtr,
                                  &outputBufferLength);
+      break;
+    } // case
+
+    case WbFm:
+    {
+      // Modulate as an FM signal.
+      wbFmModulatorPtr->acceptData(inputBufferPtr,
+                                   PCM_BLOCK_SIZE,
+                                   bufferPtr,
+                                   &outputBufferLength);
       break;
     } // case
 
@@ -582,6 +699,8 @@ void BasebandDataProcessor::displayInternalInformation(void)
   nprintf(stderr,"PCM Reader Index       : %u\n",pcmReaderIndex);
   nprintf(stderr,"Buffers Produced       : %u\n",buffersProduced);
   nprintf(stderr,"Buffers Consumed       : %u\n",buffersConsumed);
+  nprintf(stderr,"PCM Blocks Dropped     : %u\n",pcmBlocksDropped);
+  nprintf(stderr,"PCM Blocks Added       : %u\n",pcmBlocksAdded);
 
   nprintf(stderr,"Modulator Mode         : ");
 
@@ -602,6 +721,12 @@ void BasebandDataProcessor::displayInternalInformation(void)
     case Fm:
     {
       nprintf(stderr,"FM\n");
+      break;
+    } // case
+
+    case WbFm:
+    {
+      nprintf(stderr,"WBFM\n");
       break;
     } // case
 

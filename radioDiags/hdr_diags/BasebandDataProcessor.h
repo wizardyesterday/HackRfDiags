@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include "AmModulator.h"
 #include "FmModulator.h"
+#include "WbFmModulator.h"
 #include "SsbModulator.h"
 
 // This is the size of each PCM buffer.
@@ -21,7 +22,7 @@ class BasebandDataProcessor
 {
   public:
 
-  enum modulatorType {None=0, Am=1, Fm=2, Lsb = 4, Usb = 5};
+  enum modulatorType {None=0, Am=1, Fm=2, WbFm = 3, Lsb = 4, Usb = 5};
   enum streamStateType {Idle, Running};
 
   BasebandDataProcessor(void);
@@ -30,6 +31,7 @@ class BasebandDataProcessor
   void setModulatorMode(modulatorType mode);
   void setAmModulator(AmModulator *modulatorPtr);
   void setFmModulator(FmModulator *modulatorPtr);
+  void setWbFmModulator(WbFmModulator *modulatorPtr);
   void setSsbModulator(SsbModulator *modulatorPtr);
 
   void start(void);
@@ -57,7 +59,6 @@ private:
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Attributes.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-
   // This indicates that the transmit ring reader is synchronzied.
   bool synchronized;
 
@@ -76,9 +77,14 @@ private:
   int16_t pcmBuffer[PCM_RING_SIZE][PCM_BLOCK_SIZE];
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
+  // This buffer is used when the live source is idle.
+  int16_t zeroPcmBuffer[PCM_BLOCK_SIZE];
+
   // The ring statistics provide a means to determine system health.
   uint32_t buffersProduced;
   uint32_t buffersConsumed;
+  uint32_t pcmBlocksDropped;
+  uint32_t pcmBlocksAdded;
 
   // The modulator operating mode.
   modulatorType modulatorMode;
@@ -86,6 +92,7 @@ private:
   // Modulator support.
   AmModulator *amModulatorPtr;
   FmModulator *fmModulatorPtr;
+  WbFmModulator *wbFmModulatorPtr;
   SsbModulator *ssbModulatorPtr;
 
   // Thread support.

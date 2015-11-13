@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include "AmModulator.h"
 #include "FmModulator.h"
+#include "WbFmModulator.h"
 #include "SsbModulator.h"
 
 // This is the size of each PCM buffer.
@@ -21,7 +22,7 @@ class BasebandDataProcessor
 {
   public:
 
-  enum modulatorType {None=0, Am=1, Fm=2, Lsb = 4, Usb = 5};
+  enum modulatorType {None=0, Am=1, Fm=2, WbFm = 3, Lsb = 4, Usb = 5};
   enum streamStateType {Idle, Running};
 
   BasebandDataProcessor(void);
@@ -30,6 +31,7 @@ class BasebandDataProcessor
   void setModulatorMode(modulatorType mode);
   void setAmModulator(AmModulator *modulatorPtr);
   void setFmModulator(FmModulator *modulatorPtr);
+  void setWbFmModulator(WbFmModulator *modulatorPtr);
   void setSsbModulator(SsbModulator *modulatorPtr);
 
   void start(void);
@@ -86,6 +88,7 @@ private:
   // Modulator support.
   AmModulator *amModulatorPtr;
   FmModulator *fmModulatorPtr;
+  WbFmModulator *wbFmModulatorPtr;
   SsbModulator *ssbModulatorPtr;
 
   // Thread support.

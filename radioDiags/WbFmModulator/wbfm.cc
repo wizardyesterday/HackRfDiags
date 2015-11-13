@@ -1,15 +1,15 @@
 //************************************************************************
-// file name: fm.cc
+// file name: wbfm.cc
 //************************************************************************
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 // This program reads PCM samples from stdin, and converts the signal to
-// a baseband representation of FM. 
+// a baseband representation of wideband FM. 
 //
 // To build, type,
-//  sh buildFm.sh
+//  sh buildWbFm.sh
 //
 // To run, type,
-// ./fm < inputFile > outputFile
+// ./wbfm < inputFile > outputFile
 //
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
@@ -20,14 +20,14 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "FmModulator.h"
+#include "WbFmModulator.h"
 
 using namespace std;
 
 int16_t sampleBuffer[512];
 int8_t outputBuffer[262144];
 
-FmModulator *modulatorPtr;
+WbFmModulator *modulatorPtr;
 
 int main(int argc,char **argv)
 {
@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   uint32_t outputBufferLength;
 
   // Instantiate a modulator.
-  modulatorPtr = new FmModulator();
+  modulatorPtr = new WbFmModulator();
 
   // Set up for loop entry.
   done = false;

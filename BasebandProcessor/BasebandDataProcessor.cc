@@ -47,6 +47,7 @@ BasebandDataProcessor::BasebandDataProcessor(void)
   // Ensure that we don't have any dangling pointers.
   amModulatorPtr = 0;
   fmModulatorPtr = 0;
+  wbFmModulatorPtr = 0;
   ssbModulatorPtr = 0;
 
   // Indicate that the baseband readeris not requested to stop.
@@ -146,7 +147,7 @@ void BasebandDataProcessor::setAmModulator(AmModulator *modulatorPtr)
 
   Inputs:
 
-    demodulatorPtr - A pointer to an instance of an FmModulator object.
+    modulatorPtr - A pointer to an instance of an FmModulator object.
 
   Outputs:
 
@@ -162,6 +163,34 @@ void BasebandDataProcessor::setFmModulator(FmModulator *modulatorPtr)
   return;
 
 } // setFmModulator
+
+/**************************************************************************
+
+  Name: setWbFmModulator
+
+  Purpose: The purpose of this function is to associate an instance of
+  a wideband FM modulator object with this object.
+
+  Calling Sequence: setWbFmModulator(modulatorPtr)
+
+  Inputs:
+
+    modulatorPtr - A pointer to an instance of a WbFmModulator object.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void BasebandDataProcessor::setWbFmModulator(WbFmModulator *modulatorPtr)
+{
+
+  // Save for future use.
+  wbFmModulatorPtr = modulatorPtr;
+
+  return;
+
+} // setWbFmModulator
 
 /**************************************************************************
 
@@ -499,6 +528,16 @@ void BasebandDataProcessor::modulateBasebandData(int8_t *bufferPtr,
       break;
     } // case
 
+    case WbFm:
+    {
+      // Modulate as an FM signal.
+      wbFmModulatorPtr->acceptData(inputBufferPtr,
+                                   PCM_BLOCK_SIZE,
+                                   bufferPtr,
+                                   &outputBufferLength);
+      break;
+    } // case
+
     case Lsb:
     case Usb:
     {
@@ -602,6 +641,12 @@ void BasebandDataProcessor::displayInternalInformation(void)
     case Fm:
     {
       nprintf(stderr,"FM\n");
+      break;
+    } // case
+
+    case WbFm:
+    {
+      nprintf(stderr,"WBFM\n");
       break;
     } // case
 
