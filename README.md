@@ -2,7 +2,7 @@
 This code uses libhackrf for a basis, and I have created an AM/FM/WBFM/SSB demodulator with this stuff.  Additionally,
 AM/FM/SSB (not wideband FM) transmit functionality has been provided.  The goal here was to keep it light weight so that it
 can run on a BeagleBone Black board.  There is no GUI, but instead, I have created a command interpreter that you access
-via netcat or telnet to port 2030.  You can change modulation and demodulaton modes on the fly, and you can change various
+via netcat or telnet to port 20300.  You can change modulation and demodulaton modes on the fly, and you can change various
 radio parameters.
 Let me mention a few things.  First of all, I did *not* write the libhackrf code.  I've merely incorporated a snapshot of it
 into my code since it provides the foundation for my system, and I want people to be able to build the code in a standalone
