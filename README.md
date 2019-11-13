@@ -47,8 +47,8 @@ forces UDP usage.  If you don't have UDP support, don't use the -u argument):
 2. Perform steps t to 3 above to listen to your local FM station on 91.5MHz.
   
 On the host computer (the one with the sound card), type the following:
-1. "netcat -l -u p- 8000 | aplay -f S16_LE -r 8000"
-2. On a separate shell, type "netcat <IP address of BeagleBone Black> 20300.
+1. "netcat -l -u -p 8000 | aplay -f S16_LE -r 8000"
+2. On a separate shell, type "netcat <IP address of BeagleBone Black> 20300"
 3. Peform steps 1 to 3 above to listen to your local FM station on 91.5Mhz.
   
 Let it be noted that all demodulated output is 8000Samples/s PCM (for all demodulation modes).  I made this decision
@@ -56,8 +56,28 @@ because I wanted to be able to change demodulation modes on the fly.  Also note 
 any order.  You can change any of the receiver parameters without having to stop and restart the receiver.  Yes, there is
 a "stop receiver" command.
 
-Okay, let's talk about transmit functionality.
-TO DO... I'll get to this later on.
+Okay, let's talk about transmit functionality.  The scenario that I describe here is to run the HackRf code on the
+BeagleBone Black and to use the host computer to send a PCM stream to the HackRF via a netcat connection.  Here are the
+steps:
+1. From a shell on the BeagleBone Black, type "netcat -l -p 8000 | bin/radioDiags"
+2. On the host computer, type "arecord -t raw -f S16_LE -r 8000 | netcat <IP address of BeagleBone Black> 8000"
+3. From a shell on the host computer, type "netcat <IP address of BeagleBone Black> 20300"
+4. Now that there exists a command and control link (via netcat) to the BeagleBone Black, type the following:
+4.1 "set frequency <desired frequency in Hz>"
+4.2 "select livesource"
+4.3 "set modmode [1|2|4|5]"
+4.4 "enable livestream"
+4.5 "start transmitter"
+  
+ For example, if you want to transmit on 27.125MHz using amplitude modulation, you'd type:
+ 1. "set frequency 27125000"
+ 2. "set modmode 1".
+ 
+ After carrying out the above steps, one could speak into a microphone (connected to the sound card of the host computer)
+ and hear themselves on an HF receiver tune to 27.125MHz using AM demodulation.
+ 
+ On the next update of this readme file, I'll provide output of the help command as well as output of the 'get radioinfo'
+ command.  I'll take care of that when I bring my HackRF to work to grab some screen info.
 
 Anyway, if you have any questions, you can always catch me on freenode IRC.  I use the nick wizardyesterday or adhoc_rf_rocks.
 
