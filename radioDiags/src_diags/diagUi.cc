@@ -83,7 +83,7 @@ static void cmdSetFmDemodGain(char *bufferPtr);
 static void cmdSetWbFmDemodGain(char *bufferPtr);
 static void cmdSetSsbDemodGain(char *bufferPtr);
 static void cmdSetAmModIndex(char *bufferPtr);
-static void cmdSetFmModGain(char *bufferPtr);
+static void cmdSetFmModDeviation(char *bufferPtr);
 static void cmdEnableFrontendAmp(char *bufferPtr);
 static void cmdDisableFrontendAmp(char *bufferPtr);
 static void cmdSetTxIfGain(char *bufferPtr);
@@ -136,7 +136,8 @@ static const commandEntry commandTable[] =
   {"set","wbfmdemodgain",cmdSetWbFmDemodGain}, // set wbfmdemodgain gain
   {"set","ssbdemodgain",cmdSetSsbDemodGain},   // set ssbdemodgain gain
   {"set","ammodindex",cmdSetAmModIndex},     // set ammodindex modulationindex 
-  {"set","fmmodgain",cmdSetFmModGain},         // set fmmodgain gain
+  {"set","fmmoddeviation",cmdSetFmModDeviation},
+                                             // set fmmoddeviation deviation 
   {"enable","frontendamp",cmdEnableFrontendAmp}, // enable frontendamp
   {"disable","frontendamp",cmdDisableFrontendAmp}, // disable frontendamp
   {"set","txifgain",cmdSetTxIfGain},           // set txifgain gain
@@ -817,16 +818,16 @@ static void cmdSetAmModIndex(char *bufferPtr)
 
 /*****************************************************************************
 
-  Name: cmdSetFmDemodGain
+  Name: cmdSetFmModDeviation
 
   Purpose: The purpose of this function is to set the gain of the FM
   modulator in the system.
 
   The syntax for the corresponding command is the following:
 
-    "set fmmodgain gain"
+    "set fmmoddeviaton deviation"
 
-  Calling Sequence: cmdSetFmModGain(bufferPtr)
+  Calling Sequence: cmdSetFmModDeviation(bufferPtr)
 
   Inputs:
 
@@ -837,28 +838,28 @@ static void cmdSetAmModIndex(char *bufferPtr)
     None.
 
 *****************************************************************************/
-static void cmdSetFmModGain(char *bufferPtr)
+static void cmdSetFmModDeviation(char *bufferPtr)
 {
-  float gain;
+  float deviation;
 
   // Retrieve value
-  sscanf(bufferPtr,"%f",&gain);
+  sscanf(bufferPtr,"%f",&deviation);
 
-  if (gain >= 0)
+  if ((deviation > 0) && (deviation <= 3500))
   {
-    // Set the modulator gain.
-    diagUi_radioPtr->setFmModulatorGain(gain);
+    // Set the modulator deviation.
+    diagUi_radioPtr->setFmDeviation(deviation);
 
-    nprintf(stderr,"FM Modulator gain set to %f.\n",gain);
+    nprintf(stderr,"FM Modulator deviation set to %fHz.\n",deviation);
   } // if
   else
   {
-    nprintf(stderr,"Error: gain >= 0.\n");
+    nprintf(stderr,"Error: 0 < deviation <= 3500.\n");
   } // else
 
   return;
 
-} // cmdSetFmDemodGain
+} // cmdSetFmModDeviation
 
 /*****************************************************************************
 
@@ -1946,7 +1947,7 @@ static void cmdHelp(void)
   nprintf(stderr,"set wbfmdemodgain <gain>\n");
   nprintf(stderr,"set ssbdemodgain <gain>\n");
   nprintf(stderr,"set ammodindex <modulation index>\n");
-  nprintf(stderr,"set fmmodgain <gain>\n");
+  nprintf(stderr,"set fmmoddeviation <deviation in Hz>\n");
   nprintf(stderr,"enable frontendamp\n");
   nprintf(stderr,"disable frontendamp\n");
   nprintf(stderr,"set txifgain <gain in dB>\n");

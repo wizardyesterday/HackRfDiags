@@ -214,11 +214,11 @@ FmModulator::FmModulator(void)
                                              2);
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-  // Let's use something sane.
-  modulatorGain = 3.5;
+  // The frequency deviation must be less than Fs/2 (Fs = 8000S/s).
+  frequencyDeviation = 3500;
 
   // Set initial value of phase accumulator.
-  theta = 0;
+  phaseAccumulator = 0;
 
   return;
 
@@ -312,30 +312,34 @@ void FmModulator::resetModulator(void)
 
 /*****************************************************************************
 
-  Name: setModulatorGain
+  Name: setFrequencyDeviation
 
-  Purpose: The purpose of this function is to set the gain of the modulator.
+  Purpose: The purpose of this function is to set the frequency deviation
+  of the modulator.
 
-  Calling Sequence: setModulatorGain(gain)
+  Calling Sequence: setFrequencyDeviation(deviation)
 
   Inputs:
 
-    gain - The gain that is applied to the information signal which drives
-    the phase accumulator.
+    deviation - The maximum frequency deviation that the information
+    signal can cause.
 
   Outputs:
 
     None.
 
 *****************************************************************************/
-void FmModulator::setModulatorGain(float gain)
+void FmModulator::setFrequencyDeviation(float deviation)
 {
 
-  this->modulatorGain = gain;
+  if ((frequencyDeviation > 0) && (frequencyDeviation <= 3500))
+  {
+    this->frequencyDeviation = deviation;
+  } // if
 
   return;
 
-} // setModulatorGain
+} // setFrequencyDeviation
 
 /*****************************************************************************
 
@@ -533,20 +537,26 @@ uint32_t FmModulator::increaseSampleRate(int8_t *bufferPtr,
   Here's how things work.
 
     1. An incoming sample is scaled so that it is normalized to a value of
-    unity.  Let's call this the new theta.
+    unity.  Let's call this the phase increment.
 
-    2. The new theta value is multiplied by the modulator gain.
+    2. The phase increment is then multipled by the frequency deviation.
 
-    3. The new theta value is added to the phase accumulator.  Let's call
-    the phase accumulator value theta.
+    3. The phase increment (currently a frequency deviation) is divided
+    by the sampling frequency so that the frequency deviation is a
+    fractional value.
 
-    4. The value of theta is processed to ensure that -2*PI < theta < 2*Pi.
+    4. The phase increment is converted to radians.
 
-    5. The cosine of theta is stored in the in-phase component of the
-    output buffer.
+    3. The phase increment is added to the phase accumulator.
 
-    6. The sine of theta is stored in the quadrature component of the
-    output buffer.
+    4. The value of the phase accumulator is processed to ensure that
+    -PI < phase accumulator < Pi.
+
+    5. The cosine of the phase accumulator is stored in the in-phase
+    component of the output buffer.
+
+    6. The sine of the phase accumulator is stored in the quadrature
+    component of the output buffer.
 
   This results in a transmitted waveform that is frequency modulated by the
   information signal.
@@ -569,38 +579,43 @@ uint32_t FmModulator::modulateSignal(int16_t *bufferPtr,
                                      uint32_t bufferLength)
 {
   uint32_t i;
-  float thetaNew;
+  float phaseIncrement;
   float iSample, qSample;
 
   for (i = 0; i < bufferLength; i++)
   {
-    // Use these variables to make things easier.
-    thetaNew = (float)bufferPtr[i];
+    // Normalize to unity, since the input is 16-bit signed PCM.
+    phaseIncrement = (float)bufferPtr[i] / 32768;
 
-    // Normalize to unity.
-    thetaNew = thetaNew / 65536;
+   // Scale to the maximum frequency deviation.
+   phaseIncrement = phaseIncrement * frequencyDeviation;
 
-    // Scale the value by the modulator gain.
-    thetaNew *= modulatorGain;
+    // Normalize to the sample rate, and convert to radians.
+    phaseIncrement = phaseIncrement / 8000;
+    phaseIncrement = phaseIncrement * 2 * M_PI;
 
     // Update the phase accumulator.
-    theta = theta + thetaNew;
+    phaseAccumulator = phaseAccumulator + phaseIncrement;
 
-    while (theta > (2 * M_PI))
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Ensure that -PI < phaseAccumulator < PI.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    while (phaseAccumulator > M_PI)
     {
       // Wrap the accumulator.
-      theta -= (2 * M_PI);
+      phaseAccumulator-= (2 * M_PI);
     } // while
 
-    while (theta < (-(2 * M_PI)))
+    while (phaseAccumulator < (-M_PI))
     {
       // Wrap the accumulator.
-      theta += (2 * M_PI);
+      phaseAccumulator += (2 * M_PI);
     } // while
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     // Create I and Q signals.
-    iSample = cos(theta) * 16000;
-    qSample = sin(theta) * 16000;
+    iSample = cos(phaseAccumulator) * 16000;
+    qSample = sin(phaseAccumulator) * 16000;
 
     iModulatedData[i] = (int16_t)iSample;
     qModulatedData[i] = (int16_t)qSample;
@@ -635,8 +650,8 @@ void FmModulator::displayInternalInformation(void)
   nprintf(stderr,"FM Modulator Internal Information\n");
   nprintf(stderr,"--------------------------------------------\n");
 
-  nprintf(stderr,"Modulator Gain           : %f\n",modulatorGain);
-  nprintf(stderr,"Phase Accumulator:       : %f\n",theta);
+  nprintf(stderr,"Frequency Deviation:      : %f\n",frequencyDeviation);
+  nprintf(stderr,"Phase Accumulator         : %f\n",phaseAccumulator);
 
   return;
 

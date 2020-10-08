@@ -12,6 +12,15 @@ as the examples in some DSP books have liberally used.
 Note that the halfband filters didn't need to be modified since the passband
 and stopband ripples are equal in that case.
 Chris G. 10/26/2019
+
+The modulation function has been updated so that it more intuitive to use.
+Rather than using a modulator gain, the FM deviation is used.  A more way
+of computing the phase increment is now performed.  I didn't like variable 
+names like theta and newTheta.  Those terms have been replaced with
+phaseAccumulator and phaseIncrement.  Basically, the FM modulator is
+implemented with an NCO (numerically controlled oscillator), and I wanted
+this to be clear.
+Chris G. 09/30/2020 
 ******************************************************************************
 
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/

@@ -97,7 +97,7 @@ class Radio
   // Modulator support.
   void setModulatorMode(uint8_t mode);
   void setAmModulationIndex(float modulationIndex);
-  void setFmModulatorGain(float gain);
+  void setFmDeviation(float deviation);
 
   void displayInternalInformation(void);
 
