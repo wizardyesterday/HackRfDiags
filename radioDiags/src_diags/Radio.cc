@@ -1948,31 +1948,31 @@ void Radio::setAmModulationIndex(float modulationIndex)
 
 /*****************************************************************************
 
-  Name: setFmModulatorGain
+  Name: setFmDeviation
 
-  Purpose: The purpose of this function is to set the gain of the
-  FM modulator.
+  Purpose: The purpose of this function is to set the frequency deviation
+  of the FM modulator.
 
-  Calling Sequence: setFmModulatorGain(gain)
+  Calling Sequence: setFmDeviation(deviation)
 
   Inputs:
 
-    gain - The modulator gain.
+    deviation - The frequency deviation.
 
   Outputs:
 
     None.
 
 *****************************************************************************/
-void Radio::setFmModulatorGain(float gain)
+void Radio::setFmDeviation(float deviation)
 {
 
   // Notifier the FM demodulator to set its gain.
-  fmModulatorPtr->setModulatorGain(gain);
+  fmModulatorPtr->setFrequencyDeviation(deviation);
 
   return;
 
-} // setFmModulatorGain
+} // setFmDeviation
 
 /**************************************************************************
 
