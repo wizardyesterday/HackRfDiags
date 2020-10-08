@@ -3,7 +3,7 @@
 //**************************************************************************
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 // This class implements a signal processing block known as an FM
-// modulator.  This class has a configurable modulator gain.
+// modulator.
 ///_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 #ifndef __FMMODULATOR__
@@ -23,7 +23,7 @@ class FmModulator
   ~FmModulator(void);
 
   void resetModulator(void);
-  void setModulatorGain(float gain);
+  void setFrequencyDeviation(float deviaton);
 
   void acceptData(int16_t *bufferPtr,
                   uint32_t bufferLength,
@@ -43,11 +43,11 @@ class FmModulator
   //*******************************************************************
   // Attributes.
   //*******************************************************************
-  // This gain maps the phase accumulator to an information signal.
-  float modulatorGain;
+  // Allowable frequency deviation.
+  float frequencyDeviation;
 
   // Phase accumulator support.
-  float theta;
+  float phaseAccumulator;
 
   // This is the complex output data that is created by the modulator.
   int16_t iModulatedData[512];
