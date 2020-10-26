@@ -23,6 +23,7 @@
 
 #include "AmModulator.h"
 #include "FmModulator.h"
+#include "WbFmModulator.h"
 #include "SsbModulator.h"
 #include "BasebandDataProcessor.h"
 
@@ -98,6 +99,7 @@ class Radio
   void setModulatorMode(uint8_t mode);
   void setAmModulationIndex(float modulationIndex);
   void setFmDeviation(float deviation);
+  void setWbFmDeviation(float deviation);
 
   void displayInternalInformation(void);
 
@@ -177,6 +179,7 @@ class Radio
   // Modulator support.
   AmModulator *amModulatorPtr;
   FmModulator *fmModulatorPtr;
+  WbFmModulator *wbFmModulatorPtr;
   SsbModulator *ssbModulatorPtr;
 
   // Control information.

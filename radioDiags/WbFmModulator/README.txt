@@ -1,26 +1,8 @@
 ******************************************************************************
 This directory contains all of the files, build scripts, and Scilab filter
-design scripts for implementing an FM modulator.
+design scripts for implementing a wideband FM modulator.
 The file descriptions are listed below.	
-Chris G. 03/12/2018
-
-Filter coefficients have been updated in the Scilab files for the interpolator
-filters to increase the stopband attenuation.  I finally realized that the
-values of the weight vector, that is passed to the eqfir() function should
-have the reciprocal of the passband ripple and stopband ripple rather unity
-as the examples in some DSP books have liberally used.
-Note that the halfband filters didn't need to be modified since the passband
-and stopband ripples are equal in that case.
-Chris G. 10/26/2019
-
-The modulation function has been updated so that it more intuitive to use.
-Rather than using a modulator gain, the FM deviation is used.  A more way
-of computing the phase increment is now performed.  I didn't like variable 
-names like theta and newTheta.  Those terms have been replaced with
-phaseAccumulator and phaseIncrement.  Basically, the FM modulator is
-implemented with an NCO (numerically controlled oscillator), and I wanted
-this to be clear.
-Chris G. 09/30/2020 
+Chris G. 10/18/2020
 ******************************************************************************
 
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -90,20 +72,20 @@ interpolator filter.
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  Filter classes.
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/  /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-FmModulator.cc - The implementation fo the FM modulator.
-FmModulator.h - The interface of the FM modulator.
+WbFmModulator.cc - The implementation fo the wideband FM modulator.
+WbFmModulator.h - The interface of the wideband FM modulator.
 ******************************************************************************
 
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  Test applications.
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-fm.cc - A test app that validates the FM modulator.
+wbfm.cc - A test app that validates the wideband FM modulator.
 ******************************************************************************
 
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  Build scripts.
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-buildFm.sh - The build script for the FM modulator test app.
+buildWbFm.sh - The build script for the wideband FM modulator test app.
 ******************************************************************************
 
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/

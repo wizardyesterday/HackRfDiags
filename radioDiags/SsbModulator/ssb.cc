@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdarg.h>
 #include <ctype.h>
 
 #include "SsbModulator.h"
@@ -94,4 +95,46 @@ int main(int argc,char **argv)
   return (0);
 
 } // main
+
+/*****************************************************************************
+
+  Name: nprintf
+
+  Purpose: The purpose of this function is to start the command line
+  interpreter server.
+
+  Calling Sequence: nprint(s,formatPtr,arg1, arg2..)
+
+  Inputs:
+
+    s - A file pointer normally used by nprintf().  This is a dummy
+    argument.
+
+    formatPtr - A pointer to a printf()-style format string.
+
+    arg1,arg2,... - The arguments that are to be printed.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+void nprintf(FILE *s,const char *formatPtr, ...)
+{
+  char buffer[2048];
+  va_list args;
+
+  // set up for argument retrieval  
+  va_start(args,formatPtr);
+
+  // store the formated data to a string
+  vsprintf(buffer,formatPtr,args);
+
+  // we're done with the args
+  va_end(args);
+
+  // display the information to the user
+  fprintf(stderr,buffer);
+
+} // nprintf
 

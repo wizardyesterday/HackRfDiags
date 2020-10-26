@@ -3,7 +3,7 @@
 //**************************************************************************
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 // This class implements a signal processing block known as an FM
-// modulator.
+// modulator.  This class has a configurable FM deviation.
 ///_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 #ifndef __FMMODULATOR__

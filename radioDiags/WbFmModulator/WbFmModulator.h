@@ -1,32 +1,30 @@
 //**************************************************************************
-// file name: SsbModulator.h
+// file name: WbFmModulator.h
 //**************************************************************************
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// This class implements a signal processing block known as an SSB
-// modulator.  This class provides selection of LSB or USB modes.
+// This class implements a signal processing block known as a wideband FM
+// modulator.  This class has a configurable FM deviation.
 ///_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-#ifndef __SSBMODULATOR__
-#define __SSBMODULATOR__
+#ifndef __WBFMMODULATOR__
+#define __WBFMMODULATOR__
 
 #include <stdint.h>
 
-#include "FirFilter_int16.h"
 #include "Interpolator_int16.h"
 
-class SsbModulator
+class WbFmModulator
 {
   //***************************** operations **************************
 
   public:
 
-  SsbModulator(void);
-  ~SsbModulator(void);
+  WbFmModulator(void);
+  ~WbFmModulator(void);
 
   void resetModulator(void);
-  void setLsbModulationMode(void);
-  void setUsbModulationMode(void);
- 
+  void setFrequencyDeviation(float deviaton);
+
   void acceptData(int16_t *bufferPtr,
                   uint32_t bufferLength,
                   int8_t *outputBufferPtr,
@@ -39,35 +37,41 @@ class SsbModulator
   //*******************************************************************
   // Utility functions.
   //*******************************************************************
-  uint32_t increaseSampleRate(int8_t *bufferPtr,uint32_t bufferLength);
+  uint32_t increasePcmSampleRate(int16_t *bufferPtr,uint32_t bufferLength);
+  uint32_t increaseModulatedSampleRate(int8_t *bufferPtr,uint32_t bufferLength);
   uint32_t modulateSignal(int16_t *bufferPtr,uint32_t bufferLength);
 
   //*******************************************************************
   // Attributes.
   //*******************************************************************
-  // An indicator that LSB signals are to be demodulated.
-  bool lsbModulationMode;
+  // Allowable frequency deviation.
+  float frequencyDeviation;
+
+  // Phase accumulator support.
+  float phaseAccumulator;
+
+  // This is the interpolated PCM data presented to the modulator.
+  int16_t interpolatedPcmData[16384];
 
   // This is the complex output data that is created by the modulator.
-  int16_t iModulatedData[512];
-  int16_t qModulatedData[512];
+  int16_t iModulatedData[16384];
+  int16_t qModulatedData[16384];
+
+  // Sine and cosine lookup tables.
+  float Sin[16384];
+  float Cos[16384];
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Working buffers used for the interpolation process.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  int16_t iStage1Buffer[2];
-  int16_t iStage2Buffer[4];
-  int16_t iStage3Buffer[8];
-  int16_t iStage4Buffer[16];
-  int16_t iStage5Buffer[32];
+  int16_t stage1Buffer[2];
+  int16_t stage2Buffer[4];
+  int16_t stage3Buffer[8];
+  int16_t stage4Buffer[16];
+  int16_t stage5Buffer[32];
   int16_t iStage6Buffer[64];
   int16_t iStage7Buffer[128];
   int16_t iStage8Buffer[256];
-  int16_t qStage1Buffer[2];
-  int16_t qStage2Buffer[4];
-  int16_t qStage3Buffer[8];
-  int16_t qStage4Buffer[16];
-  int16_t qStage5Buffer[32];
   int16_t qStage6Buffer[64];
   int16_t qStage7Buffer[128];
   int16_t qStage8Buffer[256];
@@ -76,30 +80,17 @@ class SsbModulator
   // These interpolators are used to convert the sample rate from 8000S/s
   // to 2048000S/s.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  Interpolator_int16 *iInterpolator1Ptr;
-  Interpolator_int16 *iInterpolator2Ptr;
-  Interpolator_int16 *iInterpolator3Ptr;
-  Interpolator_int16 *iInterpolator4Ptr;
-  Interpolator_int16 *iInterpolator5Ptr;
+  Interpolator_int16 *interpolator1Ptr;
+  Interpolator_int16 *interpolator2Ptr;
+  Interpolator_int16 *interpolator3Ptr;
+  Interpolator_int16 *interpolator4Ptr;
+  Interpolator_int16 *interpolator5Ptr;
   Interpolator_int16 *iInterpolator6Ptr;
   Interpolator_int16 *iInterpolator7Ptr;
   Interpolator_int16 *iInterpolator8Ptr;
-  Interpolator_int16 *qInterpolator1Ptr;
-  Interpolator_int16 *qInterpolator2Ptr;
-  Interpolator_int16 *qInterpolator3Ptr;
-  Interpolator_int16 *qInterpolator4Ptr;
-  Interpolator_int16 *qInterpolator5Ptr;
   Interpolator_int16 *qInterpolator6Ptr;
   Interpolator_int16 *qInterpolator7Ptr;
   Interpolator_int16 *qInterpolator8Ptr;
-
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // The second filter performs a Hilbert transform operation, and the
-  // first filter performs a delay line function that is used to compensate
-  // for the group delay of the Hilbert transformer.
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  FirFilter_int16 *delayLinePtr;
-  FirFilter_int16 *phaseShifterPtr;
 };
 
-#endif // __SSBMODULATOR__
+#endif // __WBFMMODULATOR__

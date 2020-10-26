@@ -441,7 +441,7 @@ void SsbModulator::setUsbModulationMode(void)
 
     bufferPtr - A pointer to data to be modulated.
 
-    bufferLength - The number of bytes contained in the buffer that is
+    bufferLength - The number of samples contained in the buffer that is
     in the buffer.
 
   Outputs:
@@ -475,8 +475,12 @@ void SsbModulator::acceptData(int16_t *bufferPtr,
 
   Purpose: The purpose of this function is to accept modulated IQ data
   and interpolate the data by a factor of 256.  The interpolated data will
-  be stored 
-  in the iData[] and qData[] arrays.
+  be stored in the iData[] and qData[] arrays.
+
+  Note that the modulator scales the sample values appropriately so that
+  after interpolation, the sample values will like in the range of -128
+  to 127 inclusive.  This avoids overflows when type casting the
+  interpolated result to an 8-bit signed quantity.
 
   Calling Sequence: sampleCount increaseSampleRate(bufferPtr,bufferLength)
 
@@ -612,7 +616,7 @@ uint32_t SsbModulator::increaseSampleRate(int8_t *bufferPtr,
 
   return (sampleCount);
 
-} // reduceSampleRate
+} // increaseSampleRate
 
 /*****************************************************************************
 
@@ -672,7 +676,13 @@ uint32_t SsbModulator::modulateSignal(int16_t *bufferPtr,
     // Use these variables to make things easier.
     scaledSample = (float)bufferPtr[i];
 
-    // Scale this to avoid overflow.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Scale this to avoid overflow.  Note
+    // the sample will be interpolated by a
+    // factor of 256, hence the sample values
+    // will further be reduced by a factor
+    // of 256.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     scaledSample /= 4;
 
     // Delay in-phase component.

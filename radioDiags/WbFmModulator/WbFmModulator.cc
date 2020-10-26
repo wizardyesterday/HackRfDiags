@@ -1,12 +1,12 @@
 //************************************************************************
-// file name: FmModulator.cc
+// file name: WbFmModulator.cc
 //************************************************************************
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
 
-#include "FmModulator.h"
+#include "WbFmModulator.h"
 
 using namespace std;
 
@@ -126,12 +126,12 @@ extern void nprintf(FILE *s,const char *formatPtr, ...);
 
 /*****************************************************************************
 
-  Name: FmModulator
+  Name: WbFmModulator
 
   Purpose: The purpose of this function is to serve as the contructor for
-  an instance of an FmModulator.
+  an instance of an WbFmModulator.
 
-  Calling Sequence: FmModulator()
+  Calling Sequence: WbFmModulator()
 
   Inputs:
 
@@ -142,10 +142,12 @@ extern void nprintf(FILE *s,const char *formatPtr, ...);
     None.
 
 *****************************************************************************/
-FmModulator::FmModulator(void)
+WbFmModulator::WbFmModulator(void)
 {
   int filter1Length, filter2Length, filter3Length, filter4Length;
   int filter5Length, filter6Length, filter7Length, filter8Length;
+  int i;
+  float phaseAngle;
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Compute the number of taps in the prototype filter.
@@ -164,19 +166,19 @@ FmModulator::FmModulator(void)
   // to 2048000S/s.  The first stage uses a conventional FIR filter,
   // whereas, the remaining stages are realized with half band FIR filters.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  iInterpolator1Ptr = new Interpolator_int16(filter1Length,
+  interpolator1Ptr = new Interpolator_int16(filter1Length,
                                              interpolator1Coefficients,
                                              2);
-  iInterpolator2Ptr = new Interpolator_int16(filter2Length,
+  interpolator2Ptr = new Interpolator_int16(filter2Length,
                                              interpolator2Coefficients,
                                              2);
-  iInterpolator3Ptr = new Interpolator_int16(filter3Length,
+  interpolator3Ptr = new Interpolator_int16(filter3Length,
                                              interpolator3Coefficients,
                                              2);
-  iInterpolator4Ptr = new Interpolator_int16(filter4Length,
+  interpolator4Ptr = new Interpolator_int16(filter4Length,
                                              interpolator4Coefficients,
                                              2);
-  iInterpolator5Ptr = new Interpolator_int16(filter5Length,
+  interpolator5Ptr = new Interpolator_int16(filter5Length,
                                              interpolator5Coefficients,
                                              2);
   iInterpolator6Ptr = new Interpolator_int16(filter6Length,
@@ -187,21 +189,6 @@ FmModulator::FmModulator(void)
                                              2);
   iInterpolator8Ptr = new Interpolator_int16(filter8Length,
                                              interpolator8Coefficients,
-                                             2);
-  qInterpolator1Ptr = new Interpolator_int16(filter1Length,
-                                             interpolator1Coefficients,
-                                             2);
-  qInterpolator2Ptr = new Interpolator_int16(filter2Length,
-                                             interpolator2Coefficients,
-                                             2);
-  qInterpolator3Ptr = new Interpolator_int16(filter3Length,
-                                             interpolator3Coefficients,
-                                            2);
-  qInterpolator4Ptr = new Interpolator_int16(filter4Length,
-                                             interpolator4Coefficients,
-                                             2);
-  qInterpolator5Ptr = new Interpolator_int16(filter5Length,
-                                             interpolator5Coefficients,
                                              2);
   qInterpolator6Ptr = new Interpolator_int16(filter6Length,
                                              interpolator6Coefficients,
@@ -214,24 +201,33 @@ FmModulator::FmModulator(void)
                                              2);
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-  // The frequency deviation must be less than Fs/2 (Fs = 8000S/s).
-  frequencyDeviation = 3500;
+  // The frequency deviation must be less than Fs/2 (Fs = 256000S/s).
+  frequencyDeviation = 70000;
 
   // Set initial value of phase accumulator.
   phaseAccumulator = 0;
 
+  for (i = 0; i < 16384; i++)
+  {
+    phaseAngle = (float)i * 2 * M_PI / 16384;
+
+    // Construct sine and cosine tables.
+    Sin[i] = sin(phaseAngle);
+    Cos[i] = cos(phaseAngle);
+  } // for
+
   return;
 
-} // FmModulator
+} // WbFmModulator
 
 /*****************************************************************************
 
-  Name: ~FmModulator
+  Name: ~WbFmModulator
 
   Purpose: The purpose of this function is to serve as the destructor for
-  an instance of an FmModulator.
+  an instance of an WbFmModulator.
 
-  Calling Sequence: ~FmModulator()
+  Calling Sequence: ~WbFmModulator()
 
   Inputs:
 
@@ -242,30 +238,25 @@ FmModulator::FmModulator(void)
     None.
 
 *****************************************************************************/
-FmModulator::~FmModulator(void)
+WbFmModulator::~WbFmModulator(void)
 {
 
   // Release resources.
-  delete iInterpolator1Ptr;
-  delete iInterpolator2Ptr;
-  delete iInterpolator3Ptr;
-  delete iInterpolator4Ptr;
-  delete iInterpolator5Ptr;
+  delete interpolator1Ptr;
+  delete interpolator2Ptr;
+  delete interpolator3Ptr;
+  delete interpolator4Ptr;
+  delete interpolator5Ptr;
   delete iInterpolator6Ptr;
   delete iInterpolator7Ptr;
   delete iInterpolator8Ptr;
-  delete qInterpolator1Ptr;
-  delete qInterpolator2Ptr;
-  delete qInterpolator3Ptr;
-  delete qInterpolator4Ptr;
-  delete qInterpolator5Ptr;
   delete qInterpolator6Ptr;
   delete qInterpolator7Ptr;
   delete qInterpolator8Ptr;
 
   return;
 
-} // ~FmModulator
+} // ~WbFmModulator
 
 /*****************************************************************************
 
@@ -285,23 +276,18 @@ FmModulator::~FmModulator(void)
     None.
 
 *****************************************************************************/
-void FmModulator::resetModulator(void)
+void WbFmModulator::resetModulator(void)
 {
 
   // Reset all filter structures to their initial conditions.
-  iInterpolator1Ptr->resetFilterState();
-  iInterpolator2Ptr->resetFilterState();
-  iInterpolator3Ptr->resetFilterState();
-  iInterpolator4Ptr->resetFilterState();
-  iInterpolator5Ptr->resetFilterState();
+  interpolator1Ptr->resetFilterState();
+  interpolator2Ptr->resetFilterState();
+  interpolator3Ptr->resetFilterState();
+  interpolator4Ptr->resetFilterState();
+  interpolator5Ptr->resetFilterState();
   iInterpolator6Ptr->resetFilterState();
   iInterpolator7Ptr->resetFilterState();
   iInterpolator8Ptr->resetFilterState();
-  qInterpolator1Ptr->resetFilterState();
-  qInterpolator2Ptr->resetFilterState();
-  qInterpolator3Ptr->resetFilterState();
-  qInterpolator4Ptr->resetFilterState();
-  qInterpolator5Ptr->resetFilterState();
   qInterpolator6Ptr->resetFilterState();
   qInterpolator7Ptr->resetFilterState();
   qInterpolator8Ptr->resetFilterState();
@@ -329,10 +315,10 @@ void FmModulator::resetModulator(void)
     None.
 
 *****************************************************************************/
-void FmModulator::setFrequencyDeviation(float deviation)
+void WbFmModulator::setFrequencyDeviation(float deviation)
 {
 
-  if ((frequencyDeviation >= 0) && (frequencyDeviation <= 3500))
+  if ((frequencyDeviation >= 0) && (frequencyDeviation <= 112000))
   {
     this->frequencyDeviation = deviation;
   } // if
@@ -366,18 +352,21 @@ void FmModulator::setFrequencyDeviation(float deviation)
    that is referenced by outputBufferPtr.  The units are in bytes.
 
 *****************************************************************************/
-void FmModulator::acceptData(int16_t *bufferPtr,
-                             uint32_t bufferLength,
-                             int8_t *outputBufferPtr,
-                             uint32_t *outputBufferLengthPtr)
+void WbFmModulator::acceptData(int16_t *bufferPtr,
+                               uint32_t bufferLength,
+                               int8_t *outputBufferPtr,
+                               uint32_t *outputBufferLengthPtr)
 {
   uint32_t sampleCount;
 
+  // Increase the PCM data rate to match the modulator data rate.
+  sampleCount = increasePcmSampleRate(bufferPtr,bufferLength);
+
   // Modulate the signal.
-  sampleCount = modulateSignal(bufferPtr,bufferLength);
+  sampleCount = modulateSignal(interpolatedPcmData,sampleCount);
 
   // Interpolate the modulated signal to the system sample rate.
-  *outputBufferLengthPtr = increaseSampleRate(outputBufferPtr,sampleCount);
+  *outputBufferLengthPtr = increaseModulatedSampleRate(outputBufferPtr,sampleCount);
 
   return;
 
@@ -385,16 +374,11 @@ void FmModulator::acceptData(int16_t *bufferPtr,
 
 /*****************************************************************************
 
-  Name: increaseSampleRate
+  Name: increasePcmSampleRate
 
-  Purpose: The purpose of this function is to accept modulated IQ data
-  and interpolate the data by a factor of 256.  The interpolated data will
-  be stored in the iData[] and qData[] arrays.
-
-  Note that the modulator scales the sample values appropriately so that
-  after interpolation, the sample values will like in the range of -128
-  to 127 inclusive.  This avoids overflows when type casting the
-  interpolated result to an 8-bit signed quantity.
+  Purpose: The purpose of this function is to accept PCM data
+  and interpolate the data by a factor of 32.  The interpolated data will
+  be stored in the interpolatedPcmData[].
 
   Calling Sequence: sampleCount increaseSampleRate(bufferPtr,bufferLength)
 
@@ -410,61 +394,113 @@ void FmModulator::acceptData(int16_t *bufferPtr,
     arrays.
 
 *****************************************************************************/
-uint32_t FmModulator::increaseSampleRate(int8_t *bufferPtr,
-                                         uint32_t bufferLength)
+uint32_t WbFmModulator::increasePcmSampleRate(int16_t *bufferPtr,
+                                              uint32_t bufferLength)
+{
+  uint32_t i, j;
+  uint32_t sampleCount;
+  int16_t *interpolatedPcmPtr;
+
+  // Reference the beginning of the output buffer.
+  interpolatedPcmPtr = interpolatedPcmData;
+
+  // Set return value do indicate an interpolation factor of 32.
+  sampleCount = bufferLength * 32;
+
+  for (j = 0; j < bufferLength; j++)
+  {
+    // Perform the first stage of interpolation (1:2).
+    interpolator1Ptr->interpolate(bufferPtr[j],stage1Buffer);
+
+    // Perform the second stage of interpolation (cascade: 1:4).
+    for (i = 0; i < 2; i++)
+    {
+      interpolator2Ptr->interpolate(stage1Buffer[i],&stage2Buffer[i * 2]);
+    } // for
+
+    // Perform the third stage of interpolation (cascade: 1:8).
+    for (i = 0; i < 4; i++)
+    {
+      interpolator3Ptr->interpolate(stage2Buffer[i],&stage3Buffer[i * 2]);
+    } // for
+
+    // Perform the fourth stage of interpolation (cascade: 1:16).
+    for (i = 0; i < 8; i++)
+    {
+      interpolator4Ptr->interpolate(stage3Buffer[i],&stage4Buffer[i * 2]);
+    } // for
+
+    // Perform the fifth stage of interpolation (cascade: 1:32).
+    for (i = 0; i < 16; i++)
+    {
+      interpolator5Ptr->interpolate(stage4Buffer[i],&stage5Buffer[i * 2]);
+    } // for
+
+    // Construct the output buffer.
+    for (i = 0; i < 32; i++)
+    {
+      // Save the interpolated data to the output buffer.
+      *interpolatedPcmPtr++ = stage5Buffer[i];
+    } // for
+  } // for
+
+  return (sampleCount);
+
+} // increasePcmSampleRate
+
+/*****************************************************************************
+
+  Name: increaseModulatedSampleRate
+
+  Purpose: The purpose of this function is to accept modulated IQ data
+  and interpolate the data by a factor of 8.  The interpolated data will
+  be stored in the iData[] and qData[] arrays.
+
+  Note that the modulator scales the sample values appropriately so that
+  after interpolation, the sample values will like in the range of -128
+  to 127 inclusive.  This avoids overflows when type casting the
+  interpolated result to an 8-bit signed quantity.
+
+  Calling Sequence: sampleCount increaseModulatedSampleRate(bufferPtr,
+                                                            bufferLength)
+
+  Inputs:
+
+    bufferPtr - A pointer to the interpolated output data.
+
+    bufferLength - The number of bytes contained in the buffer.
+
+  Outputs:
+
+    sampleCount - The number of samples stored in the iData[] and qData[]
+    arrays.
+
+*****************************************************************************/
+uint32_t WbFmModulator::increaseModulatedSampleRate(int8_t *bufferPtr,
+                                                    uint32_t bufferLength)
 {
   uint32_t i, j;
   uint32_t sampleCount;
 
-  // Set return value do indicate an interpolation factor of 256.
-  sampleCount = bufferLength << 9;
+  // Set return value do indicate an interpolation factor of 8.
+  sampleCount = bufferLength << 4;
 
   for (j = 0; j < bufferLength; j++)
   {
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     // Interpolate the in-phase samples.
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Perform the first stage of interpolation (1:2).
-    iInterpolator1Ptr->interpolate(iModulatedData[j],iStage1Buffer);
+    // Perform the sixth stage of interpolation (1:2).
+    iInterpolator6Ptr->interpolate(iModulatedData[j],iStage6Buffer);
 
-    // Perform the second stage of interpolation (cascade: 1:4).
+    // Perform the seventh stage of interpolation (cascade: 1:4).
     for (i = 0; i < 2; i++)
-    {
-      iInterpolator2Ptr->interpolate(iStage1Buffer[i],&iStage2Buffer[i * 2]);
-    } // for
-
-    // Perform the third stage of interpolation (cascade: 1:8).
-    for (i = 0; i < 4; i++)
-    {
-      iInterpolator3Ptr->interpolate(iStage2Buffer[i],&iStage3Buffer[i * 2]);
-    } // for
-
-    // Perform the fourth stage of interpolation (cascade: 1:16).
-    for (i = 0; i < 8; i++)
-    {
-      iInterpolator4Ptr->interpolate(iStage3Buffer[i],&iStage4Buffer[i * 2]);
-    } // for
-
-    // Perform the fifth stage of interpolation (cascade: 1:32).
-    for (i = 0; i < 16; i++)
-    {
-      iInterpolator5Ptr->interpolate(iStage4Buffer[i],&iStage5Buffer[i * 2]);
-    } // for
-
-    // Perform the sixth stage of interpolation (cascade: 1:64).
-    for (i = 0; i < 32; i++)
-    {
-      iInterpolator6Ptr->interpolate(iStage5Buffer[i],&iStage6Buffer[i * 2]);
-    } // for
-
-    // Perform the seventh stage of interpolation (cascade: 1:128).
-    for (i = 0; i < 64; i++)
     {
       iInterpolator7Ptr->interpolate(iStage6Buffer[i],&iStage7Buffer[i * 2]);
     } // for
 
-    // Perform the eighth stage of interpolation (cascade: 1:256).
-    for (i = 0; i < 128; i++)
+    // Perform the eighth stage of interpolation (cascade: 1:8).
+    for (i = 0; i < 4; i++)
     {
       iInterpolator8Ptr->interpolate(iStage7Buffer[i],&iStage8Buffer[i * 2]);
     } // for
@@ -473,54 +509,24 @@ uint32_t FmModulator::increaseSampleRate(int8_t *bufferPtr,
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     // Interpolate the quadrature samples.
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Perform the first stage of interpolation (now at 1:2).
-    qInterpolator1Ptr->interpolate(qModulatedData[j],qStage1Buffer);
+    // Perform the sixth stage of interpolation (now at 1:2).
+    qInterpolator6Ptr->interpolate(qModulatedData[j],qStage6Buffer);
 
-    // Perform the second stage of interpolation (cascade: 1:4).
+    // Perform the seventh stage of interpolation (cascade: 1:4).
     for (i = 0; i < 2; i++)
-    {
-      qInterpolator2Ptr->interpolate(qStage1Buffer[i],&qStage2Buffer[i * 2]);
-    } // for
-
-    // Perform the third stage of interpolation (cascade: 1:8).
-    for (i = 0; i < 4; i++)
-    {
-      qInterpolator3Ptr->interpolate(qStage2Buffer[i],&qStage3Buffer[i * 2]);
-    } // for
-
-    // Perform the fourth stage of interpolation (cascade: 1:16).
-    for (i = 0; i < 8; i++)
-    {
-      qInterpolator4Ptr->interpolate(qStage3Buffer[i],&qStage4Buffer[i * 2]);
-    } // for
-
-    // Perform the fifth stage of interpolation (cascade: 1:32).
-    for (i = 0; i < 16; i++)
-    {
-      qInterpolator5Ptr->interpolate(qStage4Buffer[i],&qStage5Buffer[i * 2]);
-    } // for
-
-    // Perform the sixth stage of interpolation (cascade: 1:64).
-    for (i = 0; i < 32; i++)
-    {
-      qInterpolator6Ptr->interpolate(qStage5Buffer[i],&qStage6Buffer[i * 2]);
-    } // for
-
-    // Perform the seventh stage of interpolation (cascade: 1:128).
-    for (i = 0; i < 64; i++)
     {
       qInterpolator7Ptr->interpolate(qStage6Buffer[i],&qStage7Buffer[i * 2]);
     } // for
 
-    // Perform the eighth stage of interpolation (cascade: 1:256).
-    for (i = 0; i < 128; i++)
+    // Perform the eighth stage of interpolation (cascade: 1:8).
+    for (i = 0; i < 4; i++)
     {
       qInterpolator8Ptr->interpolate(qStage7Buffer[i],&qStage8Buffer[i * 2]);
     } // for
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     // Construct the output buffer.
-    for (i = 0; i < 256; i++)
+    for (i = 0; i < 8; i++)
     {
       // Save the interpolated data to the output buffer.
       *bufferPtr++ = (int8_t)iStage8Buffer[i];
@@ -530,7 +536,7 @@ uint32_t FmModulator::increaseSampleRate(int8_t *bufferPtr,
 
   return (sampleCount);
 
-} // increaseSampleRate
+} // increaseModulatedSampleRate
 
 /*****************************************************************************
 
@@ -565,6 +571,9 @@ uint32_t FmModulator::increaseSampleRate(int8_t *bufferPtr,
   This results in a transmitted waveform that is frequency modulated by the
   information signal.
 
+  Note that a lookup table approach is used for computation of the sin()
+  and cos() functions to ease the processing load.
+
   Calling Sequence: sampleCount = modulateSignal(bufferPtr,bufferLength)
 
   Inputs:
@@ -579,23 +588,39 @@ uint32_t FmModulator::increaseSampleRate(int8_t *bufferPtr,
     qModulatedData[] arrays.
 
 *****************************************************************************/
-uint32_t FmModulator::modulateSignal(int16_t *bufferPtr,
-                                     uint32_t bufferLength)
+uint32_t WbFmModulator::modulateSignal(int16_t *bufferPtr,
+                                       uint32_t bufferLength)
 {
   uint32_t i;
   float phaseIncrement;
   float iSample, qSample;
+  int phaseTableIndex;
 
   for (i = 0; i < bufferLength; i++)
   {
-    // Normalize to unity, since the input is 16-bit signed PCM.
-    phaseIncrement = (float)bufferPtr[i] / 32768;
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Normalize to unity  Note that the PCM
+    // samples are represented as 16-bit signed
+    // integers.  The sample rate has been
+    // interpolalted by a factor of 32 so that
+    // the interpolated PCM samples lie in the
+    // range of (-32768 / 32) to (32767 / 32),
+    // or -1024 to to 1023.  I've noticed that
+    // some of the iterpolated PCM samples
+    // have peak magnitudes of a little over
+    // 1200.  To be safe, I'm dividing by 1500
+    // to avoid overdeviating.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    phaseIncrement = (float)bufferPtr[i] / 1500;
 
-   // Scale to the maximum frequency deviation.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Scale to the maximum frequency deviation.
+    // Note that the sample rate is 256000S/s.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
    phaseIncrement = phaseIncrement * frequencyDeviation;
 
     // Normalize to the sample rate, and convert to radians.
-    phaseIncrement = phaseIncrement / 8000;
+    phaseIncrement = phaseIncrement / 256000;
     phaseIncrement = phaseIncrement * 2 * M_PI;
 
     // Update the phase accumulator.
@@ -617,19 +642,44 @@ uint32_t FmModulator::modulateSignal(int16_t *bufferPtr,
     } // while
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Scale this to avoid overflow.  Note
-    // the sample will be interpolated by a
-    // factor of 256, hence the sample values
-    // will further be reduced by a factor
-    // of 256.
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Create I and Q signals.
-    iSample = cos(phaseAccumulator) * 16000;
-    qSample = sin(phaseAccumulator) * 16000;
+    // Map the phase to a table index.
+    phaseTableIndex = (int16_t)(roundf(phaseAccumulator) * 16384 / (2 * M_PI));
+    phaseTableIndex += 8192;
 
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Ensure that roundoff error doesn't take
+    // the index out of bounds.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    if (phaseTableIndex < 0)
+    {
+      phaseTableIndex = 0;
+    } // if
+
+    if (phaseTableIndex > 16383)
+    {
+      phaseTableIndex = 16383;
+    } // if
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Since, the modulated data will be
+    // interpolated by a factor of 8, and due
+    // to the fact that the samples lie in the
+    // range between -128 to 127 inclusive, the
+    // samples could be scalled from unity to
+    // 1024 to account for the interpolation
+    // factor.  Let's be on the safe side and
+    // scale the samples by a little less than
+    // 1024.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Create I and Q signals.
+    iSample = Cos[phaseTableIndex] * 900;
+    qSample = Sin[phaseTableIndex] * 900;
+
+    // Map from float to integer.
     iModulatedData[i] = (int16_t)iSample;
     qModulatedData[i] = (int16_t)qSample;
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   } // for
 
   return (i);
@@ -654,11 +704,11 @@ uint32_t FmModulator::modulateSignal(int16_t *bufferPtr,
     None.
 
 **************************************************************************/
-void FmModulator::displayInternalInformation(void)
+void WbFmModulator::displayInternalInformation(void)
 {
 
   nprintf(stderr,"\n--------------------------------------------\n");
-  nprintf(stderr,"FM Modulator Internal Information\n");
+  nprintf(stderr,"Wideband FM Modulator Internal Information\n");
   nprintf(stderr,"--------------------------------------------\n");
 
   nprintf(stderr,"Frequency Deviation:      : %fHz\n",frequencyDeviation);
@@ -667,5 +717,4 @@ void FmModulator::displayInternalInformation(void)
   return;
 
 } // displayInternalInformation
-
 

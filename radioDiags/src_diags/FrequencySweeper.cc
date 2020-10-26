@@ -91,10 +91,10 @@ FrequencySweeper::FrequencySweeper(Radio *radioPtr,
 FrequencySweeper::~FrequencySweeper(void)
 {
 
-  // Notify the transmit thread to terminate.
+  // Notify the sweeper thread to terminate.
   timeToExit = true;
 
-  // We're done ... wait for the transmit thread to terminate.
+  // We're done ... wait for the sweeper thread to terminate.
   pthread_join(sweepThread,0);
 
   return;
@@ -202,7 +202,7 @@ void FrequencySweeper::sweepProcedure(void *arg)
   currentFrequency = thisPtr->startFrequencyInHertz;
 
   // Select initial frequency.
-  outcome = thisPtr->radioPtr->setTransmitFrequency(currentFrequency);
+  outcome = thisPtr->radioPtr->setReceiveFrequency(currentFrequency);
 
   // Indicate that the system is sweeping.
   thisPtr->sweepState = Sweeping;

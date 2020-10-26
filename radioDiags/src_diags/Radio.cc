@@ -143,6 +143,12 @@ Radio::Radio(uint32_t txSampleRate,uint32_t rxSampleRate)
       // Associate the FM modulator with the baseband data processor.
       transmitBasebandDataProcessorPtr->setFmModulator(fmModulatorPtr);
 
+      // Instantiate the wideband FM modulator.
+      wbFmModulatorPtr = new WbFmModulator();
+
+      // Associate the wideband FM modulator with the baseband data processor.
+      transmitBasebandDataProcessorPtr->setWbFmModulator(wbFmModulatorPtr);
+
       // Instantiate the SSB modulator.
       ssbModulatorPtr = new SsbModulator();
 
@@ -249,6 +255,11 @@ Radio::~Radio(void)
   if (fmModulatorPtr != 0)
   {
     delete fmModulatorPtr;
+  } // if
+
+  if (wbFmModulatorPtr != 0)
+  {
+    delete wbFmModulatorPtr;
   } // if
 
   if (ssbModulatorPtr != 0)
@@ -1974,6 +1985,34 @@ void Radio::setFmDeviation(float deviation)
 
 } // setFmDeviation
 
+/*****************************************************************************
+
+  Name: setWbFmDeviation
+
+  Purpose: The purpose of this function is to set the frequency deviation
+  of the wideband FM modulator.
+
+  Calling Sequence: setWbFmDeviation(deviation)
+
+  Inputs:
+
+    deviation - The frequency deviation.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+void Radio::setWbFmDeviation(float deviation)
+{
+
+  // Notifier the FM demodulator to set its gain.
+  wbFmModulatorPtr->setFrequencyDeviation(deviation);
+
+  return;
+
+} // setWbFmDeviation
+
 /**************************************************************************
 
   Name: displayInternalInformation
@@ -2113,6 +2152,9 @@ void Radio::displayInternalInformation(void)
   // Display FM modulator information to the user.
   fmModulatorPtr->displayInternalInformation();
 
+  // Display wideband FM modulator information to the user.
+  wbFmModulatorPtr->displayInternalInformation();
+
   // Display SSB modulator information to the user.
   ssbModulatorPtr->displayInternalInformation();
 
@@ -2216,7 +2258,7 @@ int Radio::transmitCallbackProcedure(hackrf_transfer *transferPtr)
     {
       case File: // Information source originated from a file.
       {
-        // Retrieve IQ data from the data [tpbofrt system.
+        // Retrieve IQ data from the data provider system.
         mePtr->dataProviderPtr->getIqData(bufferPtr,transferPtr->valid_length);
         break;
       } // case
