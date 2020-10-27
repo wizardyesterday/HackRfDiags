@@ -84,6 +84,9 @@ BasebandDataProcessor::BasebandDataProcessor(void)
   pcmBlocksDropped = 0;
   pcmBlocksAdded = 0;
 
+  // Initialize weiter lock.
+  pthread_mutex_init(&writerLock,0);
+
   return; 
 
 } // BasebandDataProcessor
@@ -111,6 +114,9 @@ BasebandDataProcessor::~BasebandDataProcessor()
 
   // Stop the baseband reader.
   stop();
+
+  // Destroy writer lock.
+  pthread_mutex_destroy(&writerLock);
 
   return; 
 
@@ -390,6 +396,12 @@ void BasebandDataProcessor::getIqData(int8_t *bufferPtr,int32_t byteCount)
   buffer from the ring and advance the ring index.  This method is used
   by the modulation method.
 
+  Note that since the increment of the pcmWriterIndex is not atotomic, due
+  to the fact that it is an increment followed by a modulo operation,
+  access to this variable is protected to avoid race conditions.  For
+  example, after the increment of pcmWriterIndex, before the modulo
+  operation, it would index past the bounds of the ring buffer.
+
   Calling Sequence: bufferPtr = getNextUnfilledBuffer()
 
   Inputs:
@@ -405,9 +417,21 @@ int16_t * BasebandDataProcessor::getNextUnfilledBuffer(void)
 {
   int16_t *bufferPtr;
 
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Since the increment is not atomic, this code
+  // segment needs to be locked since the reader
+  // thread accesses the pcmWriterIndex.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Acquire the writer lock.
+  pthread_mutex_lock(&writerLock);
+
   // Increment in a modulo manner.
   pcmWriterIndex++;
   pcmWriterIndex %= PCM_RING_SIZE;
+
+  // Release the writer lock.
+  pthread_mutex_unlock(&writerLock);
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
    // Retrieve the buffer.
   bufferPtr = pcmBufferRing[pcmWriterIndex];
@@ -438,6 +462,12 @@ int16_t * BasebandDataProcessor::getNextUnfilledBuffer(void)
   in order to compensate for the rate mismatch.  This prevents PCM data
   overruns or underruns.
 
+  Note that since the increment of the pcmWriterIndex is not atotomic, due
+  to the fact that it is an increment followed by a modulo operation,
+  access to this variable is protected to avoid race conditions.  For
+  example, after the increment of pcmWriterIndex, before the modulo
+  operation, it would index past the bounds of the ring buffer.
+
   Calling Sequence: bufferPtr = getNextFilledBuffer()
 
   Inputs:
@@ -458,8 +488,24 @@ int16_t * BasebandDataProcessor::getNextFilledBuffer(void)
   int32_t lag;
   int32_t decrementerIndex;
 
-  // Grab these right away.
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Since the increment of pcmWriterIndex is not
+  // atomic, this code segment needs to be locked
+  // since the reader thread accesses the
+  // pcmWriterIndex.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Acquire the writer lock.
+  pthread_mutex_lock(&writerLock);
+
+  // Grab upper limit for the lag calculation.
   u = (int32_t)pcmWriterIndex;
+
+  // Release the writer lock.
+  pthread_mutex_unlock(&writerLock);
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+  // Grab the lower limit for the lag calculation.
   l = (int32_t)pcmReaderIndex;
 
   if (u < l)
@@ -521,8 +567,21 @@ int16_t * BasebandDataProcessor::getNextFilledBuffer(void)
       // Transition since we only want to synchronize once.
       synchronized = true;
 
+      //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+      // Since the increment of pcmWriterIndex is not
+      // atomic, this code segment needs to be locked
+      // since the reader thread accesses the
+      // pcmWriterIndex.
+      //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+      // Acquire the writer lock.
+      pthread_mutex_lock(&writerLock);
+
       // Synchronize the reader index to the writer index.
       pcmReaderIndex = pcmReaderStartIndexTable[pcmWriterIndex];
+
+      // Release the writer lock.
+      pthread_mutex_unlock(&writerLock);
+      //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     } // if
 
     // Retrieve the buffer.

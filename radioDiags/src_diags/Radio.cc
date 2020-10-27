@@ -307,13 +307,13 @@ bool Radio::setupReceiver(void)
   receiveEnabled = false;
 
   // Default to 2.048MS/s.
-  success = !setReceiveSampleRate(2048000);
+  success = !setSampleRate(2048000);
 
   // Default to 100MHz.
-  success = success || !setReceiveFrequency(100000000);
+  success = success || !setFrequency(100000000);
 
   // Use a receive filter bandwidth of 1.75MHz
-  success = success || !setReceiveBandwidth(1750000);
+  success = success || !setBandwidth(1750000);
 
   // Disable the front end amplifier.
   success = success || !disableFrontEndAmplifier();
@@ -805,6 +805,204 @@ void Radio::stopLiveStream(void)
 
 /**************************************************************************
 
+  Name: setFrequency
+
+  Purpose: The purpose of this function is to set the operating frequency
+  of the system.
+
+  Calling Sequence: success = setFrequency(frequency)
+
+  Inputs:
+
+    frequency - The receiver frequency in Hertz.
+
+  Outputs:
+
+    success - A boolean that indicates the outcome of the operation.  A
+    value of true indicates success, and a value of false indicates
+    failure.
+
+**************************************************************************/
+bool Radio::setFrequency(uint64_t frequency)
+{
+  bool success;
+  int error;
+  int64_t correctedFrequency;
+
+  // Default to failure.
+  success = false;
+
+  if (devicePtr != 0)
+  {
+    // Correct for warp.
+    correctedFrequency = frequency *
+                         (1000000 - receiveWarpInPartsPerMillion) /1000000; 
+
+    // Set the system to the new frequency.
+    error = hackrf_set_freq((hackrf_device *)devicePtr,correctedFrequency);
+
+    if (error == HACKRF_SUCCESS)
+    {
+      // Update attributes.
+      receiveFrequency = frequency;
+      transmitFrequency = frequency;
+
+      // indicate success.
+      success = true;
+    } // if
+  } // if
+
+  return (success);
+  
+} // setFrequency
+
+/**************************************************************************
+
+  Name: setBandwidth
+
+  Purpose: The purpose of this function is to set the baseband filter
+  bandwidth of the system.
+
+  Calling Sequence: success = setBandwidth(bandwidth)
+
+  Inputs:
+
+    bandwidth - The baseband filter bandwidth in Hertz.
+
+  Outputs:
+
+    success - A boolean that indicates the outcome of the operation.  A
+    value of true indicates success, and a value of false indicates
+    failure.
+
+**************************************************************************/
+bool Radio::setBandwidth(uint32_t bandwidth)
+{
+  bool success;
+  int error;
+
+  // Default to failure.
+  success = false;
+
+  if (devicePtr != 0)
+  {
+    // Set the system to the new bandwidth.
+    error = hackrf_set_baseband_filter_bandwidth((hackrf_device *)devicePtr,
+                                                  bandwidth);
+
+    if (error == HACKRF_SUCCESS)
+    {
+      // Update attributes.
+      receiveBandwidth = bandwidth;
+      transmitBandwidth = bandwidth;
+
+      // indicate success.
+      success = true;
+    } // if
+  } // if
+
+  return (success);
+  
+} // setBandwidth
+
+/**************************************************************************
+
+  Name: setSampleRate
+
+  Purpose: The purpose of this function is to set the sample rate
+  of the system.
+
+  Calling Sequence: success = setSampleRate(sampleRate)
+
+  Inputs:
+
+    sampleRate - The sample rate in samples per second.
+
+  Outputs:
+
+    success - A boolean that indicates the outcome of the operation.  A
+    value of true indicates success, and a value of false indicates
+    failure.
+
+**************************************************************************/
+bool Radio::setSampleRate(uint32_t sampleRate)
+{
+  uint32_t correctedSampleRate;
+  bool success;
+  int error;
+
+  // Default to failure.
+  success = false;
+
+  if (devicePtr != 0)
+  {
+    // Correct for warp.
+    correctedSampleRate = (uint32_t)((double)sampleRate *
+                          (1000000 - receiveWarpInPartsPerMillion)/1000000+0.5);
+
+    // Set the system to the new sample rate.
+    error = hackrf_set_sample_rate((hackrf_device *)devicePtr,
+                                   correctedSampleRate);
+
+    // Set the bandwidth to override that dictated by the sample rate.
+    error = success || !setBandwidth(receiveBandwidth);
+
+    if (error == HACKRF_SUCCESS)
+    {
+      // Update attributes.
+      receiveSampleRate = sampleRate;
+      transmitSampleRate = sampleRate;
+
+      // indicate success.
+      success = true;
+    } // if
+  } // if
+
+  return (success);
+  
+} // setSampleRate
+
+/**************************************************************************
+
+  Name: setWarpInPartsPerMillion
+
+  Purpose: The purpose of this function is to set the frequency warp
+  of the system.  Note that the frequency and sample rate are then
+  updated in the hardware to account for the new warp setting.
+
+  Calling Sequence: success = setWarpInPartsPerMillion(warp)
+
+  Inputs:
+
+    The warp value in parts per million.
+
+  Outputs:
+
+    success - A boolean that indicates the outcome of the operation.  A
+    value of true indicates success, and a value of false indicates
+    failure.
+
+**************************************************************************/
+bool Radio::setWarpInPartsPerMillion(int warp)
+{
+  bool success;
+
+  // Update attribute.
+  receiveWarpInPartsPerMillion = warp;
+
+  // Update the sample rate and frequency to take the warp value into account.
+  success = !setSampleRate(receiveSampleRate);
+  success = success || !setFrequency(receiveFrequency);
+ 
+  // Complement our cumulative result.
+  success = !success;
+
+  return (success);
+  
+} // setWarpInPartsPerMillion
+
+/**************************************************************************
+
   Name: setReceiveFrequency
 
   Purpose: The purpose of this function is to set the operating frequency
@@ -826,30 +1024,9 @@ void Radio::stopLiveStream(void)
 bool Radio::setReceiveFrequency(uint64_t frequency)
 {
   bool success;
-  int error;
-  int64_t correctedFrequency;
 
-  // Default to failure.
-  success = false;
-
-  if (devicePtr != 0)
-  {
-    // Correct for warp.
-    correctedFrequency = frequency *
-                         (1000000 - receiveWarpInPartsPerMillion) /1000000; 
-
-    // Set the system to the new frequency.
-    error = hackrf_set_freq((hackrf_device *)devicePtr,correctedFrequency);
-
-    if (error == HACKRF_SUCCESS)
-    {
-      // Update attribute.
-      receiveFrequency = frequency;
-
-      // indicate success.
-      success = true;
-    } // if
-  } // if
+  // Invoke the core function.
+  success = setFrequency(frequency);
 
   return (success);
   
@@ -878,26 +1055,9 @@ bool Radio::setReceiveFrequency(uint64_t frequency)
 bool Radio::setReceiveBandwidth(uint32_t bandwidth)
 {
   bool success;
-  int error;
 
-  // Default to failure.
-  success = false;
-
-  if (devicePtr != 0)
-  {
-    // Set the system to the new bandwidth.
-    error = hackrf_set_baseband_filter_bandwidth((hackrf_device *)devicePtr,
-                                                 bandwidth);
-
-    if (error == HACKRF_SUCCESS)
-    {
-      // Update attribute.
-      receiveBandwidth = bandwidth;
-
-      // indicate success.
-      success = true;
-    } // if
-  } // if
+  // Invoke core function.
+  success = setBandwidth(bandwidth);
 
   return (success);
   
@@ -1125,35 +1285,10 @@ bool Radio::setReceiveBasebandGainInDb(uint32_t gain)
 **************************************************************************/
 bool Radio::setReceiveSampleRate(uint32_t sampleRate)
 {
-  uint32_t correctedSampleRate;
   bool success;
-  int error;
 
-  // Default to failure.
-  success = false;
-
-  if (devicePtr != 0)
-  {
-    // Correct for warp.
-    correctedSampleRate = (uint32_t)((double)sampleRate *
-                          (1000000 - receiveWarpInPartsPerMillion)/1000000+0.5);
-
-    // Set the system to the new sample rate.
-    error = hackrf_set_sample_rate((hackrf_device *)devicePtr,
-                                   correctedSampleRate);
-
-    // Set the bandwidth to override that dictated by the sample rate.
-    error = success || !setReceiveBandwidth(receiveBandwidth);
-
-    if (error == HACKRF_SUCCESS)
-    {
-      // Update attribute.
-      receiveSampleRate = sampleRate;
-
-      // indicate success.
-      success = true;
-    } // if
-  } // if
+  // Invoke the core function.
+  success = setSampleRate(sampleRate);
 
   return (success);
   
@@ -1185,15 +1320,8 @@ bool Radio::setReceiveWarpInPartsPerMillion(int warp)
 {
   bool success;
 
-  // Update attribute.
-  receiveWarpInPartsPerMillion = warp;
-
-  // Update the sample rate and frequency to take the warp value into account.
-  success = !setReceiveSampleRate(receiveSampleRate);
-  success = success || !setReceiveFrequency(receiveFrequency);
- 
-  // Complement our cumulative result.
-  success = !success;
+  // Invoke core function.
+  success = setWarpInPartsPerMillion(warp);
 
   return (success);
   
@@ -1203,7 +1331,7 @@ bool Radio::setReceiveWarpInPartsPerMillion(int warp)
 
   Name: setTransmitFrequency
 
-  Purpose: The purpose of this function is to set the operating frequency
+  Purpose: The purpose of this function is to set the transmit frequency
   of the transmitter.
 
   Calling Sequence: success = setTransmitFrequency(frequency)
@@ -1222,25 +1350,9 @@ bool Radio::setReceiveWarpInPartsPerMillion(int warp)
 bool Radio::setTransmitFrequency(uint64_t frequency)
 {
   bool success;
-  int error;
 
-  // Default to failure.
-  success = false;
-
-  if (devicePtr != 0)
-  {
-    // Set the frequency.
-    error = 0;
-
-    if (error == 0)
-    {
-      // Update attribute.
-      transmitFrequency = frequency;
-
-      // indicate sucess.
-      success = true;
-    } // if
-  } // if
+  // Invoke the core function.
+  success = setFrequency(frequency);
 
   return (success);
   
@@ -1269,25 +1381,9 @@ bool Radio::setTransmitFrequency(uint64_t frequency)
 bool Radio::setTransmitBandwidth(uint32_t bandwidth)
 {
   bool success;
-  int error;
 
-  // Default to failure.
-  success = false;
-
-  if (devicePtr != 0)
-  {
-    // Set the bandwidth.
-    error = 0;
-
-    if (error == 0)
-    {
-      // Update attribute.
-      transmitBandwidth = bandwidth;
-
-      // indicate success.
-      success = true;
-    } // if
-  } // if
+  // Invoke core function.
+  success = setBandwidth(bandwidth);
 
   return (success);
   
@@ -1364,25 +1460,9 @@ bool Radio::setTransmitIfGainInDb(uint32_t gain)
 bool Radio::setTransmitSampleRate(uint32_t sampleRate)
 {
   bool success;
-  int error;
 
-  // Default to failure.
-  success = false;
-
-  if (devicePtr != 0)
-  {
-    // Set the sample rate.
-    error = 0;
-
-    if (error == 0)
-    {
-      // Update attribute.
-      transmitSampleRate = sampleRate;
-
-      // indicate success.
-      success = true;
-    } // if
-  } // if
+  // Invoke the core function.
+  success = setSampleRate(sampleRate);
 
   return (success);
   
@@ -1449,7 +1529,7 @@ uint64_t Radio::getReceiveFrequency(void)
   Purpose: The purpose of this function is to get the baseband filter
   bandwidth of the receiver.
 
-  Calling Sequence: bandwidth = setReceiveBandwidth()
+  Calling Sequence: bandwidth = getReceiveBandwidth()
 
   Inputs:
 
@@ -2230,7 +2310,8 @@ int Radio::receiveCallbackProcedure(hackrf_transfer *transferPtr)
     transferPtr - A pointer to a hackrf_transfer structure.  The fields of
     interest are:
       1. buffer - A pointer to the received data.
-      2. valid_length - The number of bytes available in the buffer.
+      2. valid_length - The number of bytes desired to be transferred to
+      the buffer.
 
   Outputs:
 

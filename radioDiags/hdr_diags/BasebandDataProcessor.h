@@ -98,6 +98,7 @@ private:
   // Thread support.
   bool timeTostopReaderThread;
   pthread_t basebandReaderThread;
+  pthread_mutex_t writerLock;
 
 };
 
