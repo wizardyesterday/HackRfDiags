@@ -156,54 +156,54 @@ The output of the get radioinfo command appears below.
 ------------------------------------------------------
 Radio Internal Information
 ------------------------------------------------------
-Information Source                  : Live
+Information Source                  : File
 Receive Enabled                     : No
 Front End Amps Enabled (TX and RX)  : No
-Receive IF Gain:                    : 16 dB
-Receive Baseband Gain:              : 16 dB
-Receive Frequency                   : 88100000 Hz
+Receive IF Gain:                    : 0 dB
+Receive Baseband Gain:              : 0 dB
+Receive Frequency                   : 89100000 Hz
 Receive Bandwidth                   : 1750000 Hz
 Receive Sample Rate:                : 2048000 S/s
 Receive Frequency Warp:             : -30 ppm
-Receive Timestamp                   : 0
-Receive Block Count                 : 0
-Transmit Enabled                    : Yes
+Receive Timestamp                   : 376176640
+Receive Block Count                 : 2870
+Transmit Enabled                    : No
 Transmit IF Gain:                   : 35 dB
-Transmit Frequency                  : 88100000 Hz
+Transmit Frequency                  : 89100000 Hz
 Transmit Bandwidth                  : 1750000 Hz
 Transmit Sample Rate                : 2048000 S/s
 Transmit Frequency Warp:            : -30 ppm
-Transmit Block Count                : 3299
+Transmit Block Count                : 8789
 
 --------------------------------------------
 Data Consumer Internal Information
 --------------------------------------------
-Last Timestamp           : 0
+Last Timestamp           : 376176640
 Short Block Count        : 0
 
 --------------------------------------------
 Data Provider Internal Information
 --------------------------------------------
-IQ File Name            : 
-IQ Sample Buffer Length : 0
-IQ Sample Buffer Index  : 0
+IQ File Name            : /home/gianakop/HackRfModulators/wbfm.iq
+IQ Sample Buffer Length : 20480000
+IQ Sample Buffer Index  : 1245184
 
 --------------------------------------------
 IQ Data Processor Internal Information
 --------------------------------------------
-Demodulator Mode         : FM
+Demodulator Mode         : AM
 
 --------------------------------------------
 Baseband Data Processor Internal Information
 --------------------------------------------
-Stream State           : Running
-Synchronization State  : Synchronized
-PCM Writer Index       : 4
-PCM Reader Index       : 11
-Buffers Produced       : 3205
-Buffers Consumed       : 3078
-PCM Blocks Dropped     : 3
-PCM Blocks Added       : 7
+Stream State           : Idle
+Synchronization State  : Unsynchronized
+PCM Writer Index       : 14
+PCM Reader Index       : 6
+Buffers Produced       : 258831
+Buffers Consumed       : 3549
+PCM Blocks Dropped     : 109
+PCM Blocks Added       : 122
 Modulator Mode         : WBFM
 
 --------------------------------------------
@@ -236,28 +236,18 @@ Modulator Index          : 0.800000
 FM Modulator Internal Information
 --------------------------------------------
 Frequency Deviation:      : 3500.000000Hz
-Phase Accumulator         : 0.000000rad
+Phase Accumulator         : -1.731567rad
 
 --------------------------------------------
 Wideband FM Modulator Internal Information
 --------------------------------------------
 Frequency Deviation:      : 70000.000000Hz
-Phase Accumulator         : -2.412163rad
+Phase Accumulator         : -1.104594rad
 
 --------------------------------------------
 SSB Modulator Internal Information
 --------------------------------------------
-Modulation Mode        : LSB
->--------------------------------------------
-Wideband FM Modulator Internal Information
---------------------------------------------
-Frequency Deviation:      : 70000.000000Hz
-Phase Accumulator         : -2.412163rad
-
---------------------------------------------
-SSB Modulator Internal Information
---------------------------------------------
-Modulation Mode        : LSB
+Modulation Mode        : USB
 
 ******************** End Get Radio Info Output *************************
 
