@@ -659,7 +659,7 @@ void SsbDemodulator::sendPcmData(uint32_t bufferLength)
   Name: displayInternalInformation
 
   Purpose: The purpose of this function is to display internal information
-  in the AM demodulator.
+  in the SSB demodulator.
 
   Calling Sequence: displayInternalInformation()
 
