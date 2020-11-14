@@ -1,4 +1,3 @@
-# HackRfDiags
 This code uses libhackrf for a basis, and I have created an AM/FM/WBFM/SSB
 demodulator with this stuff.  Additionally, AM/FM/WBFM/SSB transmit
 functionality has been provided.  The goal here was to keep it light weight
