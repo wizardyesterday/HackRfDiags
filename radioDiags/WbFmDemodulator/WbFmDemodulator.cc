@@ -523,7 +523,7 @@ void WbFmDemodulator::sendPcmData(uint32_t bufferLength)
   Name: displayInternalInformation
 
   Purpose: The purpose of this function is to display internal information
-  in the FM demodulator.
+  in the wideband FM demodulator.
 
   Calling Sequence: displayInternalInformation()
 

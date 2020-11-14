@@ -330,7 +330,7 @@ SsbModulator::~SsbModulator(void)
 
   Name: resetModulator
 
-  Purpose: The purpose of this function is to reset the resetModulator to its
+  Purpose: The purpose of this function is to reset the modulator to its
   initial condition.
 
   Calling Sequence: resetModulator()
@@ -375,7 +375,7 @@ void SsbModulator::resetModulator(void)
 
   Name: setLsbModulationMode
 
-  Purpose: The purpose of this function is to set the demodulator mode so
+  Purpose: The purpose of this function is to set the modulator mode so
   that lower sideband modulation is performed.
 
   Calling Sequence: setLsbModulationMode()
@@ -403,7 +403,7 @@ void SsbModulator::setLsbModulationMode(void)
 
   Name: setUsbModulationMode
 
-  Purpose: The purpose of this function is to set the demodulator mode so
+  Purpose: The purpose of this function is to set the modulator mode so
   that upper sideband modulation is performed.
 
   Calling Sequence: setUsbModulationMode()
@@ -711,7 +711,7 @@ uint32_t SsbModulator::modulateSignal(int16_t *bufferPtr,
   Name: displayInternalInformation
 
   Purpose: The purpose of this function is to display internal information
-  in the AM demodulator.
+  in the SSB modulator.
 
   Calling Sequence: displayInternalInformation()
 

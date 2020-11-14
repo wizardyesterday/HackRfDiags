@@ -207,6 +207,11 @@ WbFmModulator::WbFmModulator(void)
   // Set initial value of phase accumulator.
   phaseAccumulator = 0;
 
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Construct the sine and cosine tables.  The representation of the
+  // phase is in a signed fractional format with 1 sign bit, two mantissa
+  // bits and 13 fractional bits.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   for (i = 0; i < 16384; i++)
   {
     phaseAngle = (float)i * 2 * M_PI / 16384;
@@ -215,6 +220,7 @@ WbFmModulator::WbFmModulator(void)
     Sin[i] = sin(phaseAngle);
     Cos[i] = cos(phaseAngle);
   } // for
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   return;
 
@@ -262,7 +268,7 @@ WbFmModulator::~WbFmModulator(void)
 
   Name: resetModulator
 
-  Purpose: The purpose of this function is to reset the resetModulator to its
+  Purpose: The purpose of this function is to reset the modulator to its
   initial condition.
 
   Calling Sequence: resetModulator()
@@ -301,7 +307,8 @@ void WbFmModulator::resetModulator(void)
   Name: setFrequencyDeviation
 
   Purpose: The purpose of this function is to set the frequency deviation
-  of the modulator.
+  of the modulator.  Additionally, it is ensured that the frequency deviation 
+  is constrained to be less than half of the modulator sample rate.
 
   Calling Sequence: setFrequencyDeviation(deviation)
 
@@ -691,7 +698,7 @@ uint32_t WbFmModulator::modulateSignal(int16_t *bufferPtr,
   Name: displayInternalInformation
 
   Purpose: The purpose of this function is to display internal information
-  in the AM demodulator.
+  in the AM modulator.
 
   Calling Sequence: displayInternalInformation()
 

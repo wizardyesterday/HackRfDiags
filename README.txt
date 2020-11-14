@@ -1,6 +1,6 @@
 # HackRfDiags
 This code uses libhackrf for a basis, and I have created an AM/FM/WBFM/SSB
- demodulator with this stuff.  Additionally, AM/FM/WBFM/SSB transmit
+demodulator with this stuff.  Additionally, AM/FM/WBFM/SSB transmit
 functionality has been provided.  The goal here was to keep it light weight
 so that it can run on a BeagleBone Black board.
 
@@ -105,8 +105,40 @@ x modulation, you'd type:
  After carrying out the above steps, one could speak into a microphone
 (connected to the sound card of the host computer) and hear themselves
 on an HF receiver tune to 27.125MHz using AM demodulation.
- 
-The output of the help command appears below.
+
+Now, let's discuss transmission of a file of IQ data that is loaded
+into mamory,  In this case, on the host computer type,
+
+1. "load iqfile <someiqfile>"
+2. "select filesource"
+3. "start transmitter"
+
+After carrying out the above steps, the file data (that was loaded into
+memory) will be transmitted over and over in a cyclic manner.
+
+Now where do you get these IQ data files?  I'm glad you asked that
+question.  In each of the modulator directories there exist test
+applications that accept an input file (through stdin) that contains data
+to be modulated.  The format of the input data is 16-bit signed little
+endian integers sampled at 8000S/s.  I use PCM audio for my use case.
+Each of the modulator utilities (am, fm, wbfm, and ssb) accept the input
+data and output modulated data to stdout.  The format of the output data is
+8-bit signed integers sampled at 2048000S/s.  It follows that a 5 seconds
+of captured PCM data will result into a file size of 2048000 bytes.  This
+means that 2048000 bytes of memory must be available for the data buffer
+that is used for transmission.
+
+Now how do you build these modulator test apps?  In each of the modulator
+directories (AmModulator, FmModulator, WbFmModulator, SsbModulator), there
+exist shell scripts: buildAm.sh, buildFm.sh, buildWbFm.sh, and buildSsb.sh.
+You merely run these scripts to create the appropriate apps: am, fm, wbfm,
+and ssb.  I generally build these apps on X86 since the output files
+serve as nice test vectors (for transmission) for my demodulator testing
+at work.  The hackRF serves as a nice signal generator when I want to test
+demodulators for reception of voice transmission.
+
+Okay, it's time to discuss interaction with the command line interpretor. 
+When the user types "help", the output appears as illustrated below.
 
 ******************** Begin Help Output ********************************
 
@@ -149,7 +181,8 @@ Type <^B><enter> key sequence to repeat last command
 
 ******************** End Help Output **********************************
 
-The output of the get radioinfo command appears below.
+When the user types "get radioinfo", the output appears as illustrated
+below.
 
 ******************** Begin Get Radio Info Output **********************
 
@@ -252,7 +285,8 @@ Modulation Mode        : USB
 ******************** End Get Radio Info Output *************************
 
 Anyway, if you have any questions, you can always catch me on freenode IRC.
-I use the nick wizardyesterday or adhoc_rf_rocks.
+I use the nick wizardyesterday or adhoc_rf_rocks.  My day-to-day nick is
+wizardyesterday though.
 
 Oh one last thing.  Anybody can use my software without grief.  I guess I'll
 have to put the GNU open source stuff at the beginning of my files, and that

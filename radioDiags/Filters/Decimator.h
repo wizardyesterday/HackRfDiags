@@ -15,7 +15,9 @@
 // decimated sampling rate.
 // The only constraint is that the pipeline be an integer multiple of
 // the decimation factor due to the manner in which the commutator is
-// operating.  And yes, we have a polyphase filter in disguise.
+// operating.  We have avoided using a polyphase filter and still get
+// the same performance.  This alternative method merely costs more
+// memory.
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 #ifndef __DECIMATOR__

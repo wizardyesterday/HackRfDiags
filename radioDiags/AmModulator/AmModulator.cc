@@ -268,7 +268,7 @@ AmModulator::~AmModulator(void)
 
   Name: resetModulator
 
-  Purpose: The purpose of this function is to reset the resetModulator to its
+  Purpose: The purpose of this function is to reset the modulator to its
   initial condition.
 
   Calling Sequence: resetModulator()
@@ -608,7 +608,7 @@ uint32_t AmModulator::modulateSignal(int16_t *bufferPtr,
   Name: displayInternalInformation
 
   Purpose: The purpose of this function is to display internal information
-  in the AM demodulator.
+  in the AM modulator.
 
   Calling Sequence: displayInternalInformation()
 

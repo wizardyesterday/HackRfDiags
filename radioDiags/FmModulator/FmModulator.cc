@@ -271,7 +271,7 @@ FmModulator::~FmModulator(void)
 
   Name: resetModulator
 
-  Purpose: The purpose of this function is to reset the resetModulator to its
+  Purpose: The purpose of this function is to reset the modulator to its
   initial condition.
 
   Calling Sequence: resetModulator()
@@ -315,7 +315,10 @@ void FmModulator::resetModulator(void)
   Name: setFrequencyDeviation
 
   Purpose: The purpose of this function is to set the frequency deviation
-  of the modulator.
+  of the modulator.  It should be noted that zero deviation is allowed
+  if transmission of a silent carrier is desired.  Additionally, it is
+  ensured that the frequency deviation is constrained to be less than
+  half of the modulator sample rate.
 
   Calling Sequence: setFrequencyDeviation(deviation)
 
@@ -641,7 +644,7 @@ uint32_t FmModulator::modulateSignal(int16_t *bufferPtr,
   Name: displayInternalInformation
 
   Purpose: The purpose of this function is to display internal information
-  in the AM demodulator.
+  in the AM modulator.
 
   Calling Sequence: displayInternalInformation()
 
