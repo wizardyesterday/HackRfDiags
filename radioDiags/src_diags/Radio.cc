@@ -1470,6 +1470,48 @@ bool Radio::setTransmitSampleRate(uint32_t sampleRate)
 
 /**************************************************************************
 
+  Name: setSignalDetectThreshold
+
+  Purpose: The purpose of this function is to set the signal detect
+  threshold.  A signal is considered as detected if a signal magnitude
+  matches or exceeds the threshold value.
+
+  Calling Sequence: success = setSignalDetectThreshold(threshold)
+
+  Inputs:
+
+    threshold - The signal detection threshold.  Valid values are,
+    0 <= threshold <= 400.
+
+  Outputs:
+
+    success - A boolean that indicates the outcome of the operation.  A
+    value of true indicates success, and a value of false indicates
+    failure.
+
+**************************************************************************/
+bool Radio::setSignalDetectThreshold(uint32_t threshold)
+{
+  bool success;
+
+  // Default to failure.
+  success = false;
+
+  if ((threshold >= 0) && (threshold <= 400))
+  {
+    // Inform data processor of new threshold.
+    receiveDataProcessorPtr->setSignalDetectThreshold(threshold);
+
+    // Indicate success.
+    success = true;
+  } // if
+
+  return (success);
+
+} // setSignalDetectThreshold
+
+/**************************************************************************
+
   Name: frontEndAmplifierEnabled
 
   Purpose: The purpose of this function is to indicate whether or not

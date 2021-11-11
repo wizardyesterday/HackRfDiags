@@ -15,6 +15,8 @@ CcFiles="\
     src_diags/IqDataProcessor.cc \
     src_diags/BasebandDataProcessor.cc \
     src_diags/Radio.cc \
+    src_diags/SignalDetector.cc \
+    src_diags/SignalTracker.cc \
     src_diags/console.cc \
     src_diags/diagUi.cc"
 

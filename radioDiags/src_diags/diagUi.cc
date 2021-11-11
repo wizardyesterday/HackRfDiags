@@ -94,6 +94,7 @@ static void cmdSetRxFrequency(char *bufferPtr);
 static void cmdSetRxBandwidth(char *bufferPtr);
 static void cmdSetRxSampleRate(char *bufferPtr);
 static void cmdSetRxWarp(char *bufferPtr);
+static void cmdSetSquelch(char *bufferPtr);
 static void cmdStartTransmitter(char *bufferPtr);
 static void cmdStopTransmitter(char *bufferPtr);
 static void cmdStartReceiver(char *bufferPtr);
@@ -150,6 +151,7 @@ static const commandEntry commandTable[] =
   {"set","bandwidth",cmdSetRxBandwidth},   // set rxbandwidth bandwidth 
   {"set","samplerate",cmdSetRxSampleRate}, // set rxsamplerate samplerate 
   {"set","warp",cmdSetRxWarp},             // set rxwarp warp 
+  {"set","squelch",cmdSetSquelch},           // set squelch threshold
   {"start","transmitter",cmdStartTransmitter}, // start transmitter
   {"stop","transmitter",cmdStopTransmitter}, // stop transmitter
   {"start","receiver",cmdStartReceiver}, // start receiver
@@ -1385,6 +1387,53 @@ static void cmdSetRxWarp(char *bufferPtr)
 
 /*****************************************************************************
 
+  Name: cmdSetSquelch
+
+  Purpose: The purpose of this function is to set the squelch threshold of
+  the system.
+
+  The syntax for the corresponding command is the following:
+
+    "set squelch threshold"
+
+  Calling Sequence: cmdSetSquelch(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdSetSquelch(char *bufferPtr)
+{
+  bool success;
+  uint32_t threshold;
+
+  success = true;
+
+  // Retrieve value
+  sscanf(bufferPtr,"%u",&threshold);
+
+  success = diagUi_radioPtr->setSignalDetectThreshold(threshold);
+
+  if (success)
+  {
+    nprintf(stderr,"Squelch threshold set to %u.\n",threshold);
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: Could not set the squelch threshold.\n");
+  } // else
+
+  return;
+
+} // cmdSetSquelch
+
+/*****************************************************************************
+
   Name: cmdStartTransmitter
 
   Purpose: The purpose of this function is to start the transmitter of
@@ -2007,6 +2056,7 @@ static void cmdHelp(void)
   nprintf(stderr,"set bandwidth <bandwidth in Hertz>\n");
   nprintf(stderr,"set samplerate <samplerate in S/s>\n");
   nprintf(stderr,"set warp <warp in ppm>\n");
+  nprintf(stderr,"set squelch <threshold>\n");
   nprintf(stderr,"start transmitter\n");
   nprintf(stderr,"stop transmitter\n");
   nprintf(stderr,"start receiver\n");

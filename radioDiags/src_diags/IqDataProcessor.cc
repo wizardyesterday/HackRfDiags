@@ -109,6 +109,13 @@ IqDataProcessor::IqDataProcessor(void)
                                       2);
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
+
+  // Let all signal exceed threshold.
+  signalDetectThreshold = 0;
+
+  // Instantiate a signal tracker.
+  trackerPtr = new SignalTracker(signalDetectThreshold);
+
   return; 
 
 } // IqDataProcessor
@@ -306,6 +313,38 @@ void IqDataProcessor::setDemodulatorMode(demodulatorType mode)
 
 } // setDemodulatorMode
 
+/**************************************************************************
+
+  Name: setSignalDetectThreshold
+
+  Purpose: The purpose of this function is to set the signal detect
+  threshold.  A signal is considered as detected if a signal magnitude
+  matches or exceeds the threshold value.
+
+  Calling Sequence: success = setSignalDetectThreshold(threshold)
+
+  Inputs:
+
+    threshold - The signal detection threshold.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void IqDataProcessor::setSignalDetectThreshold(uint32_t threshold)
+{
+
+  // Update for later use.
+  this->signalDetectThreshold = threshold;
+
+  // Notify the signal tracker of the new threshold.
+  trackerPtr->setThreshold(threshold);
+
+  return;
+
+} // setSignalDetectThreshold
+
 /*****************************************************************************
 
   Name: reduceSampleRate
@@ -430,51 +469,90 @@ void IqDataProcessor::acceptIqData(unsigned long timeStamp,
                                    unsigned long byteCount)
 {
   uint32_t decimatedByteCount;
+  uint16_t signalPresenceIndicator;
+  bool signalAllowed;
 
   // Decimate to a sample rate that is usable further downstream.
   decimatedByteCount = reduceSampleRate(bufferPtr,byteCount);
 
-  switch (demodulatorMode)
+  // Determine if a signal is available.
+  signalPresenceIndicator = trackerPtr->run(bufferPtr,decimatedByteCount);
+
+  switch (signalPresenceIndicator)
   {
-    case None:
+    case SIGNALTRACKER_NOISE:
     {
+      // We have no signal.
+      signalAllowed = false;
       break;
     } // case
 
-    case Am:
+    case SIGNALTRACKER_STARTOFSIGNAL:
+    case SIGNALTRACKER_SIGNALPRESENT:
     {
-      // Demodulate as an AM signal.
-      amDemodulatorPtr->acceptIqData(decimatedData,decimatedByteCount);
+      // We have a signal.
+      signalAllowed = true;
       break;
     } // case
 
-    case Fm:
+    case SIGNALTRACKER_ENDOFSIGNAL:
     {
-      // Demodulate as an FM signal.
-      fmDemodulatorPtr->acceptIqData(decimatedData,decimatedByteCount);
-      break;
-    } // case
-
-    case WbFm:
-    {
-      // Demodulate as a wideband FM signal.
-      wbFmDemodulatorPtr->acceptIqData(decimatedData,decimatedByteCount);
-      break;
-    } // case
-
-    case Lsb:
-    case Usb:
-    {
-      // Demodulate as a single sideband signal.
-      ssbDemodulatorPtr->acceptIqData(decimatedData,decimatedByteCount);
+      // We like a squelch tail.
+      signalAllowed = true;
       break;
     } // case
 
     default:
     {
+      signalAllowed = false;
       break;
     } // case
   } // switch
+
+  if (signalAllowed)
+  {
+    switch (demodulatorMode)
+    {
+      case None:
+      {
+        break;
+      } // case
+
+      case Am:
+      {
+        // Demodulate as an AM signal.
+        amDemodulatorPtr->acceptIqData(decimatedData,decimatedByteCount);
+        break;
+      } // case
+
+      case Fm:
+      {
+        // Demodulate as an FM signal.
+        fmDemodulatorPtr->acceptIqData(decimatedData,decimatedByteCount);
+        break;
+      } // case
+
+      case WbFm:
+      {
+        // Demodulate as a wideband FM signal.
+        wbFmDemodulatorPtr->acceptIqData(decimatedData,decimatedByteCount);
+        break;
+      } // case
+
+      case Lsb:
+      case Usb:
+      {
+        // Demodulate as a single sideband signal.
+        ssbDemodulatorPtr->acceptIqData(decimatedData,decimatedByteCount);
+        break;
+      } // case
+
+      default:
+      {
+        break;
+      } // case
+    } // switch
+  } // if
 
   return;
 
@@ -549,8 +627,9 @@ void IqDataProcessor::displayInternalInformation(void)
     {
       break;
     } // case
-
   } // switch
+
+  nprintf(stderr,"Signal Detect Threhold   : %u\n",signalDetectThreshold);
 
   return;
 
