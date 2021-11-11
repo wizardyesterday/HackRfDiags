@@ -163,6 +163,7 @@ set frequency <frequency in Hertz>
 set bandwidth <bandwidth in Hertz>
 set samplerate <samplerate in S/s>
 set warp <warp in ppm>
+set squelch <threshold>
 start transmitter
 stop transmitter
 start receiver
@@ -224,6 +225,7 @@ IQ Sample Buffer Index  : 1245184
 IQ Data Processor Internal Information
 --------------------------------------------
 Demodulator Mode         : AM
+Signal Detect Threhold   : 20
 
 --------------------------------------------
 Baseband Data Processor Internal Information
