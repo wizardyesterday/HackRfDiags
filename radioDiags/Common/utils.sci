@@ -127,3 +127,36 @@ n = dInf(deltaP,deltaS) / deltaF - f(deltaP,deltaS) * deltaF + 1;
 n = ceil(n);
 
 endfunction
+
+//******************************************************************
+//
+// Name computeNextMultiple
+//
+// Purpose: The purpose of this function is to round a number up
+// to the next multiple of another number.
+//
+// Calling sequence: m = computeNextMultiple(n,k)
+//
+// Inputs:
+//
+//    n - The value that is to be rounded up to the next multiple
+//    of k.
+//
+//    k - The divisor used for the rounding up of n.
+//
+// Outputs:
+//
+//    m - The rounded up number.
+// 
+//******************************************************************
+function m = computeNextMultiple(n,k)
+
+  if modulo(n,k) <> 0
+    // Round up to the next multiple of k.
+    m = n + k - modulo(n,k);
+  else
+    // We are already at a multiple of k.
+    m = n;
+  end
+
+endfunction

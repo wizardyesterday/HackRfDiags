@@ -52,7 +52,7 @@ deltaS = 0.005;
 n = computeFilterOrder(deltaP,deltaS,deltaF,Fs)
 
 // Ensure that the filter order is a multiple of 4.
-n = n + 4 - modulo(n,4);
+n = computeNextMultiple(n,4);
 
 //******************************************************************
 // Generate the FIR filter coefficients and magnitude of frequency
