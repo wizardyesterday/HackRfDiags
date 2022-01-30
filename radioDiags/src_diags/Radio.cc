@@ -13,6 +13,39 @@ Radio * Radio::mePtr;
 
 extern void nprintf(FILE *s,const char *formatPtr, ...);
 
+/*****************************************************************************
+
+  Name: nullPcmDataHandler
+
+  Purpose: The purpose of this function is to serve as the callback
+  function to accept PCM data from a demodulator in the event that a
+  callback is not passed to the constructor to an instance of a Radio.
+  This prevents the demodulators from invocation a NULL address in this
+  case.  This handler will merely discard any PCM data that is passed
+  to it.
+
+  Calling Sequence: nullPcmDataHandler(bufferPtr,bufferLength).
+
+  Inputs:
+
+    bufferPtr - A pointer to a buffer of PCM samples.
+
+    bufferLength - The number of PCM samples in the buffer.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void nullPcmDataHandler(int16_t *bufferPtr,uint32_t bufferLength)
+{
+
+  // Discard the data.
+
+  return;
+
+} // nullPcmDataHandler
+
 /**************************************************************************
 
   Name: Radio
@@ -20,7 +53,7 @@ extern void nprintf(FILE *s,const char *formatPtr, ...);
   Purpose: The purpose of this function is to serve as the constructor
   of a Radio object.
 
-  Calling Sequence: RadiotxSampleRate,rxSampleRate)
+  Calling Sequence: RadiotxSampleRate,rxSampleRate,pcmCallbackPtr)
 
   Inputs:
 
@@ -30,16 +63,27 @@ extern void nprintf(FILE *s,const char *formatPtr, ...);
     rxSampleRate - The sample rate of the baseband portion of the
     receiver in samples per second.
 
+    pcmCallbackPtr - A pointer to a callback function that is to
+    process demodulated data.
+
   Outputs:
 
     None.
 
 **************************************************************************/
-Radio::Radio(uint32_t txSampleRate,uint32_t rxSampleRate)
+Radio::Radio(uint32_t txSampleRate,uint32_t rxSampleRate,
+    void (*pcmCallbackPtr)(int16_t *bufferPtr,uint32_t bufferLength))
+
 { 
   int i;
   int status;
   bool success;
+
+  if (pcmCallbackPtr == NULL)
+  {
+    // Set the pointer to something sane.
+    pcmCallbackPtr = nullPcmDataHandler;
+  } // if
 
   // Save for later use.
   this->transmitSampleRate = txSampleRate;
@@ -105,25 +149,25 @@ Radio::Radio(uint32_t txSampleRate,uint32_t rxSampleRate)
       dataConsumerPtr = new DataConsumer(receiveDataProcessorPtr);
 
       // Instantiate the AM demodulator.
-      amDemodulatorPtr = new AmDemodulator;
+      amDemodulatorPtr = new AmDemodulator(pcmCallbackPtr);
 
       // Associate the AM demodulator with the Iq data processor.
       receiveDataProcessorPtr->setAmDemodulator(amDemodulatorPtr);
 
       // Instantiate the FM demodulator.
-      fmDemodulatorPtr = new FmDemodulator;
+      fmDemodulatorPtr = new FmDemodulator(pcmCallbackPtr);
 
       // Associate the FM demodulator with the Iq data processor.
       receiveDataProcessorPtr->setFmDemodulator(fmDemodulatorPtr);
 
       // Instantiate the wideband FM demodulator.
-      wbFmDemodulatorPtr = new WbFmDemodulator;
+      wbFmDemodulatorPtr = new WbFmDemodulator(pcmCallbackPtr);
 
       // Associate the FM demodulator with the Iq data processor.
       receiveDataProcessorPtr->setWbFmDemodulator(wbFmDemodulatorPtr);
 
       // Instantiate the SSB demodulator.
-      ssbDemodulatorPtr = new SsbDemodulator;
+      ssbDemodulatorPtr = new SsbDemodulator(pcmCallbackPtr);
 
       // Associate the SSB demodulator with the Iq data processor.
       receiveDataProcessorPtr->setSsbDemodulator(ssbDemodulatorPtr);

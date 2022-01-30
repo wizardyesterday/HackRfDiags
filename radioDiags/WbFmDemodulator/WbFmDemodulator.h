@@ -20,7 +20,9 @@ class WbFmDemodulator
 
   public:
 
-  WbFmDemodulator(void);
+  WbFmDemodulator(
+      void (*pcmCallbackPtr)(int16_t *bufferPtr,uint32_t bufferLength));
+
   ~WbFmDemodulator(void);
 
   void resetDemodulator(void);
@@ -67,6 +69,9 @@ class WbFmDemodulator
   // broadcast band.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   IirFilter *fmDeemphasisFilterPtr;
+
+  // Client callback support.
+  void (*pcmCallbackPtr)(int16_t *bufferPtr,uint32_t bufferLength);
 };
 
 #endif // _WB_FMDEMODULATOR__

@@ -72,6 +72,39 @@ FrequencySweeper *diagUi_frequencySweeperPtr;
 //
 // Anyway, enjoy! Chris G.06/06/2017
 //*************************************************************************
+/*****************************************************************************
+
+  Name: processPcmData
+
+  Purpose: The purpose of this function is to serve as the callback
+  function to accept PCM data from a demodulator.
+
+  Calling Sequence: processPcmData(bufferPtr,bufferLength).
+
+  Inputs:
+
+    bufferPtr - A pointer to a buffer of PCM samples.
+
+    bufferLength - The number of PCM samples in the buffer.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void processPcmData(int16_t *bufferPtr,uint32_t bufferLength)
+{
+
+  // Send the PCM samples to stdout for now.
+  fwrite(bufferPtr,2,bufferLength,stdout);
+
+  return;
+
+} // processPcmData
+
+//***********************************************************************
+// Mainline code.
+//***********************************************************************
 int main(int argc,char **argv)
 {
   bool success;
@@ -83,7 +116,7 @@ int main(int argc,char **argv)
   sampleRate = 2048000;
 
   // Instantiate a radio.
-  diagUi_radioPtr = new Radio(sampleRate,sampleRate);
+  diagUi_radioPtr = new Radio(0,sampleRate,processPcmData);
 
   // Set the desired frequency.
   diagUi_radioPtr->setTransmitFrequency(transceiveFrequency);

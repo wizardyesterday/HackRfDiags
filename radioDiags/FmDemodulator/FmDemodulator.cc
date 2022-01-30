@@ -137,18 +137,20 @@ extern void nprintf(FILE *s,const char *formatPtr, ...);
   Purpose: The purpose of this function is to serve as the contructor for
   an instance of an FmDemodulator.
 
-  Calling Sequence: FmDemodulator()
+  Calling Sequence: FmDemodulator(pcmCallbackPtr)
 
   Inputs:
 
-    None.
+    pcmCallbackPtr - A pointer to a callback function that is to process
+    demodulated data.
 
  Outputs:
 
     None.
 
 *****************************************************************************/
-FmDemodulator::FmDemodulator(void)
+FmDemodulator::FmDemodulator(
+    void (*pcmCallbackPtr)(int16_t *bufferPtr,uint32_t bufferLength))
 {
   int numberOfTunerDecimatorTaps;
   int numberOfPostDemodDecimatorTaps;
@@ -223,6 +225,9 @@ FmDemodulator::FmDemodulator(void)
 
   // Initial phase angle for d(theta)/dt computation.
   previousTheta = 0;
+
+  // This is needed for outputting of PCM data.
+  this->pcmCallbackPtr = pcmCallbackPtr;
 
   return;
 
@@ -587,8 +592,8 @@ void FmDemodulator::sendPcmData(uint32_t bufferLength)
 {
   uint32_t i;
 
-  // Send the PCM samples to stdout for now.
-  fwrite(pcmData,2,bufferLength,stdout);
+  // Send the PCM samples to the client callback.
+  pcmCallbackPtr(pcmData,bufferLength);
 
   return;
 

@@ -35,7 +35,9 @@ class Radio
 
   enum informationSourceType {File, Live};
 
-  Radio(uint32_t txSampleRate,uint32_t rxSampleRate);
+  Radio(uint32_t txSampleRate,uint32_t rxSampleRate,
+        void (*pcmCallbackPtr)(int16_t *bufferPtr,uint32_t bufferLength));
+
   ~Radio(void);
 
   // Setters.
