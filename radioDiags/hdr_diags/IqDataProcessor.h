@@ -34,6 +34,14 @@ class IqDataProcessor
                     int8_t *bufferPtr,
                     unsigned long byteCount);
 
+  void enableSignalNotification(void);
+  void disableSignalNotification(void);
+
+  void registerSignalStateCallback(
+      void (*signalCallbackPtr)(bool signalPresent,
+                                void *contextPtr),
+      void *contextPtr);
+
   void displayInternalInformation(void);
 
 private:
@@ -75,6 +83,10 @@ private:
   // Squelch support.
   SignalTracker *trackerPtr;
 
+  // Signal notification support.
+  bool signalNotificationEnabled;
+  void *signalCallbackContextPtr;
+  void (*signalCallbackPtr)(bool signalPresent,void *contextPtr);
 };
 
 #endif // _IQDATAPROCESSOR_H_

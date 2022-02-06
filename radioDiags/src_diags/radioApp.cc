@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "Radio.h"
+#include "FrequencyScanner.h"
 #include "FrequencySweeper.h"
 #include "diagUi.h"
 
@@ -21,6 +22,7 @@ extern bool diagUi_timeToExit;
 // All of our object pointers are defined here to make things simple.
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 Radio *diagUi_radioPtr;
+FrequencyScanner *diagUi_frequencyScannerPtr;
 FrequencySweeper *diagUi_frequencySweeperPtr;
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
@@ -42,12 +44,6 @@ FrequencySweeper *diagUi_frequencySweeperPtr;
 // to the diag interface.  If a user is not connected to the diag
 // interface, only one additional thread will be running -- the network
 // listener thread.
-//
-// The Makefile provides all of the required information to build this
-// jammer application.  At the minimum, if only a diag test program were
-// built, the following compiler command would be used.
-//
-//    g++ -o radioApp radioApp.cc console.cc diagUi.cc -lm -lpthread
 //
 // When diagUi_start() is invoked, a TCP listener thread will be launched
 // that waits for a network connection.  When the user connects to the
@@ -121,6 +117,9 @@ int main(int argc,char **argv)
   // Set the desired frequency.
   diagUi_radioPtr->setTransmitFrequency(transceiveFrequency);
   diagUi_radioPtr->setReceiveFrequency(transceiveFrequency);
+
+  // Indicate that no frequency scanner has been allocated.
+  diagUi_frequencyScannerPtr = 0;
 
   // Indicate that no frequency sweeper has been allocated.
   diagUi_frequencySweeperPtr = 0;

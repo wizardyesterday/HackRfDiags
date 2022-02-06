@@ -10,6 +10,7 @@ CcFiles="\
     src_diags/radioApp.cc \
     src_diags/DataConsumer.cc \
     src_diags/DataProvider.cc \
+    src_diags/FrequencyScanner.cc \
     src_diags/FrequencySweeper.cc \
     Filters/Int16/Decimator_int16.cc \
     src_diags/IqDataProcessor.cc \
