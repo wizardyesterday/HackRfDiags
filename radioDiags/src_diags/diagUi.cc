@@ -1841,7 +1841,7 @@ static void cmdStopFrequencySweep(char *bufferPtr)
 
   if (diagUi_frequencySweeperPtr != 0)
   {
-    // Stop the swept jammer.
+    // Stop the frequency sweeper.
     delete diagUi_frequencySweeperPtr;
 
     // Indicate that frequency sweep has been stopped.
