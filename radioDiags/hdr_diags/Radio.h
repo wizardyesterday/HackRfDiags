@@ -104,6 +104,8 @@ class Radio
   void setFmDeviation(float deviation);
   void setWbFmDeviation(float deviation);
 
+  IqDataProcessor *getIqProcessor(void);
+
   void displayInternalInformation(void);
 
   private:

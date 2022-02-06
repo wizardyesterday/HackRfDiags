@@ -116,6 +116,12 @@ IqDataProcessor::IqDataProcessor(void)
   // Instantiate a signal tracker.
   trackerPtr = new SignalTracker(signalDetectThreshold);
 
+  // Default to no notification of signal state.p
+  signalNotificationEnabled = false;
+
+  // Default to no callback registered.
+  signalCallbackPtr = NULL;
+
   return; 
 
 } // IqDataProcessor
@@ -442,6 +448,92 @@ uint32_t IqDataProcessor::reduceSampleRate(
 
 /**************************************************************************
 
+  Name: enableSignalNotification
+
+  Purpose: The purpose of this function is to allow notification when
+  a new block of IQ data arrives.
+
+  Calling Sequence: enableSignalNotification()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void IqDataProcessor::enableSignalNotification(void)
+{
+
+  signalNotificationEnabled = true;
+
+  return;
+
+} // enableSignalNotification
+
+/**************************************************************************
+
+  Name: disableSignalNotification
+
+  Purpose: The purpose of this function is to disallow notification when
+  a new block of IQ data arrives.
+
+  Calling Sequence: disableSignalNotification()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void IqDataProcessor::disableSignalNotification(void)
+{
+
+  signalNotificationEnabled = false;
+
+  return;
+
+} // disableSignalNotification
+
+/**************************************************************************
+
+  Name: registerSignalStateCallback
+
+  Purpose: The purpose of this function is to register a callback function
+  that will be invoked whenever a block of IQ data is received.
+
+  Calling Sequence: registerSignalStateCallback(callbackPtr,contextPtr)
+
+  Inputs:
+
+    callbackPtr - A pointer to a callback function
+
+    contextPtr - A pointer to private data that will be passed to the
+    callback function upon invocation.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void IqDataProcessor::registerSignalStateCallback(
+    void (*signalCallbackPtr)(bool signalPresent,void *contextPtr),
+    void *contextPtr)
+{
+
+  // Save for later use.
+  signalCallbackContextPtr = contextPtr;
+  this->signalCallbackPtr = signalCallbackPtr;
+
+} // registerSignalStateCallback
+
+/**************************************************************************
+
   Name: acceptIqData
 
   Purpose: The purpose of this function is to queue data to be transmitted
@@ -508,6 +600,17 @@ void IqDataProcessor::acceptIqData(unsigned long timeStamp,
       break;
     } // case
   } // switch
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // In this context, signalAllowed is used as a signal presence
+  // indicator.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  if ((signalNotificationEnabled) && (signalCallbackPtr != NULL))
+  {
+    // Notify the client client of new signal state information.
+    signalCallbackPtr(signalAllowed,signalCallbackContextPtr);
+  } // if
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   if (signalAllowed)
   {

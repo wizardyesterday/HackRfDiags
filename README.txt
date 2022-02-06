@@ -170,10 +170,13 @@ start receiver
 stop receiver
 start livestream
 stop livestream
+start fscan <startfrequency> <endfrequency> <stepsize>
+stop fscan
 start frequencysweep <startfrequency> <stepsize> <count> <dwelltime>
 stop frequencysweep
 load iqfile <filename>
 get radioinfo
+get fscaninfo
 get sweeperinfo
 exit system
 help
