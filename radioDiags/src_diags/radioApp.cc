@@ -141,7 +141,24 @@ int main(int argc,char **argv)
   // Stop the user interface subsystem.
   diagUi_stop();
 
-  delete diagUi_radioPtr;
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Release resources.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  if (diagUi_frequencyScannerPtr != 0)
+  {
+    delete diagUi_frequencyScannerPtr;
+  } // if
+
+  if (diagUi_frequencySweeperPtr != 0)
+  {
+    delete diagUi_frequencySweeperPtr;
+  } // if
+
+  if (diagUi_radioPtr != 0)
+  {
+    delete diagUi_radioPtr;
+  } // if
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   return (0);
 
