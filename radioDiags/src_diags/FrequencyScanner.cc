@@ -258,14 +258,8 @@ bool FrequencyScanner::getSignalState(void)
 void FrequencyScanner::signal(void)
 {
 
-  // Acuire the lock.
-  pthread_mutex_lock(&energyWakeupLock);
-
   // Signal the scanner thread.
   pthread_cond_signal(&energyWakeupCondition);
-
-  // Release the lock.
-  pthread_mutex_unlock(&energyWakeupLock);
 
   return;
 
@@ -277,6 +271,9 @@ void FrequencyScanner::signal(void)
 
   Purpose: The purpose of this function is to allow the scanner thread
   to wait for new signal state informaiton.
+  Note that a condition variable is used only for synchronization
+  purposes, therefore, a mutex is not really needed since there are
+  no resources to be protected.
 
   Calling Sequence: result = wait()
 
@@ -297,9 +294,6 @@ int FrequencyScanner::wait(void)
   struct timespec timeout;
   int result;
 
-  // Acuire the lock.
-  pthread_mutex_lock(&energyWakeupLock);
-
   // Compute a time 1 second into the future.
   gettimeofday(&now,NULL);
   timeout.tv_sec = now.tv_sec + 1;
@@ -309,9 +303,6 @@ int FrequencyScanner::wait(void)
   result = pthread_cond_timedwait(&energyWakeupCondition,
                                   &energyWakeupLock,
                                   &timeout);
-
-  // Release the lock.
-  pthread_mutex_unlock(&energyWakeupLock);
 
   return (result);
 
