@@ -34,7 +34,7 @@ static bool callbackEnabled;
     None.
 
 **************************************************************************/
-void signalStateCallback(bool signalPresent,void *contextPtr)
+static void signalStateCallback(bool signalPresent,void *contextPtr)
 {
   FrequencyScanner *thisPtr;
 
