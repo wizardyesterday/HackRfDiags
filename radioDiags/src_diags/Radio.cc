@@ -112,13 +112,18 @@ Radio::Radio(uint32_t txSampleRate,uint32_t rxSampleRate,
   status |= hackrf_open_by_serial(NULL,(hackrf_device **)&devicePtr);
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // Initialize the I/O subsystem lock.  This has to be
-  // a recursive mutex as I quickly found out whtn the
-  // software deadlocked.
+  // Initialize the I/O subsystem lock.  This occurs
+  // since some functions that lock the mutex invoke
+  // other functions that lock the same mutex.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Set up the attribute.
   pthread_mutexattr_init(&mutexAttribute);
   pthread_mutexattr_settype(&mutexAttribute,PTHREAD_MUTEX_RECURSIVE_NP);
+
+  // Initialize the mutex using the attribute.
   pthread_mutex_init(&ioSubsystemLock,&mutexAttribute);
+
+  // This is no longer needed.
   pthread_mutexattr_destroy(&mutexAttribute);
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
@@ -516,6 +521,9 @@ bool Radio::startReceiver(void)
   bool success;
   int status;
 
+  // Acquire the I/O subsystem lock.
+  pthread_mutex_lock(&ioSubsystemLock);
+
   // Default to success
   success = true;
 
@@ -567,6 +575,9 @@ bool Radio::startReceiver(void)
     } // else
   } // if
 
+  // Release the I/O subsystem lock.
+  pthread_mutex_unlock(&ioSubsystemLock);
+
   return (success);
   
 } // startReceiver
@@ -597,6 +608,9 @@ bool Radio::stopReceiver(void)
   bool success;
   int status;
 
+  // Acquire the I/O subsystem lock.
+  pthread_mutex_lock(&ioSubsystemLock);
+
   // Default to success
   success = true;
 
@@ -620,6 +634,9 @@ bool Radio::stopReceiver(void)
       dataConsumerPtr->stop();
     } // if
   } // if
+
+  // Release the I/O subsystem lock.
+  pthread_mutex_unlock(&ioSubsystemLock);
 
   return (success);
   
@@ -650,6 +667,9 @@ bool Radio::startTransmitter(void)
 {
   bool success;
   int status;
+
+  // Acquire the I/O subsystem lock.
+  pthread_mutex_lock(&ioSubsystemLock);
 
   // Default to success
   success = true;
@@ -691,6 +711,9 @@ bool Radio::startTransmitter(void)
    } // if
   } // if
 
+  // Release the I/O subsystem lock.
+  pthread_mutex_unlock(&ioSubsystemLock);
+
   return (success);
   
 } // startTransmitter
@@ -721,6 +744,9 @@ bool Radio::stopTransmitter(void)
   bool success;
   int status;
 
+  // Acquire the I/O subsystem lock.
+  pthread_mutex_lock(&ioSubsystemLock);
+
   // Default to success
   success = true;
 
@@ -741,6 +767,9 @@ bool Radio::stopTransmitter(void)
       transmitEnabled = false;
     } // if
   } // if
+
+  // Release the I/O subsystem lock.
+  pthread_mutex_unlock(&ioSubsystemLock);
 
   return (success);
   
