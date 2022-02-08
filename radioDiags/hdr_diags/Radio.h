@@ -201,6 +201,9 @@ class Radio
   // Radio callback support.
   static Radio *mePtr;
 
+  // Multi-thread support.
+  pthread_mutex_t ioSubsystemLock;
+
   // Statistics.
   uint32_t receiveTimeStamp;
   uint32_t receiveBlockCount;

@@ -1480,6 +1480,10 @@ static void cmdStartTransmitter(char *bufferPtr)
 
     if (enabled)
     {
+      // Stop the scanner and sweeper if they're running.
+      cmdStopFscan(bufferPtr);
+      cmdStopFrequencySweep(bufferPtr);
+
       // Stop the receiver since the system is half duplex.
       success = diagUi_radioPtr->stopReceiver();
     } // if
@@ -1538,6 +1542,10 @@ static void cmdStopTransmitter(char *bufferPtr)
 
   if (enabled)
   {
+    // Stop the scanner and sweeper if they're running.
+    cmdStopFscan(bufferPtr);
+    cmdStopFrequencySweep(bufferPtr);
+
     // Stop the transmitter.
     success = diagUi_radioPtr->stopTransmitter();
 
@@ -1598,6 +1606,10 @@ static void cmdStartReceiver(char *bufferPtr)
 
     if (enabled)
     {
+      // Stop the scanner and sweeper if they're running.
+      cmdStopFscan(bufferPtr);
+      cmdStopFrequencySweep(bufferPtr);
+
       // Take the system out of transmit mode.
       success = diagUi_radioPtr->stopTransmitter();
     } // if
@@ -1656,6 +1668,10 @@ static void cmdStopReceiver(char *bufferPtr)
 
   if (enabled)
   {
+    // Stop the scanner and sweeper if they're running.
+    cmdStopFscan(bufferPtr);
+    cmdStopFrequencySweep(bufferPtr);
+
     // Stop the receiverr.
     success = diagUi_radioPtr->stopReceiver();
 
@@ -1676,7 +1692,6 @@ static void cmdStopReceiver(char *bufferPtr)
   return;
 
 } // cmdStopReceiver
-
 
 /*****************************************************************************
 
