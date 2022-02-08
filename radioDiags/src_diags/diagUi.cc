@@ -1677,7 +1677,6 @@ static void cmdStopReceiver(char *bufferPtr)
 
 } // cmdStopReceiver
 
-
 /*****************************************************************************
 
   Name: cmdStartLiveStream
