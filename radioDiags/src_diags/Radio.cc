@@ -370,6 +370,9 @@ bool Radio::setupReceiver(void)
   // Indicate that the receive process is disabled.
   receiveEnabled = false;
 
+  // Indicate that the front end amplifier is not enabled.
+  receiveFrontEndAmplifierEnabled = false;
+
   // Default to 2.048MS/s.
   success = !setSampleRate(2048000);
 
@@ -429,7 +432,10 @@ bool Radio::setupTransmitter(void)
   // Indicate that the transmit process is disabled.
   transmitEnabled = false;
 
-  // Minimize the transmit gain, and set it to 2dB.
+  // Indicate that the front end amplifier is not enabled.
+  transmitFrontEndAmplifierEnabled = false;
+
+   // Minimize the transmit gain, and set it to 2dB.
   success = setTransmitIfGainInDb(2);
 
   // set the transmit frequency.
