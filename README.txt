@@ -154,6 +154,10 @@ set ssbdemodgain <gain>
 set ammodindex <modulation index>
 set fmmoddeviation <deviation in Hz>
 set wbfmmoddeviation <deviation in Hz>
+enable rxfrontendamp
+disable rxfrontendamp
+enable txfrontendamp
+disable txfrontendamp
 enable frontendamp
 disable frontendamp
 set txifgain <gain in dB>
@@ -194,7 +198,7 @@ Radio Internal Information
 ------------------------------------------------------
 Information Source                  : File
 Receive Enabled                     : No
-Front End Amps Enabled (TX and RX)  : No
+Receive Front End Amp Enabled       : Yes
 Receive IF Gain:                    : 0 dB
 Receive Baseband Gain:              : 0 dB
 Receive Frequency                   : 89100000 Hz
@@ -204,6 +208,7 @@ Receive Frequency Warp:             : -30 ppm
 Receive Timestamp                   : 376176640
 Receive Block Count                 : 2870
 Transmit Enabled                    : No
+Transmit Front End Amp Enabled      : No
 Transmit IF Gain:                   : 35 dB
 Transmit Frequency                  : 89100000 Hz
 Transmit Bandwidth                  : 1750000 Hz
