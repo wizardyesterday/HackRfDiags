@@ -87,8 +87,10 @@ static void cmdSetSsbDemodGain(char *bufferPtr);
 static void cmdSetAmModIndex(char *bufferPtr);
 static void cmdSetFmModDeviation(char *bufferPtr);
 static void cmdSetWbFmModDeviation(char *bufferPtr);
-static void cmdEnableFrontendAmp(char *bufferPtr);
-static void cmdDisableFrontendAmp(char *bufferPtr);
+static void cmdEnableRxFrontendAmp(char *bufferPtr);
+static void cmdDisableRxFrontendAmp(char *bufferPtr);
+static void cmdEnableTxFrontendAmp(char *bufferPtr);
+static void cmdDisableTxFrontendAmp(char *bufferPtr);
 static void cmdSetTxIfGain(char *bufferPtr);
 static void cmdSetRxIfGain(char *bufferPtr);
 static void cmdSetRxBasebandGain(char *bufferPtr);
@@ -147,8 +149,10 @@ static const commandEntry commandTable[] =
                                              // set fmmoddeviation deviation 
   {"set","wbfmmoddeviation",cmdSetWbFmModDeviation},
                                              // set wbfmmoddeviation deviation 
-  {"enable","frontendamp",cmdEnableFrontendAmp}, // enable frontendamp
-  {"disable","frontendamp",cmdDisableFrontendAmp}, // disable frontendamp
+  {"enable","rxfrontendamp",cmdEnableRxFrontendAmp}, // enable rxfrontendamp
+  {"disable","rxfrontendamp",cmdDisableRxFrontendAmp}, // disable rxfrontendamp
+  {"enable","txfrontendamp",cmdEnableTxFrontendAmp}, // enable txfrontendamp
+  {"disable","txfrontendamp",cmdDisableTxFrontendAmp}, // disable txfrontendamp
   {"set","txifgain",cmdSetTxIfGain},           // set txifgain gain
   {"set","rxifgain",cmdSetRxIfGain},           // set rxifgain gain
   {"set","rxbasebandgain",cmdSetRxBasebandGain},// set rxbasebandgain gain
@@ -923,17 +927,16 @@ static void cmdSetWbFmModDeviation(char *bufferPtr)
 
 /*****************************************************************************
 
-  Name: cmdEnableFrontendAmp
+  Name: cmdEnableRxFrontendAmp
 
-  Purpose: The purpose of this function is to enable the frontend amplifier
-  in the system.  This amplifier provides an additional 14dB of system
-  gain.
+  Purpose: The purpose of this function is to enable the receive frontend
+  in the system.  This amplifier provides an additional 14dB of system gain.
 
   The syntax for the corresponding command is the following:
 
-    "enable frontendamp"
+    "enable rxfrontendamp"
 
-  Calling Sequence: cmdEnableFrontendAmp(bufferPtr)
+  Calling Sequence: cmdEnableRxFrontendAmp(bufferPtr)
 
   Inputs:
 
@@ -944,49 +947,49 @@ static void cmdSetWbFmModDeviation(char *bufferPtr)
     None.
 
 *****************************************************************************/
-static void cmdEnableFrontendAmp(char *bufferPtr)
+static void cmdEnableRxFrontendAmp(char *bufferPtr)
 {
   bool enabled;
   bool success;
 
-  enabled = diagUi_radioPtr->frontEndAmplifierIsEnabled();
+  enabled = diagUi_radioPtr->receiveFrontEndAmplifierIsEnabled();
 
   if (!enabled)
   {
     // Enable the frontend amplifier.
-    success = diagUi_radioPtr->enableFrontEndAmplifier();
+    success = diagUi_radioPtr->enableReceiveFrontEndAmplifier();
 
     if (success)
     {
-      nprintf(stderr,"Frontend amplifier is enabled,\n");
+      nprintf(stderr,"Receive frontend amplifier is enabled,\n");
     } // if
     else
     {
-      nprintf(stderr,"Error: Could not enable frontend amplifier,\n");
+      nprintf(stderr,"Error: Could not enable receive frontend amplifier,\n");
     } // else
   } // if
   else
   {
-    nprintf(stderr,"Error: Frontend amplifier is already enabled,\n");
+    nprintf(stderr,"Error: Receive frontend amplifier is already enabled,\n");
   } // else
 
   return;
 
-} // cmdEnableFrontendAmp
+} // cmdEnableRxFrontendAmp
 
 /*****************************************************************************
 
-  Name: cmdDisableFrontendAmp
+  Name: cmdDisableRxFrontendAmp
 
-  Purpose: The purpose of this function is to disable the frontend amplifier
-  in the system.  This amplifier provides an additional 14dB of system
-  gain.
+  Purpose: The purpose of this function is to disable the receive frontend
+  amplifier in the system.  This amplifier provides an additional 14dB of
+  system gain.
 
   The syntax for the corresponding command is the following:
 
     "disable frontendamp"
 
-  Calling Sequence: cmdDisableFrontendAmp(bufferPtr)
+  Calling Sequence: cmdDisableRxFrontendAmp(bufferPtr)
 
   Inputs:
 
@@ -997,35 +1000,140 @@ static void cmdEnableFrontendAmp(char *bufferPtr)
     None.
 
 *****************************************************************************/
-static void cmdDisableFrontendAmp(char *bufferPtr)
+static void cmdDisableRxFrontendAmp(char *bufferPtr)
 {
   bool enabled;
   bool success;
 
-  enabled = diagUi_radioPtr->frontEndAmplifierIsEnabled();
+  enabled = diagUi_radioPtr->receiveFrontEndAmplifierIsEnabled();
 
   if (enabled)
   {
     // Disable the frontend amplifier.
-    success = diagUi_radioPtr->disableFrontEndAmplifier();
+    success = diagUi_radioPtr->disableReceiveFrontEndAmplifier();
 
     if (success)
     {
-      nprintf(stderr,"Frontend amplifier is disabled,\n");
+      nprintf(stderr,"Receive frontend amplifier is disabled,\n");
     } // if
     else
     {
-      nprintf(stderr,"Error: Could not disable frontend amplifier,\n");
+      nprintf(stderr,"Error: Could not disable rwceive frontend amplifier,\n");
     } // else
   } // if
   else
   {
-    nprintf(stderr,"Error: Frontend amplifier is already disabled,\n");
+    nprintf(stderr,"Error: Receive frontend amplifier is already disabled,\n");
   } // else
 
   return;
 
-} // cmdDisableFrontendAmp
+} // cmdDisableRxFrontendAmp
+
+/*****************************************************************************
+
+  Name: cmdEnableTxFrontendAmp
+
+  Purpose: The purpose of this function is to enable the transmit frontend
+  in the system.  This amplifier provides an additional 14dB of system gain.
+
+  The syntax for the corresponding command is the following:
+
+    "enable txfrontendamp"
+
+  Calling Sequence: cmdEnableTxFrontendAmp(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdEnableTxFrontendAmp(char *bufferPtr)
+{
+  bool enabled;
+  bool success;
+
+  enabled = diagUi_radioPtr->transmitFrontEndAmplifierIsEnabled();
+
+  if (!enabled)
+  {
+    // Enable the frontend amplifier.
+    success = diagUi_radioPtr->enableTransmitFrontEndAmplifier();
+
+    if (success)
+    {
+      nprintf(stderr,"Transmit frontend amplifier is enabled,\n");
+    } // if
+    else
+    {
+      nprintf(stderr,"Error: Could not enable transmit frontend amplifier,\n");
+    } // else
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: Transmit frontend amplifier is already enabled,\n");
+  } // else
+
+  return;
+
+} // cmdEnableTxFrontendAmp
+
+/*****************************************************************************
+
+  Name: cmdDisableTxFrontendAmp
+
+  Purpose: The purpose of this function is to disable the transmit frontend
+  amplifier in the system.  This amplifier provides an additional 14dB of
+  system gain.
+
+  The syntax for the corresponding command is the following:
+
+    "disable txfrontendamp"
+
+  Calling Sequence: cmdDisableTxFrontendAmp(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdDisableTxFrontendAmp(char *bufferPtr)
+{
+  bool enabled;
+  bool success;
+
+  enabled = diagUi_radioPtr->transmitFrontEndAmplifierIsEnabled();
+
+  if (enabled)
+  {
+    // Disable the frontend amplifier.
+    success = diagUi_radioPtr->disableTransmitFrontEndAmplifier();
+
+    if (success)
+    {
+      nprintf(stderr,"Transmit frontend amplifier is disabled,\n");
+    } // if
+    else
+    {
+      nprintf(stderr,"Error: Could not disable transmit frontend amplifier,\n");
+    } // else
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: Transmit frontend amplifier is already disabled,\n");
+  } // else
+
+  return;
+
+} // cmdDisableTxFrontendAmp
 
 /*****************************************************************************
 
@@ -2188,8 +2296,10 @@ static void cmdHelp(void)
   nprintf(stderr,"set ammodindex <modulation index>\n");
   nprintf(stderr,"set fmmoddeviation <deviation in Hz>\n");
   nprintf(stderr,"set wbfmmoddeviation <deviation in Hz>\n");
-  nprintf(stderr,"enable frontendamp\n");
-  nprintf(stderr,"disable frontendamp\n");
+  nprintf(stderr,"enable rxfrontendamp\n");
+  nprintf(stderr,"disable rxfrontendamp\n");
+  nprintf(stderr,"enable txfrontendamp\n");
+  nprintf(stderr,"disable txfrontendamp\n");
   nprintf(stderr,"set txifgain <gain in dB>\n");
   nprintf(stderr,"set rxifgain <gain in dB>\n");
   nprintf(stderr,"set rxbasebandgain <gain>\n");

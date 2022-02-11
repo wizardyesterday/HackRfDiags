@@ -380,7 +380,7 @@ bool Radio::setupReceiver(void)
   success = success || !setBandwidth(1750000);
 
   // Disable the front end amplifier.
-  success = success || !disableFrontEndAmplifier();
+  success = success || !disableReceiveFrontEndAmplifier();
 
   // Set receive IF gain to 16dB.
   success = success || !setReceiveIfGainInDb(16);
@@ -539,13 +539,13 @@ bool Radio::startReceiver(void)
       // since the firmware in the HackRf disables the amp
       // when the radio is stopped.
       //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-      if (frontEndAmplifierEnabled)
+      if (receiveFrontEndAmplifierEnabled)
       {
-        success = enableFrontEndAmplifier();
+        success = enableReceiveFrontEndAmplifier();
       } // if
       else
       {
-        success = disableFrontEndAmplifier();
+        success = disableReceiveFrontEndAmplifier();
       } // else
       //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
@@ -683,13 +683,13 @@ bool Radio::startTransmitter(void)
       // since the firmware in the HackRf disables the amp
       // when the radio is stopped.
       //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-      if (frontEndAmplifierEnabled)
+      if (transmitFrontEndAmplifierEnabled)
       {
-        success = enableFrontEndAmplifier();
+        success = enableTransmitFrontEndAmplifier();
       } // if
       else
       {
-        success = disableFrontEndAmplifier();
+        success = disableTransmitFrontEndAmplifier();
       } // else
       //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
@@ -1177,16 +1177,13 @@ bool Radio::setReceiveBandwidth(uint32_t bandwidth)
 
 /**************************************************************************
 
-  Name: enableFrontEndAmplifier
+  Name: enableReceiveFrontEndAmplifier
 
-  Purpose: The purpose of this function is to enable the front end
-  amplifier in the system.  This provides an additional 14dB of system
-  gain.  Enabled implies that the amplifier is in the signal chain.  It
-  should be noted that there exist two front end amplifiers.  Enabling
-  implies that the a front end amplifier will be in both the transmit and
-  receive signal paths.
+  Purpose: The purpose of this function is to enable the receive front
+  end amplifier in the system.  This provides an additional 14dB of system
+  gain.  Enabled implies that the amplifier is in the signal chain.
 
-  Calling Sequence: success = enableFrontEndAmplifier()
+  Calling Sequence: success = enableReceiveFrontEndAmplifier()
 
   Inputs:
 
@@ -1199,7 +1196,7 @@ bool Radio::setReceiveBandwidth(uint32_t bandwidth)
     failure.
 
 **************************************************************************/
-bool Radio::enableFrontEndAmplifier(void)
+bool Radio::enableReceiveFrontEndAmplifier(void)
 
 {
   bool success;
@@ -1213,13 +1210,21 @@ bool Radio::enableFrontEndAmplifier(void)
 
   if (devicePtr != 0)
   {
-    // Enable the front end amplifier
-    error = hackrf_set_amp_enable((hackrf_device *)devicePtr,1);
+    if (isReceiving())
+    {
+      // Enable the front end amplifier
+      error = hackrf_set_amp_enable((hackrf_device *)devicePtr,1);
+    } // if
+    else
+    {
+      // This always succeeds.
+      error = HACKRF_SUCCESS;
+    } // else
 
     if (error == HACKRF_SUCCESS)
     {
       // Update attribute.
-      frontEndAmplifierEnabled = true;
+      receiveFrontEndAmplifierEnabled = true;
 
       // indicate success.
       success = true;
@@ -1231,20 +1236,17 @@ bool Radio::enableFrontEndAmplifier(void)
 
   return (success);
   
-} // enableFrontEndAmplifier
+} // enableReceiveFrontEndAmplifier
 
 /**************************************************************************
 
-  Name: disableFrontEndAmplifier
+  Name: disableReceiveFrontEndAmplifier
 
-  Purpose: The purpose of this function is to enable the front end
-  amplifier in the system.  This removes the additional 14dB of system
-  gain.  Disabled implies that the amplifier is in the signal chain.  It
-  should be noted that there exist two front end amplifiers.  Disabling
-  implies that the a front end amplifier will no longer be in both the
-  transmit and receive signal paths.
+  Purpose: The purpose of this function is to disable the receive front
+  end amplifier in the system.  This removes the additional 14dB of system
+  gain.  Disabled implies that the amplifier is in the signal chain.
 
-  Calling Sequence: success = disableFrontEndAmplifier()
+  Calling Sequence: success = disableReceiveFrontEndAmplifier()
 
   Inputs:
 
@@ -1257,7 +1259,7 @@ bool Radio::enableFrontEndAmplifier(void)
     failure.
 
 **************************************************************************/
-bool Radio::disableFrontEndAmplifier(void)
+bool Radio::disableReceiveFrontEndAmplifier(void)
 
 {
   bool success;
@@ -1271,13 +1273,21 @@ bool Radio::disableFrontEndAmplifier(void)
 
   if (devicePtr != 0)
   {
-    // Enable the front end amplifier
-    error = hackrf_set_amp_enable((hackrf_device *)devicePtr,0);
+    if (isReceiving())
+    {
+      // Disable the front end amplifier
+      error = hackrf_set_amp_enable((hackrf_device *)devicePtr,0);
+    } // if
+    else
+    {
+      // This always succeeds.
+      error = HACKRF_SUCCESS;
+    } // else
 
     if (error == HACKRF_SUCCESS)
     {
       // Update attribute.
-      frontEndAmplifierEnabled = false;
+      receiveFrontEndAmplifierEnabled = false;
 
       // indicate success.
       success = true;
@@ -1289,7 +1299,133 @@ bool Radio::disableFrontEndAmplifier(void)
 
   return (success);
   
-} // disableFrontEndAmplifier
+} // disableReceiveFrontEndAmplifier
+
+/**************************************************************************
+
+  Name: enableTransmitFrontEndAmplifier
+
+  Purpose: The purpose of this function is to enable the transmit front
+  end amplifier in the system.  This provides an additional 14dB of system
+  gain.  Enabled implies that the amplifier is in the signal chain.
+
+  Calling Sequence: success = enableTransmitFrontEndAmplifier()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    success - A boolean that indicates the outcome of the operation.  A
+    value of true indicates success, and a value of false indicates
+    failure.
+
+**************************************************************************/
+bool Radio::enableTransmitFrontEndAmplifier(void)
+
+{
+  bool success;
+  int error;
+
+  // Acquire the I/O subsystem lock.
+  pthread_mutex_lock(&ioSubsystemLock);
+
+  // Default to failure.
+  success = false;
+
+  if (devicePtr != 0)
+  {
+    if (isTransmitting())
+    {
+      // Enable the front end amplifier
+      error = hackrf_set_amp_enable((hackrf_device *)devicePtr,1);
+    } // if
+    else
+    {
+      // This always succeeds.
+      error = HACKRF_SUCCESS;
+    } // else
+
+    if (error == HACKRF_SUCCESS)
+    {
+      // Update attribute.
+      transmitFrontEndAmplifierEnabled = true;
+
+      // indicate success.
+      success = true;
+    } // if
+  } // if
+
+  // Release the I/O subsystem lock.
+  pthread_mutex_unlock(&ioSubsystemLock);
+
+  return (success);
+  
+} // enableTransmitFrontEndAmplifier
+
+/**************************************************************************
+
+  Name: disableTransmitFrontEndAmplifier
+
+  Purpose: The purpose of this function is to disable the transmit front
+  end amplifier in the system.  This removes the additional 14dB of system
+  gain.  Disabled implies that the amplifier is in the signal chain.
+
+  Calling Sequence: success = disableTransmitFrontEndAmplifier()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    success - A boolean that indicates the outcome of the operation.  A
+    value of true indicates success, and a value of false indicates
+    failure.
+
+**************************************************************************/
+bool Radio::disableTransmitFrontEndAmplifier(void)
+
+{
+  bool success;
+  int error;
+
+  // Acquire the I/O subsystem lock.
+  pthread_mutex_lock(&ioSubsystemLock);
+
+  // Default to failure.
+  success = false;
+
+  if (devicePtr != 0)
+  {
+    if (isTransmitting())
+    {
+      // Disable the front end amplifier
+      error = hackrf_set_amp_enable((hackrf_device *)devicePtr,0);
+    } // if
+    else
+    {
+      // This always succeeds.
+      error = HACKRF_SUCCESS;
+    } // else
+
+    if (error == HACKRF_SUCCESS)
+    {
+      // Update attribute.
+      transmitFrontEndAmplifierEnabled = false;
+
+      // indicate success.
+      success = true;
+    } // if
+  } // if
+
+  // Release the I/O subsystem lock.
+  pthread_mutex_unlock(&ioSubsystemLock);
+
+  return (success);
+  
+} // disableTransmitFrontEndAmplifier
 
 /**************************************************************************
 
@@ -1654,12 +1790,13 @@ bool Radio::setSignalDetectThreshold(uint32_t threshold)
 
 /**************************************************************************
 
-  Name: frontEndAmplifierEnabled
+  Name: receiveFrontEndAmplifierIsEnabled
 
   Purpose: The purpose of this function is to indicate whether or not
-  the front end amplifier is enabled or bypassed in the signal chain.
+  the receive front end amplifier is enabled or bypassed in the
+  signal chain.
 
-  Calling Sequence: enabled = frontEndAmplifierEnabled()
+  Calling Sequence: enabled = receiveFrontEndAmplifierIsEnabled()
 
   Inputs:
 
@@ -1673,13 +1810,43 @@ bool Radio::setSignalDetectThreshold(uint32_t threshold)
     disabled.
 
 **************************************************************************/
-bool Radio::frontEndAmplifierIsEnabled(void)
+bool Radio::receiveFrontEndAmplifierIsEnabled(void)
 
 {
 
-  return (frontEndAmplifierEnabled);
+  return (receiveFrontEndAmplifierEnabled);
   
-} // frontEndAmplifierIsEnabled
+} // receiveFrontEndAmplifierIsEnabled
+
+/**************************************************************************
+
+  Name: transmitFrontEndAmplifierIsEnabled
+
+  Purpose: The purpose of this function is to indicate whether or not
+  the transmit front end amplifier is enabled or bypassed in the
+  signal chain.
+
+  Calling Sequence: enabled = transmitFrontEndAmplifierIsEnabled()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    enabled - A boolean that indicates whether or not the front end
+    amplifier is enabled.  A value of true indicates that the amplifier
+    is enabled, and a value of false indicates that the amplifier is
+    disabled.
+
+**************************************************************************/
+bool Radio::transmitFrontEndAmplifierIsEnabled(void)
+
+{
+
+  return (transmitFrontEndAmplifierEnabled);
+  
+} // transmitFrontEndAmplifierIsEnabled
 
 /**************************************************************************
 
@@ -2361,8 +2528,8 @@ void Radio::displayInternalInformation(void)
      nprintf(stderr,"No\n");
   } // else
 
-  nprintf(stderr,"Front End Amps Enabled (TX and RX)  : ");
-  if (frontEndAmplifierEnabled)
+  nprintf(stderr,"Receive Front End Amp Enabled       : ");
+  if (receiveFrontEndAmplifierEnabled)
   {
     nprintf(stderr,"Yes\n");
   } // if
@@ -2397,6 +2564,16 @@ void Radio::displayInternalInformation(void)
   {
      nprintf(stderr,"No\n");
    } // else
+
+  nprintf(stderr,"Transmit Front End Amp Enabled      : ");
+  if (transmitFrontEndAmplifierEnabled)
+  {
+    nprintf(stderr,"Yes\n");
+  } // if
+  else
+  {
+     nprintf(stderr,"No\n");
+  } // else
 
   nprintf(stderr,"Transmit IF Gain:                   : %d dB\n",
           (unsigned int)transmitIfGainInDb);
