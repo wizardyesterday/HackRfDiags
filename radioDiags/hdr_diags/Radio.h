@@ -55,8 +55,10 @@ class Radio
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // New HackRF methods.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  bool enableFrontEndAmplifier(void);
-  bool disableFrontEndAmplifier(void);
+  bool enableReceiveFrontEndAmplifier(void);
+  bool disableReceiveFrontEndAmplifier(void);
+  bool enableTransmitFrontEndAmplifier(void);
+  bool disableTransmitFrontEndAmplifier(void);
   bool setReceiveIfGainInDb(uint32_t gain);
   bool setReceiveBasebandGainInDb(uint32_t gain);
   bool setTransmitIfGainInDb(uint32_t gain);
@@ -74,7 +76,8 @@ class Radio
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // New HackRF methods.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  bool frontEndAmplifierIsEnabled(void); // New HackRf stuff.
+  bool receiveFrontEndAmplifierIsEnabled(void); // New HackRf stuff.
+  bool transmitFrontEndAmplifierIsEnabled(void); // New HackRf stuff.
   uint32_t getReceiveIfGainInDb(void); // New HackRf stuff.
   uint32_t getReceiveBasebandGainInDb(void); // New HackRf stuff.
   uint32_t getTransmitIfGainInDb(void); // New HackRf stuff.
@@ -159,7 +162,8 @@ class Radio
   // New HackRF attributes.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Common Radio Configuration.
-  bool frontEndAmplifierEnabled;
+  bool receiveFrontEndAmplifierEnabled;
+  bool transmitFrontEndAmplifierEnabled;
 
   // Receiver Configuration.
   uint32_t receiveIfGainInDb;
