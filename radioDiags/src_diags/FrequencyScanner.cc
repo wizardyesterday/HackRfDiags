@@ -138,7 +138,7 @@ FrequencyScanner::FrequencyScanner(Radio *radioPtr,
   Name: ~FrequencyScanner
 
   Purpose: The purpose of this function is to serve as the destructor
-  of a FrequencySweeper object.
+  of a FrequencyScanner object.
 
   Calling Sequence: ~FrequencyScanner()
 
@@ -163,7 +163,7 @@ FrequencyScanner::~FrequencyScanner(void)
   // Unregister the callback.
   dataProcessorPtr->registerSignalStateCallback(NULL,NULL);
 
-  // Notify the sweeper thread to terminate.
+  // Notify the scanner thread to terminate.
   timeToExit = true;
 
   // We're done ... wait for the sweeper thread to terminate.
