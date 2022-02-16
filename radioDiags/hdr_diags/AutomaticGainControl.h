@@ -9,19 +9,16 @@
 #include <unistd.h>
 #include <stdint.h>
 
-#include "Radio.h"
-
 class AutomaticGainControl
 {
   public:
 
-  AutomaticGainControl(Radio *radioPtr,
-                       int32_t setPointInDbFs);
+  AutomaticGainControl(Radio *radioPtr,int32_t setPointInDbFs);
 
   ~AutomaticGainControl(void);
 
   void setSetPoint(int32_t setPointInDbFs);
-  void run(uint32_t signalMagnitude,uint64_t frequencyInHertz);
+  void run(uint32_t signalMagnitude);
   void displayInternalInformation(void);
 
   private:

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "Radio.h"
 #include "AutomaticGainControl.h"
 
 #define FREQUENCY_THRESHOLD_FOR_FRONT_END_AMP (200000000)
@@ -35,7 +36,7 @@
 
 **************************************************************************/
 AutomaticGainControl::AutomaticGainControl(Radio *radioPtr,
-                                          int32_t setPointInDbFs)
+                                           int32_t setPointInDbFs)
 {
   uint32_t i;
   uint32_t maximumMagnitude;
@@ -187,30 +188,30 @@ int32_t AutomaticGainControl::convertMagnitudeToDbFs(
   frequencies), the amplifier needs to be enabled.  Once the receiver is
   characterized, this AGC system (in theory) should work just fine.
 
-  Calling Sequence: run(signalMagnitude,frequency)
+  Calling Sequence: run(signalMagnitude)
 
   Inputs:
 
     signalMagnitude - The magnitude of the signal.
-
-    frequencyInHertz - The frequency in Hertz used for front end
-    amplifier allocation.
 
   Outputs:
 
     None.
 
 **************************************************************************/
-void AutomaticGainControl::run(uint32_t signalMagnitude,
-                               uint64_t frequencyInHertz)
+void AutomaticGainControl::run(uint32_t signalMagnitude)
 {
   bool frontEndAmpEnabled;
   int32_t deltaGainInDb;
   int32_t adjustedBasebandGainInDb;
   int32_t signalInDbFs;
+  uint64_t frequencyInHertz;
 
   // Convert to decibels referenced to full scale.
   signalInDbFs = convertMagnitudeToDbFs(signalMagnitude);
+
+  // Get the receiver frequency for further evaluation.
+  frequencyInHertz = radioPtr->getReceiveFrequency();
 
   if (frequencyInHertz >= FREQUENCY_THRESHOLD_FOR_FRONT_END_AMP)
   {
