@@ -155,6 +155,8 @@ IqDataProcessor::~IqDataProcessor()
   delete stage3IDecimatorPtr;
   delete stage3QDecimatorPtr;
 
+  delete trackerPtr;
+
   return; 
 
 } // ~IqDataProcessor
