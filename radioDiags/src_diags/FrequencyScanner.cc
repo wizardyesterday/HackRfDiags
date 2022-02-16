@@ -60,23 +60,19 @@ static void signalStateCallback(bool signalPresent,void *contextPtr)
 
   Calling Sequence: FrequencyScanner(radioPtr,
                                      startFrequencyInHertz,
-                                     endFrequencyInHz,
+                                     endFrequencyInHertz,
                                      frequencyIncrementInHertz)
 
   Inputs:
 
     radioPtr - A pointer to a Radio instance.
 
-    startFrequencyInHertz - The start frequency of the sweep.
+    startFrequencyInHertz - The start frequency of the scan.
+
+    endFrequencyInHz - The end frequency of the scan.
 
     frequencyIncrementInHertz - The increment that is used to generate
     the discrete frequencies. 
-
-    numberOfFrequencySteps - The number of discrete frequency steps in
-    the sweep.
-
-    dwellTimeInMilliseconds - The time that the system dwells on each
-    discrete frequency.
 
   Outputs:
 
@@ -166,7 +162,7 @@ FrequencyScanner::~FrequencyScanner(void)
   // Notify the scanner thread to terminate.
   timeToExit = true;
 
-  // We're done ... wait for the sweeper thread to terminate.
+  // We're done ... wait for the scanner thread to terminate.
   pthread_join(scanThread,0);
 
   // Destroy condition variable and mutex.
@@ -322,7 +318,7 @@ int FrequencyScanner::wait(void)
   Name: displayInternalInformation
 
   Purpose: The purpose of this function is to display information of the
-  frequency sweeper.
+  frequency scanner.
 
   Calling Sequence: displayInternalInformation()
 
@@ -379,13 +375,13 @@ void FrequencyScanner::displayInternalInformation(void)
 
 /**************************************************************************
 
-  Name: sweepProcedure
+  Name: scanProcedure 
 
-  Purpose: The purpose of this function is to provide frequency sweep
+  Purpose: The purpose of this function is to provide frequency scan 
   functionality of the system.  This function is the entry point to the
   user interface thread.
 
-  Calling Sequence: sweepProcedure(arg)
+  Calling Sequence: scanProcedure(arg)
 
   Inputs:
 
@@ -480,7 +476,7 @@ void FrequencyScanner::scanProcedure(void *arg)
     } // if
   } // while
 
-  // Indicate that the system not sweeping.
+  // Indicate that the system not scanning.
   thisPtr->scannerState = Idle;
 
   fprintf(stderr,"Leaving scan procedure\n");

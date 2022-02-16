@@ -169,7 +169,7 @@ void FrequencySweeper::displayInternalInformation(void)
 
   Purpose: The purpose of this function is to provide frequency sweep
   functionality of the system.  This function is the entry point to the
-  user interface thread.
+  sweep thread.
 
   Calling Sequence: sweepProcedure(arg)
 
