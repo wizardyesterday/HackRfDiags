@@ -113,6 +113,32 @@ uint32_t SignalDetector::getThreshold(void)
 
 /*****************************************************************************
 
+  Name: getSignalMagnitude
+
+  Purpose: The purpose of this function is to retrieve average magnitude
+  of the last IQ data block that was processed.
+ 
+  Calling Sequence: magnitude = getSignalMagnitude()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    magnitude - The average magnitude of the last IQ data block that
+    was processed.
+
+*****************************************************************************/
+uint32_t SignalDetector::getSignalMagnitude(void)
+{
+
+  return (signalMagnitude);
+
+} // getSignalMagnitude
+
+/*****************************************************************************
+
   Name: detectSignal
 
   Purpose: The purpose of this function is to determine if a signal is
@@ -217,6 +243,9 @@ bool SignalDetector::detectSignal(int8_t *bufferPtr,uint32_t bufferLength)
     signalIsPresent = true;
     } // if
   } // else
+
+  // Update the attribute for later retrieval.
+  signalMagnitude = magnitude;
 
   return (signalIsPresent);
 

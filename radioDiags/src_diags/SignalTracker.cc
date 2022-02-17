@@ -156,6 +156,36 @@ uint32_t SignalTracker::getThreshold(void)
 
 /*****************************************************************************
 
+  Name: getSignalMagnitude
+
+  Purpose: The purpose of this function is to retrieve average magnitude
+  of the last IQ data block that was processed by the SignalDetector.
+
+  Calling Sequence: magnitude = getSignalMagnitude()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    magnitude - The average magnitude of the last IQ data block that
+    was processed.
+
+*****************************************************************************/
+uint32_t SignalTracker::getSignalMagnitude(void)
+{
+  uint32_t magnitude;
+
+  // Retrieve the average magnitude of the last IQ data block processed.
+  magnitude = detectorPtr->getSignalMagnitude();
+
+  return (magnitude);
+
+} // getSignalMagnitude
+
+/*****************************************************************************
+
   Name: run
 
   Purpose: The purpose of this function is to set the detection threshold

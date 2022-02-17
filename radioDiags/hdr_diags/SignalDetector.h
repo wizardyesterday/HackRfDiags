@@ -23,6 +23,7 @@ class SignalDetector
 
   void setThreshold(uint32_t threshold);
   uint32_t getThreshold(void);
+  uint32_t getSignalMagnitude(void);
   bool detectSignal(int8_t *bufferPtr,uint32_t bufferLength);
 
   //***************************** attributes **************************
@@ -30,6 +31,9 @@ class SignalDetector
 
   // The threshold is in linear units.
   uint32_t threshold;
+
+  // The average magnitude of the last IQ data block processed.
+  uint32_t signalMagnitude;
 
   uint8_t magnitudeBuffer[16384];
 };
