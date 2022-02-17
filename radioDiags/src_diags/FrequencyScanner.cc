@@ -43,8 +43,8 @@ static void signalStateCallback(bool signalPresent,void *contextPtr)
     // Reference the context pointer properly.
     thisPtr = (FrequencyScanner *)contextPtr;
 
-    // Update the signal state information.
-    thisPtr->updateSignalState(signalPresent);
+    // Peform the processing.
+    thisPtr->run(signalPresent);
   } // ig
 
   return;
@@ -84,12 +84,7 @@ FrequencyScanner::FrequencyScanner(Radio *radioPtr,
                                    uint64_t endFrequencyInHertz,
                                    uint64_t frequencyIncrementInHertz)
 {
-
- // Perform mutex initialization.
- pthread_mutex_init(&energyWakeupLock,NULL);
-
-  // Perform condition variable initialization.
-  pthread_cond_init(&energyWakeupCondition,NULL);
+  bool success;
 
   // Save for later use.
   this->radioPtr = radioPtr;
@@ -97,17 +92,14 @@ FrequencyScanner::FrequencyScanner(Radio *radioPtr,
   this->endFrequencyInHertz = endFrequencyInHertz;
   this->frequencyIncrementInHertz = frequencyIncrementInHertz;
 
-  // Save for display purposes.
+  // Start at the beginning.
   currentFrequencyInHertz = startFrequencyInHertz;
 
-  // Indicate that a signal is not present.
-  signalPresent = false;
+  // Select initial frequency.
+  success = radioPtr->setReceiveFrequency(currentFrequencyInHertz);
 
-  // Allow things to run.
-  timeToExit = false;
-
-  pthread_create(&scanThread,0,
-                 (void *(*)(void *))scanProcedure,this);
+  // Indicate that the system is scanning.
+  scannerState = Scanning;
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Register the callback to the IqDataProcessor.
@@ -159,159 +151,52 @@ FrequencyScanner::~FrequencyScanner(void)
   // Unregister the callback.
   dataProcessorPtr->registerSignalStateCallback(NULL,NULL);
 
-  // Notify the scanner thread to terminate.
-  timeToExit = true;
-
-  // We're done ... wait for the scanner thread to terminate.
-  pthread_join(scanThread,0);
-
-  // Destroy condition variable and mutex.
-  pthread_mutex_destroy(&energyWakeupLock);
-  pthread_cond_destroy(&energyWakeupCondition);
-
   return;
 
 } // ~FrequencyScanner
 
 /**************************************************************************
 
-  Name: updateSignalState
+  Name: run
 
-  Purpose: The purpose of this function is to signal the scanner thread
-  that new signal state information is available.
+  Purpose: The purpose of this function is to run the frequency scanner.
 
-  Calling Sequence: updateSignalState(signalPresent)
+
+  Calling Sequence: run(signalMagnitude )
 
   Inputs:
 
-    signalPresent - A flag that indicates whether or not a signal is
-    present.  A value of true indicates that a signal is present, and
-    a value of false indicates that a signal is not present.
+    signalMagnitude - The average magnitude of the IQ data block that
+    was received.
 
   Outputs:
 
     None.
 
 **************************************************************************/
- void FrequencyScanner::updateSignalState(bool signalPresent)
+void FrequencyScanner::run(bool signalPresent)
 {
+  bool success;
 
-  // Update the attribute.
-  this->signalPresent = signalPresent;
+  if (!signalPresent)
+  {
+    // Step to the next frequency.
+    currentFrequencyInHertz = 
+      currentFrequencyInHertz + frequencyIncrementInHertz;
 
-  // Notify the scanner thread of new signal state information.
-  signal();
+    if (currentFrequencyInHertz > endFrequencyInHertz)
+    {
+      // Wrap back to the beginning.
+      currentFrequencyInHertz = startFrequencyInHertz;
+    } // if
+
+    // Select new frequency.
+    success = radioPtr->setReceiveFrequency(startFrequencyInHertz);
+  } // if
 
   return;
 
-} // updateSignalState
-
-/**************************************************************************
-
-  Name: getSignalState
-
-  Purpose: The purpose of this function is to signal the scanner thread
-  that new signal state information is available.
-
-  Calling Sequence: signalPresent = getSignalState()
-
-  Inputs:
-
-    None.
-
-  Outputs:
-
-    signalPresent - A flag that indicates whether or not a signal is
-    present.  A value of true indicates that a signal is present, and
-    a value of false indicates that a signal is not present.
-
-**************************************************************************/
-bool FrequencyScanner::getSignalState(void)
-{
-
-  return (signalPresent);
-
-} // getSignalState
-
-/**************************************************************************
-
-  Name: signal
-
-  Purpose: The purpose of this function is to signal the scanner thread
-  that new signal state information is available.
-
-  Calling Sequence: signal()
-
-  Inputs:
-
-    None.
-
-  Outputs:
-
-    None.
-
-**************************************************************************/
-void FrequencyScanner::signal(void)
-{
-
-  // Grab the mutex to avoid race conditions.
-  pthread_mutex_lock(&energyWakeupLock);
-
-  // Signal the scanner thread.
-  pthread_cond_signal(&energyWakeupCondition);
-
-  // We're done.
-  pthread_mutex_unlock(&energyWakeupLock);
-
-  return;
-
-} // signal
-
-/**************************************************************************
-
-  Name: wait
-
-  Purpose: The purpose of this function is to allow the scanner thread
-  to wait for new signal state informaiton.
-
-  Calling Sequence: result = wait()
-
-  Inputs:
-
-    None.
-
-  Outputs:
-
-    result - The result of the wait.  A value of zero indicates that a
-    wakeup occurred as a result of a signal to the condition variable.  A
-    nonzero value indicates a timeout or something else occurred.
-
-**************************************************************************/
-int FrequencyScanner::wait(void)
-{
-  struct timeval now;
-  struct timespec timeout;
-  int result;
-
-  // Grab the mutex to avoid race conditions.
-  pthread_mutex_lock(&energyWakeupLock);
-
-  // Compute a time 1 second into the future.
-  gettimeofday(&now,NULL);
-  timeout.tv_sec = now.tv_sec + 1;
-  timeout.tv_nsec = now.tv_usec * 1000;
-
-  // Wait on the condition variable.
-  result = pthread_cond_timedwait(&energyWakeupCondition,
-                                  &energyWakeupLock,
-                                  &timeout);
-
-  // We're done.
-  pthread_mutex_unlock(&energyWakeupLock);
-
-  return (result);
-
-} // wait
+} // run
 
 /**************************************************************************
 
@@ -368,120 +253,6 @@ void FrequencyScanner::displayInternalInformation(void)
   nprintf(stderr,"Current Frequency         : %llu Hz\n",
           currentFrequencyInHertz);
 
-
   return;
 
 } // displayInternalInformation
-
-/**************************************************************************
-
-  Name: scanProcedure 
-
-  Purpose: The purpose of this function is to provide frequency scan 
-  functionality of the system.  This function is the entry point to the
-  user interface thread.
-
-  Calling Sequence: scanProcedure(arg)
-
-  Inputs:
-
-    arg - A pointer to an argument.
-
-  Outputs:
-
-    None.
-
-
-**************************************************************************/
-void FrequencyScanner::scanProcedure(void *arg)
-{
-  FrequencyScanner *thisPtr;
-  uint64_t currentFrequency;
-  uint64_t frequencyIncrement;
-  uint64_t startFrequency;
-  uint64_t endFrequency;
-  bool outcome;
-  int result;
-  bool signalPresent;
-
-  fprintf(stderr,"Entering scan procedure\n");
-
-  // Retrieve the pointer to the class instance.
-  thisPtr = (FrequencyScanner *)arg;
-
-  // Retrieve parameters.
-  startFrequency = thisPtr->startFrequencyInHertz;
-  endFrequency = thisPtr->endFrequencyInHertz;
-  frequencyIncrement = thisPtr->frequencyIncrementInHertz;
-
-  // Start at the beginning.
-  currentFrequency = startFrequency;
-
-  // Select initial frequency.
-  outcome = thisPtr->radioPtr->setReceiveFrequency(currentFrequency);
-
-  // Indicate that the system is scanning.
-  thisPtr->scannerState = Scanning;
-
-  while (!thisPtr->timeToExit)
-  {
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Sleep until notified of new signal state information.
-    // Note that if the result is equal to zero, new signal
-    // state information is available, otherwise, a timeout
-    // on the wait() function occurred.
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    result = thisPtr->wait();
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-
-    // Retrieve signal state.
-    signalPresent = thisPtr->getSignalState();
-
-    // Dwell on the frequency as long as a signal is present.
-    while ((signalPresent) & (!thisPtr->timeToExit))
-    {
-      //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-      // Sleep until notified of new signal state information.
-      // Note that if the result is equal to zero, new signal
-      // state information is available, otherwise, a timeout
-      // on the wait() function occurred.
-      //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-      result = thisPtr->wait();
-      //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-
-      // Retrieve signal state.
-      signalPresent = thisPtr->getSignalState();
-    } // while
-
-    if (!thisPtr->timeToExit)
-    {
-      // If a block of IQ data woke us up.
-      if (result == 0)
-      {
-        // Step to the next frequency.
-        currentFrequency = currentFrequency + frequencyIncrement;
-
-        if (currentFrequency > endFrequency)
-        {
-          // Wrap back to the beginning.
-          currentFrequency = startFrequency;
-        } // if
-
-        // Update the information for display purposes.
-        thisPtr->currentFrequencyInHertz = currentFrequency;
-
-        // Select new frequency.
-        outcome = thisPtr->radioPtr->setReceiveFrequency(currentFrequency);
-      } // if
-    } // if
-  } // while
-
-  // Indicate that the system not scanning.
-  thisPtr->scannerState = Idle;
-
-  fprintf(stderr,"Leaving scan procedure\n");
-
-  pthread_exit(0);
-
-} // scanProcedure
-
