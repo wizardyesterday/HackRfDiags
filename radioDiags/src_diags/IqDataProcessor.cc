@@ -718,7 +718,8 @@ void IqDataProcessor::acceptIqData(unsigned long timeStamp,
     signalMagnitude = trackerPtr->getSignalMagnitude();
 
     // Notify the client client of new signal magnitude information.
-    signalMagnitudeCallbackPtr(signalMagnitude,signalCallbackContextPtr);
+    signalMagnitudeCallbackPtr(signalMagnitude,
+                               signalMagnitudeCallbackContextPtr);
   } // if
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 

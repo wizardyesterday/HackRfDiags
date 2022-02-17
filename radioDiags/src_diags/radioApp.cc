@@ -13,6 +13,7 @@
 #include "Radio.h"
 #include "FrequencyScanner.h"
 #include "FrequencySweeper.h"
+#include "AutomaticGainControl.h"
 #include "diagUi.h"
 
 #define ENGINEERING_CONSOLE_PORT (20300)
@@ -24,6 +25,7 @@ extern bool diagUi_timeToExit;
 Radio *diagUi_radioPtr;
 FrequencyScanner *diagUi_frequencyScannerPtr;
 FrequencySweeper *diagUi_frequencySweeperPtr;
+AutomaticGainControl *diagUi_agcPtr;
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 //*************************************************************************
@@ -123,6 +125,9 @@ int main(int argc,char **argv)
 
   // Indicate that no frequency sweeper has been allocated.
   diagUi_frequencySweeperPtr = 0;
+
+  // Indicate that the automatic gain control has not been allocated.
+  diagUi_agcPtr = 0;
 
   // Start the user interface subsystem.
   diagUi_start(ENGINEERING_CONSOLE_PORT);

@@ -26,6 +26,7 @@
 #include "Radio.h"
 #include "FrequencyScanner.h"
 #include "FrequencySweeper.h"
+#include "AutomaticGainControl.h"
 #include "diagUi.h"
 #include "console.h"
 
@@ -34,6 +35,7 @@ using namespace std;
 extern Radio *diagUi_radioPtr;
 extern FrequencyScanner *diagUi_frequencyScannerPtr;
 extern FrequencySweeper *diagUi_frequencySweeperPtr;
+extern AutomaticGainControl *diagUi_agcPtr;
 
 /************************************************************************/
 /* general defines                                                      */
@@ -89,6 +91,10 @@ static void cmdSetFmModDeviation(char *bufferPtr);
 static void cmdSetWbFmModDeviation(char *bufferPtr);
 static void cmdEnableRxFrontendAmp(char *bufferPtr);
 static void cmdDisableRxFrontendAmp(char *bufferPtr);
+static void cmdEnableAgc(char *bufferPtr);
+static void cmdDisableAgc(char *bufferPtr);
+static void cmdSetAgcLevel(char *bufferPtr);
+static void cmdGetAgcInfo(char *buffeerPtr);
 static void cmdEnableTxFrontendAmp(char *bufferPtr);
 static void cmdDisableTxFrontendAmp(char *bufferPtr);
 static void cmdSetTxIfGain(char *bufferPtr);
@@ -151,6 +157,10 @@ static const commandEntry commandTable[] =
                                              // set wbfmmoddeviation deviation 
   {"enable","rxfrontendamp",cmdEnableRxFrontendAmp}, // enable rxfrontendamp
   {"disable","rxfrontendamp",cmdDisableRxFrontendAmp}, // disable rxfrontendamp
+  {"enable","agc",cmdEnableAgc},             // enable agc
+  {"disable","agc",cmdDisableAgc},           // disable agc
+  {"set","agclevel",cmdSetAgcLevel},         // set agclevel level
+  {"get","agcinfo",cmdGetAgcInfo},           // get agcinfo
   {"enable","txfrontendamp",cmdEnableTxFrontendAmp}, // enable txfrontendamp
   {"disable","txfrontendamp",cmdDisableTxFrontendAmp}, // disable txfrontendamp
   {"set","txifgain",cmdSetTxIfGain},           // set txifgain gain
@@ -961,16 +971,16 @@ static void cmdEnableRxFrontendAmp(char *bufferPtr)
 
     if (success)
     {
-      nprintf(stderr,"Receive frontend amplifier is enabled,\n");
+      nprintf(stderr,"Receive frontend amplifier is enabled.\n");
     } // if
     else
     {
-      nprintf(stderr,"Error: Could not enable receive frontend amplifier,\n");
+      nprintf(stderr,"Error: Could not enable receive frontend amplifier.\n");
     } // else
   } // if
   else
   {
-    nprintf(stderr,"Error: Receive frontend amplifier is already enabled,\n");
+    nprintf(stderr,"Error: Receive frontend amplifier is already enabled.\n");
   } // else
 
   return;
@@ -1014,21 +1024,182 @@ static void cmdDisableRxFrontendAmp(char *bufferPtr)
 
     if (success)
     {
-      nprintf(stderr,"Receive frontend amplifier is disabled,\n");
+      nprintf(stderr,"Receive frontend amplifier is disabled.\n");
     } // if
     else
     {
-      nprintf(stderr,"Error: Could not disable rwceive frontend amplifier,\n");
+      nprintf(stderr,"Error: Could not disable receive frontend amplifier.\n");
     } // else
   } // if
   else
   {
-    nprintf(stderr,"Error: Receive frontend amplifier is already disabled,\n");
+    nprintf(stderr,"Error: Receive frontend amplifier is already disabled.\n");
   } // else
 
   return;
 
 } // cmdDisableRxFrontendAmp
+
+/*****************************************************************************
+
+  Name: cmdEnableAgc
+
+  Purpose: The purpose of this function is to enable the automatic gain
+  control in the receiver.
+
+  The syntax for the corresponding command is the following:
+
+    "enable agc"
+
+  Calling Sequence: cmdEnableAgc(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdEnableAgc(char *bufferPtr)
+{
+
+  if (diagUi_agcPtr == NULL)
+  {
+    // Intiate and AGC with an operating point of -12dBFs.
+    diagUi_agcPtr = new AutomaticGainControl(diagUi_radioPtr,-12);
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: AGC is already enabled.\n");  
+  } // else
+
+  return;
+
+} // cmdEnableAgc
+
+/*****************************************************************************
+
+  Name: cmdDisableAgc
+
+  Purpose: The purpose of this function is to disable the automatic gain
+  control in the receiver.
+
+  The syntax for the corresponding command is the following:
+
+    "disable agc"
+
+  Calling Sequence: cmdDisableAgc(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdDisableAgc(char *bufferPtr)
+{
+
+  if (diagUi_agcPtr != NULL)
+  {
+    // Remove the object.
+    delete diagUi_agcPtr;
+
+    // Remove dangling pointers.
+    diagUi_agcPtr = 0;
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: AGC is already disabled.\n");  
+  } // else
+
+  return;
+
+} // cmdDisableAgc
+
+/*****************************************************************************
+
+  Name: cmdSetAgcLevel
+
+  Purpose: The purpose of this function is to set the automatic gain
+  control operating point in the receiver.  The units are decibels
+  referenced to full scale.
+
+  The syntax for the corresponding command is the following:
+
+    "set agclevel level"
+
+  Calling Sequence: cmdSetAgcLevel(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdSetAgcLevel(char *bufferPtr)
+{
+int32_t operatingPointInDbFs;
+
+  // Retrieve parameter.
+  sscanf(bufferPtr,"%d",&operatingPointInDbFs);
+
+  if (diagUi_agcPtr != NULL)
+  {
+    // Set the operating point.
+    diagUi_agcPtr->setOperatingPoint(operatingPointInDbFs);
+
+    nprintf(stderr,"AGC level set to: %d\n",operatingPointInDbFs);
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: AGC is not enabled.\n");  
+  } // else
+
+  return;
+
+} // cmdSetAgcLevel
+
+/*****************************************************************************
+
+  Name: cmdGetAgcInfo
+
+  Purpose: The purpose of this function is to display the automatic gain
+  information in the receiver.
+
+  The syntax for the corresponding command is the following:
+
+    "get agcinfo"
+
+  Calling Sequence: cmdGetAgcInfo(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdGetAgcInfo(char *buffeerPtr)
+{
+
+  if (diagUi_agcPtr != NULL)
+  {
+    diagUi_agcPtr->displayInternalInformation();
+  } // if
+
+  return;
+
+} // cmdGetAgcInfo
 
 /*****************************************************************************
 
@@ -2304,6 +2475,9 @@ static void cmdHelp(void)
   nprintf(stderr,"set wbfmmoddeviation <deviation in Hz>\n");
   nprintf(stderr,"enable rxfrontendamp\n");
   nprintf(stderr,"disable rxfrontendamp\n");
+  nprintf(stderr,"enable agc\n");
+  nprintf(stderr,"disable agc\n");
+  nprintf(stderr,"set agclevel <level in dBFs\n");
   nprintf(stderr,"enable txfrontendamp\n");
   nprintf(stderr,"disable txfrontendamp\n");
   nprintf(stderr,"set txifgain <gain in dB>\n");
@@ -2331,6 +2505,7 @@ static void cmdHelp(void)
   nprintf(stderr,"get radioinfo\n");
   nprintf(stderr,"get fscaninfo\n");
   nprintf(stderr,"get sweeperinfo\n");
+  nprintf(stderr,"get agcinfo\n");
   nprintf(stderr,"exit system\n");
   nprintf(stderr,"help\n");
   nprintf(stderr,"Type <^B><enter> key sequence to repeat last command\n");

@@ -83,7 +83,6 @@ AutomaticGainControl::AutomaticGainControl(Radio *radioPtr,
   uint32_t maximumMagnitude;
   float dbFsLevel;
   float maximumDbFsLevel;
-  IqDataProcessor *dataProcessorPtr;
 
   // Reference this for later use.
   this->radioPtr = radioPtr;
@@ -363,10 +362,9 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
   //*****************************************************************
   // Run the computation through a lowpass filter.
   //*****************************************************************
-  filteredBasebandGainInDb = (0.7 * (float)adjustedBasebandGainInDb)
-                           + (0.3 * filteredBasebandGainInDb);
+  filteredBasebandGainInDb = (0.1 * (float)adjustedBasebandGainInDb)
+                           + (0.9 * filteredBasebandGainInDb);
   //*****************************************************************
-  filteredBasebandGainInDb = adjustedBasebandGainInDb;
 
   // Update the attribute.
   basebandGainInDb = (uint32_t)filteredBasebandGainInDb;
@@ -375,7 +373,6 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++
   // Update the receiver gain parameters.
-  //+++++++++++++++++++++++++++++++++++++++++++++++++++
   //+++++++++++++++++++++++++++++++++++++++++++++++++++
   if (frontEndAmpEnabled)
   {
@@ -390,6 +387,7 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
 
   success = radioPtr->setReceiveIfGainInDb(ifGainInDb);
   success = radioPtr->setReceiveBasebandGainInDb(basebandGainInDb);
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   return;
