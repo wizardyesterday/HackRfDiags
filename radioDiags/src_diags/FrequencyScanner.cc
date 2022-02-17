@@ -162,12 +162,13 @@ FrequencyScanner::~FrequencyScanner(void)
   Purpose: The purpose of this function is to run the frequency scanner.
 
 
-  Calling Sequence: run(signalMagnitude )
+  Calling Sequence: run(signalPresent)
 
   Inputs:
 
-    signalMagnitude - The average magnitude of the IQ data block that
-    was received.
+    signalPresent - A flag that indicates whether or not a signal is
+    present.  A value of true indicates that a signal is present, and
+    a value of false indicates that a signal is not present.
 
   Outputs:
 
