@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <pthread.h>
 
 #include "Radio.h"
 #include "IqDataProcessor.h"
@@ -35,10 +34,6 @@ class FrequencyScanner
   //*****************************************
   // Utility functions.
   //*****************************************
-  void signal(void);
-  int wait(void);
-
-  static void scanProcedure(void *arg);
 
   //*****************************************
   // Attributes.
@@ -61,7 +56,6 @@ class FrequencyScanner
 
   // The frequency step size to take during a scan.
   uint64_t frequencyIncrementInHertz;
-
 
   // Pointer to a radio instance.
   Radio *radioPtr;
