@@ -11,6 +11,7 @@
 #include <pthread.h>
 
 #include "Radio.h"
+#include "IqDataProcessor.h"
 
 class FrequencyScanner
 {
@@ -25,8 +26,7 @@ class FrequencyScanner
 
   ~FrequencyScanner(void);
 
-  void updateSignalState(bool signalPresent);
-  bool getSignalState(void);
+  void run(bool signalPresent);
 
   void displayInternalInformation(void);
 
@@ -62,13 +62,6 @@ class FrequencyScanner
   // The frequency step size to take during a scan.
   uint64_t frequencyIncrementInHertz;
 
-  // Thread support.
-  pthread_t scanThread;
-  pthread_mutex_t energyWakeupLock;
-  pthread_cond_t energyWakeupCondition;
-
-  // An indicator that a signal has exceeded the squelch threshold.
-  bool signalPresent;
 
   // Pointer to a radio instance.
   Radio *radioPtr;
