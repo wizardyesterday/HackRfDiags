@@ -92,7 +92,7 @@ AutomaticGainControl::AutomaticGainControl(Radio *radioPtr,
 
   // Set nominal values.
   rfGainInDb = 0;
-  ifGainInDb = 32;
+  ifGainInDb = 40;
   basebandGainInDb = 40;
   filteredBasebandGainInDb = 40;
  
@@ -299,17 +299,6 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
     frontEndAmpEnabled = false;
   } // else
 
-  if (frequencyInHertz >= FREQUENCY_THRESHOLD_FOR_MAX_IF_GAIN)
-  {
-    // Operate at maximum gain.
-    ifGainInDb = 40;
-  } // if
-  else
-  {
-    // Operate at nominal gain.
-    ifGainInDb = 32;
-  } // else
-
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Allocate gains appropriately.  Here is what we
   // have to work with:
@@ -330,12 +319,7 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
   //   1b. For frequencies above 200MHz, enable the front end
   //   RF amp.
   //
-  //   2a. For frequencies below 200MHz, set the IF gain to
-  //   32dB.
-  //   2b. For frequencies above 200MHz, set the IF gain to
-  //   40dB.
-  //
-  //   3. Adjust the baseband gain as appropriate to achieve
+  //   2. Adjust the baseband gain as appropriate to achieve
   //   the operating point referenced at the antenna input.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Compute the gain adjustment. This might not be correct.
