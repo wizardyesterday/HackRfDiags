@@ -12,6 +12,7 @@ CcFiles="\
     src_diags/DataProvider.cc \
     src_diags/FrequencyScanner.cc \
     src_diags/FrequencySweeper.cc \
+    src_diags/AutomaticGainControl.cc \
     Filters/Int16/Decimator_int16.cc \
     src_diags/IqDataProcessor.cc \
     src_diags/BasebandDataProcessor.cc \

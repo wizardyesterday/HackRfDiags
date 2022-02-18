@@ -32,6 +32,7 @@ class SignalTracker
   void reset(void);
   void setThreshold(uint32_t threshold);
   uint32_t getThreshold(void);
+  uint32_t getSignalMagnitude(void);
   uint16_t run(int8_t *bufferPtr,uint32_t bufferLength);
 
   //***************************** attributes **************************

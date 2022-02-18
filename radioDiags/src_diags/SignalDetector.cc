@@ -113,6 +113,32 @@ uint32_t SignalDetector::getThreshold(void)
 
 /*****************************************************************************
 
+  Name: getSignalMagnitude
+
+  Purpose: The purpose of this function is to retrieve average magnitude
+  of the last IQ data block that was processed.
+ 
+  Calling Sequence: magnitude = getSignalMagnitude()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    magnitude - The average magnitude of the last IQ data block that
+    was processed.
+
+*****************************************************************************/
+uint32_t SignalDetector::getSignalMagnitude(void)
+{
+
+  return (signalMagnitude);
+
+} // getSignalMagnitude
+
+/*****************************************************************************
+
   Name: detectSignal
 
   Purpose: The purpose of this function is to determine if a signal is
@@ -165,58 +191,53 @@ bool SignalDetector::detectSignal(int8_t *bufferPtr,uint32_t bufferLength)
   uint8_t iMagnitude, qMagnitude;
   uint32_t magnitudeBufferLength;
 
-  if (threshold == 0)
+  // Indicate that signal is not present.
+  signalIsPresent = false;
+
+  // Reference the beginning of the buffer.
+  magnitudePtr = magnitudeBuffer;
+
+  // We will have half the number of samples.
+  magnitudeBufferLength = bufferLength / 2;
+
+  // Convert signal to magnitude format.
+  for (i = 0; i < bufferLength; i+= 2)
   {
-    // All signal levels are present if the threshold is zero.
-    signalIsPresent = true;
-  } // if
-  else
-  {
-    // Indicate that signal is not present.
-    signalIsPresent = false;
+    iMagnitude = abs(*bufferPtr++);
+    qMagnitude = abs(*bufferPtr++);
 
-    // Reference the beginning of the buffer.
-    magnitudePtr = magnitudeBuffer;
-
-    // We will have half the number of samples.
-    magnitudeBufferLength = bufferLength / 2;
-
-    // Convert signal to magnitude format.
-    for (i = 0; i < bufferLength; i+= 2)
+    if (iMagnitude > qMagnitude)
     {
-      iMagnitude = abs(*bufferPtr++);
-      qMagnitude = abs(*bufferPtr++);
-
-      if (iMagnitude > qMagnitude)
-      {
-        *magnitudePtr++ = iMagnitude + (qMagnitude >> 1);
-      } // if
-      else
-      {
-        *magnitudePtr++ = qMagnitude + (iMagnitude >> 1);
-      } // else
-    } // for
-
-    // Reference the beginning of the buffer.
-    magnitudePtr = magnitudeBuffer;
-
-    // Zero accumulator.
-    magnitude = 0;
-
-    // Store magnitude values.
-    for (i = 0; i < magnitudeBufferLength; i++)
-    {
-      magnitude += *magnitudePtr++;
-    } // for
-
-    // Finalize the average.
-    magnitude /= magnitudeBufferLength;
-
-    if (magnitude >= threshold)
-    {
-    signalIsPresent = true;
+      *magnitudePtr++ = iMagnitude + (qMagnitude >> 1);
     } // if
-  } // else
+    else
+    {
+      *magnitudePtr++ = qMagnitude + (iMagnitude >> 1);
+    } // else
+  } // for
+
+  // Reference the beginning of the buffer.
+  magnitudePtr = magnitudeBuffer;
+
+  // Zero accumulator.
+  magnitude = 0;
+
+  // Store magnitude values.
+  for (i = 0; i < magnitudeBufferLength; i++)
+  {
+    magnitude += *magnitudePtr++;
+  } // for
+
+  // Finalize the average.
+  magnitude /= magnitudeBufferLength;
+
+  if (magnitude >= threshold)
+  {
+  signalIsPresent = true;
+  } // if
+
+  // Update the attribute for later retrieval.
+  signalMagnitude = magnitude;
 
   return (signalIsPresent);
 

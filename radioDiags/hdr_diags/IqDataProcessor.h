@@ -42,6 +42,13 @@ class IqDataProcessor
                                 void *contextPtr),
       void *contextPtr);
 
+  void enableSignalMagnitudeNotification(void);
+  void disableSignalMagnitudeNotification(void);
+
+  void registerSignalMagnitudeCallback(
+      void (*callbackPtr)(uint32_t signalMagnitude,void *contextPtr),
+      void *contextPtr);
+
   void displayInternalInformation(void);
 
 private:
@@ -87,6 +94,12 @@ private:
   bool signalNotificationEnabled;
   void *signalCallbackContextPtr;
   void (*signalCallbackPtr)(bool signalPresent,void *contextPtr);
+
+  // Signal magnitude notification support.
+  bool signalMagnitudeNotificationEnabled;
+  void *signalMagnitudeCallbackContextPtr;
+  void (*signalMagnitudeCallbackPtr)(uint32_t signalMagnitude,
+                                     void *contextPtr);
 };
 
 #endif // _IQDATAPROCESSOR_H_

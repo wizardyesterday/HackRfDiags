@@ -156,10 +156,11 @@ set fmmoddeviation <deviation in Hz>
 set wbfmmoddeviation <deviation in Hz>
 enable rxfrontendamp
 disable rxfrontendamp
+enable agc
+disable agc
+set agclevel <level in dBFs
 enable txfrontendamp
 disable txfrontendamp
-enable frontendamp
-disable frontendamp
 set txifgain <gain in dB>
 set rxifgain <gain in dB>
 set rxbasebandgain <gain>
@@ -182,6 +183,7 @@ load iqfile <filename>
 get radioinfo
 get fscaninfo
 get sweeperinfo
+get agcinfo
 exit system
 help
 Type <^B><enter> key sequence to repeat last command
