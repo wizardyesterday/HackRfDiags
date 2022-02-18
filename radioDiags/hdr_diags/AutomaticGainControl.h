@@ -52,6 +52,9 @@ class AutomaticGainControl
   // Filtered gain.
   float filteredBasebandGainInDb;
 
+  // Magnitude of the latest signal.
+  uint32_t signalMagnitude;
+
   Radio *radioPtr;
   IqDataProcessor *dataProcessorPtr;
 

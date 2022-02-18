@@ -95,6 +95,7 @@ AutomaticGainControl::AutomaticGainControl(Radio *radioPtr,
   ifGainInDb = 40;
   basebandGainInDb = 40;
   filteredBasebandGainInDb = 40;
+  signalMagnitude = 0;
  
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Construct the dBFs table.  The largest expected signal
@@ -276,6 +277,9 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
   int32_t signalInDbFs;
   uint64_t frequencyInHertz;
 
+  // Update for display purposes.
+  this->signalMagnitude = signalMagnitude;
+
   // Convert to decibels referenced to full scale.
   signalInDbFs = convertMagnitudeToDbFs(signalMagnitude);
 
@@ -402,6 +406,9 @@ void AutomaticGainControl::displayInternalInformation(void)
   nprintf(stderr,"\n--------------------------------------------\n");
   nprintf(stderr,"AGC Internal Information\n");
   nprintf(stderr,"--------------------------------------------\n");
+
+  nprintf(stderr,"Signal Magnitude          : %u\n",
+          signalMagnitude);
 
   nprintf(stderr,"Operating Point           : %d dBFs\n",
           operatingPointInDbFs);
