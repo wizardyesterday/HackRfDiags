@@ -1067,8 +1067,8 @@ static void cmdEnableAgc(char *bufferPtr)
 
   if (diagUi_agcPtr == NULL)
   {
-    // Intiate and AGC with an operating point of -12dBFs.
-    diagUi_agcPtr = new AutomaticGainControl(diagUi_radioPtr,-12);
+    // Intiate and AGC with an operating point of -6dBFs.
+    diagUi_agcPtr = new AutomaticGainControl(diagUi_radioPtr,-6);
   } // if
   else
   {

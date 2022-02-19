@@ -159,6 +159,11 @@ int main(int argc,char **argv)
     delete diagUi_frequencySweeperPtr;
   } // if
 
+  if (diagUi_agcPtr != 0)
+  {
+    delete diagUi_agcPtr;
+  } // if
+
   if (diagUi_radioPtr != 0)
   {
     delete diagUi_radioPtr;
