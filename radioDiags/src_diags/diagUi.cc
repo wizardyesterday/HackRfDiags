@@ -1698,18 +1698,18 @@ static void cmdSetRxWarp(char *bufferPtr)
 static void cmdSetSquelch(char *bufferPtr)
 {
   bool success;
-  uint32_t threshold;
+  int32_t threshold;
 
   success = true;
 
   // Retrieve value
-  sscanf(bufferPtr,"%u",&threshold);
+  sscanf(bufferPtr,"%d",&threshold);
 
   success = diagUi_radioPtr->setSignalDetectThreshold(threshold);
 
   if (success)
   {
-    nprintf(stderr,"Squelch threshold set to %u.\n",threshold);
+    nprintf(stderr,"Squelch threshold set to %d dBFs.\n",threshold);
   } // if
   else
   {
@@ -2487,7 +2487,7 @@ static void cmdHelp(void)
   nprintf(stderr,"set bandwidth <bandwidth in Hertz>\n");
   nprintf(stderr,"set samplerate <samplerate in S/s>\n");
   nprintf(stderr,"set warp <warp in ppm>\n");
-  nprintf(stderr,"set squelch <threshold>\n");
+  nprintf(stderr,"set squelch <threshold in dBFs>\n");
   nprintf(stderr,"start transmitter\n");
   nprintf(stderr,"stop transmitter\n");
   nprintf(stderr,"start receiver\n");

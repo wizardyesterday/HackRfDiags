@@ -25,13 +25,13 @@ class SignalTracker
 
   enum TrackerState {NoSignal, Tracking};
 
-  SignalTracker(uint32_t threshold);
+  SignalTracker(int32_t threshold);
 
   ~SignalTracker(void);
 
   void reset(void);
-  void setThreshold(uint32_t threshold);
-  uint32_t getThreshold(void);
+  void setThreshold(int32_t threshold);
+  int32_t getThreshold(void);
   uint32_t getSignalMagnitude(void);
   uint16_t run(int8_t *bufferPtr,uint32_t bufferLength);
 
@@ -41,7 +41,7 @@ class SignalTracker
   TrackerState state;
 
   // The threshold is in linear units.
-  uint32_t threshold;
+  int32_t threshold;
 
   // Signal detection support.
   SignalDetector *detectorPtr;

@@ -33,11 +33,6 @@ class AutomaticGainControl
   //*****************************************
   int32_t convertMagnitudeToDbFs(uint32_t signalMagnitude);
 
-  void signal(void);
-  int wait(void);
-
-  static void agcProcedure(void *arg);
-
   //*****************************************
   // Attributes.
   //*****************************************

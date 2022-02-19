@@ -11,6 +11,9 @@
 // The callback methods need access to this.
 Radio * Radio::mePtr;
 
+// The current variable gain setting.
+int32_t radio_adjustableReceiveGainInDb;
+
 extern void nprintf(FILE *s,const char *formatPtr, ...);
 
 /*****************************************************************************
@@ -1529,6 +1532,9 @@ bool Radio::setReceiveBasebandGainInDb(uint32_t gain)
       // Update attribute.
       receiveBasebandGainInDb = gain;
 
+      // This variable is used by other subsystems.
+      radio_adjustableReceiveGainInDb = receiveBasebandGainInDb;
+
       // indicate success.
       success = true;
     } // if
@@ -1764,8 +1770,9 @@ bool Radio::setTransmitSampleRate(uint32_t sampleRate)
 
   Inputs:
 
-    threshold - The signal detection threshold.  Valid values are,
-    0 <= threshold <= 400.
+    threshold - The signal detection threshold in decibels referenced
+    to full scale.  Valid values are,
+    -400 <= threshold <= 10.
 
   Outputs:
 
@@ -1774,14 +1781,14 @@ bool Radio::setTransmitSampleRate(uint32_t sampleRate)
     failure.
 
 **************************************************************************/
-bool Radio::setSignalDetectThreshold(uint32_t threshold)
+bool Radio::setSignalDetectThreshold(int32_t threshold)
 {
   bool success;
 
   // Default to failure.
   success = false;
 
-  if ((threshold >= 0) && (threshold <= 400))
+  if ((threshold >= -400) && (threshold <= 10))
   {
     // Inform data processor of new threshold.
     receiveDataProcessorPtr->setSignalDetectThreshold(threshold);
