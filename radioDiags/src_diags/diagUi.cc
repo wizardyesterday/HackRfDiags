@@ -1069,9 +1069,13 @@ static void cmdEnableAgc(char *bufferPtr)
   bool success;
 
   // Enable the AGC.
-  diagUi_agcPtr->enable();
+  success = diagUi_agcPtr->enable();
 
-  if (!success)
+  if (success)
+  {
+    nprintf(stderr,"AGC enabled.\n");  
+  } // if
+  else
   {
     nprintf(stderr,"Error: AGC is already enabled.\n");  
   } // else
@@ -1107,12 +1111,16 @@ static void cmdDisableAgc(char *bufferPtr)
   bool success;
 
   // Disable the AGC.
-  diagUi_agcPtr->disable();
+  success = diagUi_agcPtr->disable();
 
-  if (!success)
+  if (success)
+  {
+    nprintf(stderr,"AGC disabled.\n");  
+  } // if
+  else
   {
     nprintf(stderr,"Error: AGC is already disabled.\n");  
-  } // if
+  } // else
 
   return;
 
