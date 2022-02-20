@@ -90,13 +90,29 @@ AutomaticGainControl::AutomaticGainControl(Radio *radioPtr,
   // Reference the set point to the antenna input.
   this->operatingPointInDbFs = operatingPointInDbFs;
 
-  // Set nominal values.
+  // Set this to the midrange.
+  signalMagnitude = 64;
+ 
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // This is a good starting point for the receiver gain
+  // values.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   rfGainInDb = 0;
   ifGainInDb = 40;
   basebandGainInDb = 40;
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // AGC filter initialization.  The filter is implemented
+  // as a first-order difference equation.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Initial condition of filter memory.
   filteredBasebandGainInDb = 40;
-  signalMagnitude = 0;
- 
+
+  // Time constant.
+  alpha = 0.1;
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Construct the dBFs table.  The largest expected signal
   // magnitude, under normal conditions, is 128 for a 2's
@@ -201,6 +217,47 @@ void AutomaticGainControl::setOperatingPoint(int32_t operatingPointInDbFs)
   return;
 
 } // setOperatingPoint
+
+/**************************************************************************
+
+  Name: setAgcFilterCoefficient
+
+  Purpose: The purpose of this function is to set the coefficient of
+  the first order lowpass filter that filters the baseband gain value.
+  In effect, the time constant of the filter is set.
+
+  Calling Sequence: success = setAgcFilterCoefficient(coefficient)
+
+  Inputs:
+
+    coefficient - The filter coefficient for the lowpass filter that
+    // filters the baseband gain value.
+
+  Outputs:
+
+    success - A flag that indicates whether the filter coefficient was
+    updated.  A value of true indicates that the coefficient was
+    updated, and a value of false indicates that the coefficient was
+    not updated due to an invalid coefficient value.
+
+**************************************************************************/
+bool  AutomaticGainControl::setAgcFilterCoefficient(float coefficient)
+{
+  bool success;
+
+  // Default to failure.
+  success = false;
+
+  if ((coefficient >= 0.001) && (coefficient < 0.999))
+  {
+    // Update the attribute.
+    alpha = coefficient;
+
+    // Indicate success.
+    success = true;
+  } // if
+
+} // setAgcFilterCoefficient
 
 /**************************************************************************
 
@@ -347,12 +404,12 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
     } // if
   } // else
 
-  //*****************************************************************
+  //*******************************************************************
   // Run the computation through a lowpass filter.
-  //*****************************************************************
-  filteredBasebandGainInDb = (0.1 * (float)adjustedBasebandGainInDb)
-                           + (0.9 * filteredBasebandGainInDb);
-  //*****************************************************************
+  //*******************************************************************
+  filteredBasebandGainInDb = (alpha * (float)adjustedBasebandGainInDb)
+                           + ((1 - alpha) * filteredBasebandGainInDb);
+  //*******************************************************************
 
   // Update the attribute.
   basebandGainInDb = (uint32_t)filteredBasebandGainInDb;
@@ -409,6 +466,9 @@ void AutomaticGainControl::displayInternalInformation(void)
 
   nprintf(stderr,"Signal Magnitude          : %u\n",
           signalMagnitude);
+
+  nprintf(stderr,"Lowpass Filter Coefficient: %0.3f\n",
+          alpha);
 
   nprintf(stderr,"Operating Point           : %d dBFs\n",
           operatingPointInDbFs);

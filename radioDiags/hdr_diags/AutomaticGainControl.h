@@ -21,7 +21,7 @@ class AutomaticGainControl
   ~AutomaticGainControl(void);
 
   void setOperatingPoint(int32_t operatingPointInDbFs);
-  void updateSignalMagnitude(uint32_t signalMagnitude);
+  bool setAgcFilterCoefficient(float coefficient);
   void run(uint32_t signalMagnitude);
 
   void displayInternalInformation(void);
@@ -38,6 +38,9 @@ class AutomaticGainControl
   //*****************************************
   // The goal.
   int32_t operatingPointInDbFs;
+
+  // AGC filter lowpass filter coefficient for baseband gain filtering.
+  float alpha;
 
   // System gains.
   uint32_t rfGainInDb;
