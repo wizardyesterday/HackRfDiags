@@ -1066,13 +1066,12 @@ static void cmdDisableRxFrontendAmp(char *bufferPtr)
 *****************************************************************************/
 static void cmdEnableAgc(char *bufferPtr)
 {
+  bool success;
 
-  if (diagUi_agcPtr == NULL)
-  {
-    // Intiate and AGC with an operating point of -6dBFs.
-    diagUi_agcPtr = new AutomaticGainControl(diagUi_radioPtr,-6);
-  } // if
-  else
+  // Enable the AGC.
+  diagUi_agcPtr->enable();
+
+  if (!success)
   {
     nprintf(stderr,"Error: AGC is already enabled.\n");  
   } // else
@@ -1105,19 +1104,15 @@ static void cmdEnableAgc(char *bufferPtr)
 *****************************************************************************/
 static void cmdDisableAgc(char *bufferPtr)
 {
+  bool success;
 
-  if (diagUi_agcPtr != NULL)
-  {
-    // Remove the object.
-    delete diagUi_agcPtr;
+  // Disable the AGC.
+  diagUi_agcPtr->disable();
 
-    // Remove dangling pointers.
-    diagUi_agcPtr = 0;
-  } // if
-  else
+  if (!success)
   {
     nprintf(stderr,"Error: AGC is already disabled.\n");  
-  } // else
+  } // if
 
   return;
 

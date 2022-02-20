@@ -126,8 +126,8 @@ int main(int argc,char **argv)
   // Indicate that no frequency sweeper has been allocated.
   diagUi_frequencySweeperPtr = 0;
 
-  // Indicate that the automatic gain control has not been allocated.
-  diagUi_agcPtr = 0;
+    // Intiate and AGC with an operating point of -6dBFs.
+  diagUi_agcPtr = new AutomaticGainControl(diagUi_radioPtr,-6);
 
   // Start the user interface subsystem.
   diagUi_start(ENGINEERING_CONSOLE_PORT);

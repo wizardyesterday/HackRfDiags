@@ -22,6 +22,9 @@ class AutomaticGainControl
 
   void setOperatingPoint(int32_t operatingPointInDbFs);
   bool setAgcFilterCoefficient(float coefficient);
+  bool enable(void);
+  bool disable(void);
+  bool isEnabled(void);
   void run(uint32_t signalMagnitude);
 
   void displayInternalInformation(void);
@@ -36,6 +39,9 @@ class AutomaticGainControl
   //*****************************************
   // Attributes.
   //*****************************************
+  // If true, the AGC is running.
+  bool enabled;
+
   // The goal.
   int32_t operatingPointInDbFs;
 
