@@ -158,7 +158,8 @@ enable rxfrontendamp
 disable rxfrontendamp
 enable agc
 disable agc
-set agclevel <level in dBFs
+set agcalpha <alpha: (0.001 <= alpha < 0.999)
+set agclevel <level in dBFs>
 enable txfrontendamp
 disable txfrontendamp
 set txifgain <gain in dB>

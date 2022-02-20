@@ -16,14 +16,14 @@
   Inputs:
 
     threshold - The detection threshold that is used to determine signal
-    presence or absense..
+    presence or absense.
 
  Outputs:
 
     None.
 
 *****************************************************************************/
-SignalTracker::SignalTracker(uint32_t threshold)
+SignalTracker::SignalTracker(int32_t threshold)
 {
 
   // Associate the signal tracker with this object.
@@ -106,7 +106,7 @@ void SignalTracker::reset(void)
 
   Inputs:
 
-    threshold - The threshold, in linear units, that determines whether
+    threshold - The threshold, in dBFs, that determines whether
     or not a signal is present.
 
   Outputs:
@@ -114,7 +114,7 @@ void SignalTracker::reset(void)
     None.
 
 *****************************************************************************/
-void SignalTracker::setThreshold(uint32_t threshold)
+void SignalTracker::setThreshold(int32_t threshold)
 {
 
   // This is probably not done too often.
@@ -143,11 +143,11 @@ void SignalTracker::setThreshold(uint32_t threshold)
 
   Outputs:
 
-    threshold - The threshold, in linear units, that determines whether
+    threshold - The threshold, dBFs units, that determines whether
     or not a signal is present.
 
 *****************************************************************************/
-uint32_t SignalTracker::getThreshold(void)
+int32_t SignalTracker::getThreshold(void)
 {
 
   return (threshold);

@@ -50,7 +50,7 @@ class Radio
   bool setTransmitFrequency(uint64_t frequency);
   bool setTransmitBandwidth(uint32_t bandwidth);
   bool setTransmitSampleRate(uint32_t sampleRate);
-  bool setSignalDetectThreshold(uint32_t threshold);
+  bool setSignalDetectThreshold(int32_t threshold);
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // New HackRF methods.

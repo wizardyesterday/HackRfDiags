@@ -17,25 +17,36 @@ class SignalDetector
 
   public:
 
-  SignalDetector(uint32_t threshold);
+  SignalDetector(int32_t threshold);
 
   ~SignalDetector(void);
 
-  void setThreshold(uint32_t threshold);
-  uint32_t getThreshold(void);
+  void setThreshold(int32_t threshold);
+  int32_t getThreshold(void);
   uint32_t getSignalMagnitude(void);
   bool detectSignal(int8_t *bufferPtr,uint32_t bufferLength);
 
   //***************************** attributes **************************
   private:
 
-  // The threshold is in linear units.
-  uint32_t threshold;
+  //*****************************************
+  // Utility functions.
+  //*****************************************
+  int32_t convertMagnitudeToDbFs(uint32_t signalMagnitude);
+
+  //*****************************************
+  // Attributes.
+  //*****************************************
+  // The threshold is in dBFs units.
+  int32_t threshold;
 
   // The average magnitude of the last IQ data block processed.
   uint32_t signalMagnitude;
 
   uint8_t magnitudeBuffer[16384];
+
+  // This assumes 8-bit quantities for signal level.
+  int32_t dbFsTable[257];
 };
 
 #endif // __SIGNALDETECTOR__

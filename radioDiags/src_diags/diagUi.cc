@@ -93,6 +93,7 @@ static void cmdEnableRxFrontendAmp(char *bufferPtr);
 static void cmdDisableRxFrontendAmp(char *bufferPtr);
 static void cmdEnableAgc(char *bufferPtr);
 static void cmdDisableAgc(char *bufferPtr);
+static void cmdSetAgcAlpha(char *bufferPtr);
 static void cmdSetAgcLevel(char *bufferPtr);
 static void cmdGetAgcInfo(char *buffeerPtr);
 static void cmdEnableTxFrontendAmp(char *bufferPtr);
@@ -159,6 +160,7 @@ static const commandEntry commandTable[] =
   {"disable","rxfrontendamp",cmdDisableRxFrontendAmp}, // disable rxfrontendamp
   {"enable","agc",cmdEnableAgc},             // enable agc
   {"disable","agc",cmdDisableAgc},           // disable agc
+  {"set","agcalpha",cmdSetAgcAlpha},         // set agcalpha alpha
   {"set","agclevel",cmdSetAgcLevel},         // set agclevel level
   {"get","agcinfo",cmdGetAgcInfo},           // get agcinfo
   {"enable","txfrontendamp",cmdEnableTxFrontendAmp}, // enable txfrontendamp
@@ -1123,6 +1125,60 @@ static void cmdDisableAgc(char *bufferPtr)
 
 /*****************************************************************************
 
+  Name: cmdSetAgcAlpha
+
+  Purpose: The purpose of this function is to set the automatic gain
+  control filter coefficient.  This coefficient determines the time
+  constant of the AGC.
+
+  The syntax for the corresponding command is the following:
+
+    "set agcalpha alpha"
+
+  Calling Sequence: cmdSetAgcAlpha(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdSetAgcAlpha(char *bufferPtr)
+{
+  float alpha;
+  bool success;
+
+  // Retrieve parameter.
+  sscanf(bufferPtr,"%f",&alpha);
+
+  if (diagUi_agcPtr != NULL)
+  {
+    // Set the AGC filter coefficient.
+    success = diagUi_agcPtr->setAgcFilterCoefficient(alpha);
+
+    if (success)
+    {
+      nprintf(stderr,"AGC filter coefficient set to: %f\n",alpha);
+    } // if
+    else
+    {
+      nprintf(stderr,"0.001 < alpha < 0.999\n");
+    } // else
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: AGC is not enabled.\n");  
+  } // else
+
+  return;
+
+} // cmdSetAgcAlpha
+
+/*****************************************************************************
+
   Name: cmdSetAgcLevel
 
   Purpose: The purpose of this function is to set the automatic gain
@@ -1146,7 +1202,7 @@ static void cmdDisableAgc(char *bufferPtr)
 *****************************************************************************/
 static void cmdSetAgcLevel(char *bufferPtr)
 {
-int32_t operatingPointInDbFs;
+  int32_t operatingPointInDbFs;
 
   // Retrieve parameter.
   sscanf(bufferPtr,"%d",&operatingPointInDbFs);
@@ -1698,18 +1754,18 @@ static void cmdSetRxWarp(char *bufferPtr)
 static void cmdSetSquelch(char *bufferPtr)
 {
   bool success;
-  uint32_t threshold;
+  int32_t threshold;
 
   success = true;
 
   // Retrieve value
-  sscanf(bufferPtr,"%u",&threshold);
+  sscanf(bufferPtr,"%d",&threshold);
 
   success = diagUi_radioPtr->setSignalDetectThreshold(threshold);
 
   if (success)
   {
-    nprintf(stderr,"Squelch threshold set to %u.\n",threshold);
+    nprintf(stderr,"Squelch threshold set to %d dBFs.\n",threshold);
   } // if
   else
   {
@@ -2477,7 +2533,8 @@ static void cmdHelp(void)
   nprintf(stderr,"disable rxfrontendamp\n");
   nprintf(stderr,"enable agc\n");
   nprintf(stderr,"disable agc\n");
-  nprintf(stderr,"set agclevel <level in dBFs\n");
+  nprintf(stderr,"set agcalpha <alpha: (0.001 <= alpha < 0.999)\n");
+  nprintf(stderr,"set agclevel <level in dBFs>\n");
   nprintf(stderr,"enable txfrontendamp\n");
   nprintf(stderr,"disable txfrontendamp\n");
   nprintf(stderr,"set txifgain <gain in dB>\n");
@@ -2487,7 +2544,7 @@ static void cmdHelp(void)
   nprintf(stderr,"set bandwidth <bandwidth in Hertz>\n");
   nprintf(stderr,"set samplerate <samplerate in S/s>\n");
   nprintf(stderr,"set warp <warp in ppm>\n");
-  nprintf(stderr,"set squelch <threshold>\n");
+  nprintf(stderr,"set squelch <threshold in dBFs>\n");
   nprintf(stderr,"start transmitter\n");
   nprintf(stderr,"stop transmitter\n");
   nprintf(stderr,"start receiver\n");

@@ -111,7 +111,7 @@ IqDataProcessor::IqDataProcessor(void)
 
 
   // Let all signal exceed threshold.
-  signalDetectThreshold = 0;
+  signalDetectThreshold = -200;
 
   // Instantiate a signal tracker.
   trackerPtr = new SignalTracker(signalDetectThreshold);
@@ -339,14 +339,15 @@ void IqDataProcessor::setDemodulatorMode(demodulatorType mode)
 
   Inputs:
 
-    threshold - The signal detection threshold.
+    threshold - The signal detection threshold in decibels referenced
+    to full scale.
 
   Outputs:
 
     None.
 
 **************************************************************************/
-void IqDataProcessor::setSignalDetectThreshold(uint32_t threshold)
+void IqDataProcessor::setSignalDetectThreshold(int32_t threshold)
 {
 
   // Update for later use.
@@ -843,7 +844,7 @@ void IqDataProcessor::displayInternalInformation(void)
     } // case
   } // switch
 
-  nprintf(stderr,"Signal Detect Threhold   : %u\n",signalDetectThreshold);
+  nprintf(stderr,"Signal Detect Threhold   : %d\n",signalDetectThreshold);
 
   return;
 

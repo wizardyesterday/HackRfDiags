@@ -27,7 +27,7 @@ class IqDataProcessor
   void setFmDemodulator(FmDemodulator *demodulatorPtr);
   void setWbFmDemodulator(WbFmDemodulator *demodulatorPtr);
   void setSsbDemodulator(SsbDemodulator *demodulatorPtr);
-  void setSignalDetectThreshold(uint32_t threshold);
+  void setSignalDetectThreshold(int32_t threshold);
   uint32_t reduceSampleRate(int8_t *bufferPtr,uint32_t bufferLength);
 
   void acceptIqData(unsigned long timeStamp,
@@ -79,7 +79,7 @@ private:
   demodulatorType demodulatorMode;
 
   // This is used for the squelch system.
-  uint32_t signalDetectThreshold;
+  int32_t signalDetectThreshold;
 
   // Demodulator support.
   AmDemodulator *amDemodulatorPtr;
