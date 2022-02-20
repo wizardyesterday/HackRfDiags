@@ -23,7 +23,7 @@ class SignalDetector
 
   void setThreshold(int32_t threshold);
   int32_t getThreshold(void);
-  int32_t getSignalMagnitude(void);
+  uint32_t getSignalMagnitude(void);
   bool detectSignal(int8_t *bufferPtr,uint32_t bufferLength);
 
   //***************************** attributes **************************

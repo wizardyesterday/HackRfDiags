@@ -2477,7 +2477,7 @@ static void cmdHelp(void)
   nprintf(stderr,"disable rxfrontendamp\n");
   nprintf(stderr,"enable agc\n");
   nprintf(stderr,"disable agc\n");
-  nprintf(stderr,"set agclevel <level in dBFs\n");
+  nprintf(stderr,"set agclevel <level in dBFs>\n");
   nprintf(stderr,"enable txfrontendamp\n");
   nprintf(stderr,"disable txfrontendamp\n");
   nprintf(stderr,"set txifgain <gain in dB>\n");

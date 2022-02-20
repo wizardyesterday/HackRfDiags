@@ -130,7 +130,7 @@ void SignalDetector::setThreshold(int32_t threshold)
 
   Outputs:
 
-    threshold - The threshold, in linear units, that determines whether
+    threshold - The threshold, in dBFs units, that determines whether
     or not a signal is present.
 
 *****************************************************************************/
@@ -160,7 +160,7 @@ int32_t SignalDetector::getThreshold(void)
     was processed.
 
 *****************************************************************************/
-int32_t SignalDetector::getSignalMagnitude(void)
+uint32_t SignalDetector::getSignalMagnitude(void)
 {
 
   return (signalMagnitude);
@@ -221,8 +221,14 @@ int32_t SignalDetector::convertMagnitudeToDbFs(
 
   1. An average value of the magnitudes in the data block is computed.
   2. The average value is compared to a detection threshold.
-  3. If the average value exceeds the detection threshold, a signal
-  detection is indicated, otherwise, the absense of a signal is indicated.
+  3. The average value is converted to decibels, referenced to the full
+  scale value of a 7-bit number.
+  4. The adjustable receiver gain is subtracted from the average value
+  (in dBFs units) and compared to the detection threshold (also in dBFs
+  units).
+  3. If the average value (in dBFs units) exceeds the detection threshold,
+  a signal detection is indicated, otherwise, the absense of a signal is
+  indicated.
 
   The value of bufferLength is important.  Too small of a value will
   result in a higher detection (false alarm) rate, and too large of
