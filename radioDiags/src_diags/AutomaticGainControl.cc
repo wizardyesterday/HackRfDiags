@@ -13,8 +13,6 @@
 
 extern void nprintf(FILE *s,const char *formatPtr, ...);
 
-static bool callbackEnabled;
-
 /**************************************************************************
 
   Name: signalMagnitudeCallback
@@ -41,11 +39,11 @@ static void signalMagnitudeCallback(uint32_t signalMagnitude,
 {
   AutomaticGainControl *thisPtr;
 
-  if (callbackEnabled)
-  {
-    // Reference the context pointer properly.
-    thisPtr = (AutomaticGainControl *)contextPtr;
+  // Reference the context pointer properly.
+  thisPtr = (AutomaticGainControl *)contextPtr;
 
+  if (thisPtr->isEnabled())
+  {
     // Process the signal.
     thisPtr->run(signalMagnitude);
   } // if
@@ -92,6 +90,9 @@ AutomaticGainControl::AutomaticGainControl(Radio *radioPtr,
 
   // Set this to the midrange.
   signalMagnitude = 64;
+
+  // Default to disabled.
+  enabled = false;
  
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // This is a good starting point for the receiver gain
@@ -138,18 +139,15 @@ AutomaticGainControl::AutomaticGainControl(Radio *radioPtr,
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Register the callback to the IqDataProcessor.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // Enable the callback function.
-  callbackEnabled = true;
-
   // Retrieve the object instance.  
   dataProcessorPtr = radioPtr->getIqProcessor();
+
+  // Turn off notification.
+  dataProcessorPtr->disableSignalMagnitudeNotification();
 
   // Register the callback.
   dataProcessorPtr->registerSignalMagnitudeCallback(signalMagnitudeCallback,
                                                     this);
-
-  // Allow callback notification.
-  dataProcessorPtr->enableSignalMagnitudeNotification();
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   return;
@@ -177,8 +175,8 @@ AutomaticGainControl::AutomaticGainControl(Radio *radioPtr,
 AutomaticGainControl::~AutomaticGainControl(void)
 {
 
-  // Disable callback function processing.
-  callbackEnabled = false;
+  // Disable the AGC.
+  enabled = false;
 
   // Turn off notification.
   dataProcessorPtr->disableSignalMagnitudeNotification();
@@ -258,6 +256,118 @@ bool  AutomaticGainControl::setAgcFilterCoefficient(float coefficient)
   } // if
 
 } // setAgcFilterCoefficient
+
+/**************************************************************************
+
+  Name: enable
+
+  Purpose: The purpose of this function is to enable the AGC.
+
+  Calling Sequence: success = enable();
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the operation was
+    successful.  A value of true indicates that the operation was
+    successful, and a value of false indicates that the AGC was already
+    enabled.
+
+**************************************************************************/
+bool AutomaticGainControl::enable(void)
+{
+  bool success;
+
+  // Default to failure.
+  success = false;
+
+  if (!enabled)
+  {
+    // Enable the AGC.
+    enabled = true;
+
+    // Allow callback notification.
+    dataProcessorPtr->enableSignalMagnitudeNotification();
+
+    // Indicate success.
+    success = true;
+  } // if
+
+  return (success);
+
+} // enable
+
+/**************************************************************************
+
+  Name: disable
+
+  Purpose: The purpose of this function is to disable the AGC.
+
+  Calling Sequence: success = disable();
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the operation was
+    successful.  A value of true indicates that the operation was
+    successful, and a value of false indicates that the AGC was already
+    disabled.
+
+**************************************************************************/
+bool AutomaticGainControl::disable(void)
+{
+  bool success;
+
+  // Default to failure.
+  success = false;
+
+  if (enabled)
+  {
+    // Disable the AGC.
+    enabled = false;
+
+    // Turn off notification.
+    dataProcessorPtr->disableSignalMagnitudeNotification();
+
+    // Indicate success.
+    success = true;
+  } // if
+
+  return (success);
+
+} // disable
+
+/**************************************************************************
+
+  Name: isEnabled
+
+  Purpose: The purpose of this function is to disable the AGC.
+
+  Calling Sequence: status = isEnabled()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the AGC is enabled.
+    A value of true indicates that the AGC is enabled, and a value of
+    false indicates that the AGC is disabled.
+
+**************************************************************************/
+bool AutomaticGainControl::isEnabled(void)
+{
+
+  return (enabled);
+
+} // isEnabled
 
 /**************************************************************************
 
@@ -463,6 +573,15 @@ void AutomaticGainControl::displayInternalInformation(void)
   nprintf(stderr,"\n--------------------------------------------\n");
   nprintf(stderr,"AGC Internal Information\n");
   nprintf(stderr,"--------------------------------------------\n");
+
+  if (enabled)
+  {
+    nprintf(stderr,"AGC Emabled               : Yes\n");
+  } // if
+  else
+  {
+    nprintf(stderr,"AGC Emabled               : No\n");
+  } // else
 
   nprintf(stderr,"Signal Magnitude          : %u\n",
           signalMagnitude);
