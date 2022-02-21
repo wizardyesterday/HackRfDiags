@@ -176,7 +176,8 @@ start receiver
 stop receiver
 start livestream
 stop livestream
-start fscan <startfrequency> <endfrequency> <stepsize>
+set fscanvalues <startfrequency> <endfrequency> <stepsize>
+start fscan
 stop fscan
 start frequencysweep <startfrequency> <stepsize> <count> <dwelltime>
 stop frequencysweep
@@ -296,9 +297,69 @@ Modulation Mode        : USB
 
 ******************** End Get Radio Info Output *************************
 
-Anyway, if you have any questions, you can always catch me on freenode IRC.
-I use the nick wizardyesterday or adhoc_rf_rocks.  My day-to-day nick is
-wizardyesterday though.
+The new features I have added are listed below:
+
+1. A signal squelch that works directly with the average magnitude of
+a received IQ data block.
+
+2. A frequency scanner that lets you specify a start frequency, an end
+frequency, and a frequency step. This collaborates with the squelch
+such that, when scanning, if a signal exceeds the squelch threshold,
+the scan will stop so that you can hear the demodulated audio of the
+signal. When the signal goes away, frequency scan will continue.
+
+3. An automatic gain control (AGC) for the receiver.  For my purposes,
+this was a much-needed feature since the HackRF doesn't provide AGC
+Functionality.  I wasn't a fan of always changing the system gain
+parameters manually as I listened to different frequencies.  For
+example, I might tune to a local weather station at one time, and tune
+to a strong local FM radio station (FM broadcast band) at another time.
+There can be a significant variation in signal level between these two
+scenarios.  This is handled automatically by the AGC.
+
+When the user types "get fscaninfo" (for the frequency scanner), the
+output appears as illustratedbelow.  Not that the start frequency, the
+end frequency, and the frequency increment are configurable.  See the
+help command output for the syntax of the commands realated to the
+frequency scanner (fscan).
+
+******************** Begin GetFscainfo Info Output **********************
+
+--------------------------------------------
+Frequency Scanner Internal Information
+--------------------------------------------
+Scanner State             : Scanning
+Start Frequency           : 120350000 Hz
+End Frequency             : 120550000 Hz
+Frequency Increment       : 25000 Hz
+Current Frequency         : 120475000 Hz
+
+******************** End Get Fscainfo Output  **** **********************
+
+When the user types "get agcinfo" (for the AGC), the output appears as
+illustrated below.  Note that the lowpass filter coefficient and the
+operating point are user configurable.  See the help command output for
+the syntax of the commands realated to the AGC.
+
+******************** Begin Getagcinfo Info Output **********************
+
+--------------------------------------------
+AGC Internal Information
+--------------------------------------------
+AGC Emabled               : Yes
+Signal Magnitude          : 55
+Lowpass Filter Coefficient: 0.100
+Operating Point           : -6 dBFs
+RF Gain                   : 0 dB
+IF Gain                   : 40 dB
+Baseband Gain             : 50 dB
+
+******************** End Get Agcinfo Output  **** **********************
+
+
+Anyway, if you have any questions, you can always catch me on libera IRC.
+I use the nick wizardyesterday.  I can also be reached on Facebook as
+Chris Gianakopoulos.
 
 Oh one last thing.  Anybody can use my software without grief.  I guess I'll
 have to put the GNU open source stuff at the beginning of my files, and that

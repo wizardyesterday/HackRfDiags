@@ -9,9 +9,6 @@
 
 extern void nprintf(FILE *s,const char *formatPtr, ...);
 
-// This is needed to avoid race conditions upon instance destruction.
-static bool callbackEnabled;
-
 /**************************************************************************
 
   Name: signalStateCallback
@@ -38,14 +35,14 @@ static void signalStateCallback(bool signalPresent,void *contextPtr)
 {
   FrequencyScanner *thisPtr;
 
-  if (callbackEnabled)
-  {
-    // Reference the context pointer properly.
-    thisPtr = (FrequencyScanner *)contextPtr;
+  // Reference the context pointer properly.
+  thisPtr = (FrequencyScanner *)contextPtr;
 
+  if (thisPtr->isScanning())
+  {
     // Peform the processing.
     thisPtr->run(signalPresent);
-  } // ig
+  } // if
 
   return;
 
@@ -58,63 +55,46 @@ static void signalStateCallback(bool signalPresent,void *contextPtr)
   Purpose: The purpose of this function is to serve as the constructor
   of a FrequencyScanner object.
 
-  Calling Sequence: FrequencyScanner(radioPtr,
-                                     startFrequencyInHertz,
-                                     endFrequencyInHertz,
-                                     frequencyIncrementInHertz)
+  Calling Sequence: FrequencyScanner(radioPtr)
 
   Inputs:
 
     radioPtr - A pointer to a Radio instance.
-
-    startFrequencyInHertz - The start frequency of the scan.
-
-    endFrequencyInHz - The end frequency of the scan.
-
-    frequencyIncrementInHertz - The increment that is used to generate
-    the discrete frequencies. 
 
   Outputs:
 
     None.
 
 **************************************************************************/
-FrequencyScanner::FrequencyScanner(Radio *radioPtr,
-                                   uint64_t startFrequencyInHertz,
-                                   uint64_t endFrequencyInHertz,
-                                   uint64_t frequencyIncrementInHertz)
+FrequencyScanner::FrequencyScanner(Radio *radioPtr)
 {
   bool success;
 
   // Save for later use.
   this->radioPtr = radioPtr;
-  this->startFrequencyInHertz = startFrequencyInHertz;
-  this->endFrequencyInHertz = endFrequencyInHertz;
-  this->frequencyIncrementInHertz = frequencyIncrementInHertz;
+
+  // Set the parameters to harmless values.
+  startFrequencyInHertz = 162550000;
+  endFrequencyInHertz = 162550000;
+  frequencyIncrementInHertz = 0;
 
   // Start at the beginning.
   currentFrequencyInHertz = startFrequencyInHertz;
 
-  // Select initial frequency.
-  success = radioPtr->setReceiveFrequency(currentFrequencyInHertz);
-
-  // Indicate that the system is scanning.
-  scannerState = Scanning;
+  // Indicate that the system is idle.
+  scannerState = Idle;
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Register the callback to the IqDataProcessor.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // Enable the callback function.
-  callbackEnabled = true;
-
   // Retrieve the object instance.
   dataProcessorPtr = radioPtr->getIqProcessor();
 
+  // Turn off notification.
+  dataProcessorPtr->disableSignalNotification();
+
   // Register the callback.
   dataProcessorPtr->registerSignalStateCallback(signalStateCallback,this);
-
-  // Allow callback processing.
-  dataProcessorPtr->enableSignalNotification();
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   return;
@@ -143,7 +123,7 @@ FrequencyScanner::~FrequencyScanner(void)
 {
 
   // Disable callback function processing.
-  callbackEnabled = false;
+  scannerState = Idle;
 
   // Turn off nofication.
   dataProcessorPtr->disableSignalNotification();
@@ -154,6 +134,215 @@ FrequencyScanner::~FrequencyScanner(void)
   return;
 
 } // ~FrequencyScanner
+
+/**************************************************************************
+
+  Name: setScanParameters
+
+  Purpose: The purpose of this function is to set the scan parameters of
+  the frequency scanner.
+  Note, that the scanner must be in an idle state in order to change the
+  parameters.
+
+  Calling Sequence: success = setScanParameters(startFrequencyInHertz,
+                                                endFrequencyInHertz,
+                                                frequencyIncrementInHertz)
+
+  Inputs:
+
+    startFrequencyInHertz - The start frequency of the scan.
+
+    endFrequencyInHz - The end frequency of the scan.
+
+    frequencyIncrementInHertz - The increment that is used to generate
+    the discrete frequencies. 
+
+  Outputs:
+
+    success - A flag that indicates the outcome of the operation.  A
+    value of true indicates success, and a value of false indicates
+    that the operation was not successful.  A failure would occur if
+    the scanner is currently scanning.
+
+**************************************************************************/
+bool FrequencyScanner::setScanParameters(uint64_t startFrequencyInHertz,
+                                         uint64_t endFrequencyInHertz,
+                                         uint64_t frequencyIncrementInHertz)
+{
+  bool success;
+  bool result;
+
+  // Default to failure.
+  success = false;
+
+  if (scannerState == Idle)
+  {
+    // Store the values for use during scanning.
+    this->startFrequencyInHertz = startFrequencyInHertz;
+    this->endFrequencyInHertz = endFrequencyInHertz;
+    this->frequencyIncrementInHertz = frequencyIncrementInHertz;
+
+    // See where the radio is tuned.
+    currentFrequencyInHertz = radioPtr->getReceiveFrequency();
+
+    if ((currentFrequencyInHertz < startFrequencyInHertz) ||
+        (currentFrequencyInHertz > endFrequencyInHertz))
+    {
+      // Start at the beginning.
+      currentFrequencyInHertz = startFrequencyInHertz;
+
+      // Tune the radio.
+      result = radioPtr->setReceiveFrequency(startFrequencyInHertz);
+    } // if
+
+    // Indicate success.
+    success = true;
+  } // if
+
+  return (success);
+
+} // setScanParameters
+
+/**************************************************************************
+
+  Name: start
+
+  Purpose: The purpose of this function is to enable the frequency
+  scanner so that it can start scanning.
+
+  Calling Sequence: success = start();
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the operation was
+    successful.  A value of true indicates that the operation was
+    successful, and a value of false indicates that the frequency
+    scanner was already scanning.
+
+**************************************************************************/
+bool FrequencyScanner::start(void)
+{
+  bool success;
+
+  // Default to failure.
+  success = false;
+
+  if (scannerState == Idle)
+  {
+    // Make state transition.
+    scannerState = Scanning;
+
+    // Allow callback notification.
+    dataProcessorPtr->enableSignalNotification();
+
+    // Indicate success.
+    success = true;
+  } // if
+
+  return (success);
+
+} // start
+
+/**************************************************************************
+
+  Name: stop
+
+  Purpose: The purpose of this function is to stop the frequency scanner
+  from scanning.
+
+  Calling Sequence: success = stop();
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the operation was
+    successful.  A value of true indicates that the operation was
+    successful, and a value of false indicates that the frequency
+    scanner was already idle.
+
+**************************************************************************/
+bool FrequencyScanner::stop(void)
+{
+  bool success;
+
+  // Default to failure.
+  success = false;
+
+  if (scannerState == Scanning)
+  {
+    // Make state transition.
+    scannerState = Idle;
+
+    // Turn off nofication.
+    dataProcessorPtr->disableSignalNotification();
+
+    // Indicate success.
+    success = true;
+  } // if
+
+  return (success);
+
+} // stop
+
+/**************************************************************************
+
+  Name: isScanning
+
+  Purpose: The purpose of this function is to indicate whether or not
+  the frequency scanner is scanning.
+
+  Calling Sequence: status = isScanning()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the frequency
+    scanner is scanning.  A value of true indicates that the scanner
+    is scanning, and a value of false indicates that the scanner is
+    idle.
+
+**************************************************************************/
+bool FrequencyScanner::isScanning(void)
+{
+  bool status;
+
+  switch (scannerState)
+  {
+    case Idle:
+    {
+      // Indicate that the scanner is idle.
+      status = false;
+      break;
+    } // case
+
+    case Scanning:
+    {
+      // Indicate that the scanner is scanning.
+      status = true;
+      break;
+    } // case
+
+    default:
+    {
+      // Indicate that the scanner is idle.
+      status = false;
+      break;
+    } // case
+  } // switch
+
+  return (status);
+
+} // isScanning
 
 /**************************************************************************
 
