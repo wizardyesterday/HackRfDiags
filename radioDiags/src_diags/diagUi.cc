@@ -2096,7 +2096,7 @@ static void cmdStopLiveStream(char *bufferPtr)
 
     "set fscanvalues startfrequency endfrequency stepsize"
 
-  Calling Sequence: cmdStartFscan(bufferPtr)
+  Calling Sequence: cmdStartFscanValues(bufferPtr)
 
   Inputs:
 
