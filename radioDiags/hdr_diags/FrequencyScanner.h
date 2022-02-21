@@ -18,13 +18,17 @@ class FrequencyScanner
 
   enum state_t {Idle, Scanning};
 
-  FrequencyScanner(Radio *radioPtr,
-                   uint64_t startFrequencyInHertz,
-                   uint64_t endFrequencyInHertz,
-                   uint64_t frequencyIncrementInHertz);
+  FrequencyScanner(Radio *radioPtr);
 
   ~FrequencyScanner(void);
 
+  bool setScanParameters(uint64_t startFrequencyInHertz,
+                         uint64_t endFrequencyInHertz,
+                         uint64_t frequencyIncrementInHertz);
+
+  bool start(void);
+  bool stop(void);
+  bool isScanning(void);
   void run(bool signalPresent);
 
   void displayInternalInformation(void);
@@ -51,11 +55,11 @@ class FrequencyScanner
   // The end frequency of the sweep.
   uint64_t endFrequencyInHertz;
 
-  // The current frequency for display purposes.
-  uint64_t currentFrequencyInHertz;
-
   // The frequency step size to take during a scan.
   uint64_t frequencyIncrementInHertz;
+
+  // The current frequency of the sweep.
+  uint64_t currentFrequencyInHertz;
 
   // Pointer to a radio instance.
   Radio *radioPtr;
