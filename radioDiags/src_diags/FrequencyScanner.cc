@@ -187,7 +187,7 @@ bool FrequencyScanner::setScanParameters(uint64_t startFrequencyInHertz,
 
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     // Indicate that things have possibly changed.
-    // The run() method will deal with this later.
+    // The start() method will deal with this later.
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     newConfigurationAvailable = true;
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -224,12 +224,26 @@ bool FrequencyScanner::setScanParameters(uint64_t startFrequencyInHertz,
 bool FrequencyScanner::start(void)
 {
   bool success;
+  bool result;
 
   // Default to failure.
   success = false;
 
   if (scannerState == Idle)
   {
+    if (newConfigurationAvailable)
+    {
+      // Force this at the edge of the cliff.
+      currentFrequencyInHertz = endFrequencyInHertz;
+
+      // Select new frequency.
+      result = radioPtr->setReceiveFrequency(currentFrequencyInHertz);
+
+
+      // Negate the flag so that this processing occurs one time.
+      newConfigurationAvailable = false;
+    } // if
+
     // Make state transition.
     scannerState = Scanning;
 
@@ -364,15 +378,6 @@ bool FrequencyScanner::isScanning(void)
 void FrequencyScanner::run(bool signalPresent)
 {
   bool success;
-
-  if (newConfigurationAvailable)
-  {
-    // Force this at the edge of the cliff.
-    currentFrequencyInHertz = endFrequencyInHertz;
-
-    // Negate the flag so that this processing occurs one time.
-    newConfigurationAvailable = false;
-  } // if
 
   if (!signalPresent)
   {
