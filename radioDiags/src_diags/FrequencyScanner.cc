@@ -81,6 +81,9 @@ FrequencyScanner::FrequencyScanner(Radio *radioPtr)
   // Start at the beginning.
   currentFrequencyInHertz = startFrequencyInHertz;
 
+  // Indicate that a new configuration isn't available.
+  newConfigurationAvailable = false;
+
   // Indicate that the system is idle.
   scannerState = Idle;
 
@@ -182,18 +185,12 @@ bool FrequencyScanner::setScanParameters(uint64_t startFrequencyInHertz,
     this->endFrequencyInHertz = endFrequencyInHertz;
     this->frequencyIncrementInHertz = frequencyIncrementInHertz;
 
-    // See where the radio is tuned.
-    currentFrequencyInHertz = radioPtr->getReceiveFrequency();
-
-    if ((currentFrequencyInHertz < startFrequencyInHertz) ||
-        (currentFrequencyInHertz > endFrequencyInHertz))
-    {
-      // Start at the beginning.
-      currentFrequencyInHertz = startFrequencyInHertz;
-
-      // Tune the radio.
-      result = radioPtr->setReceiveFrequency(startFrequencyInHertz);
-    } // if
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Indicate that things have possibly changed.
+    // The run() method will deal with this later.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    newConfigurationAvailable = true;
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     // Indicate success.
     success = true;
@@ -367,6 +364,15 @@ bool FrequencyScanner::isScanning(void)
 void FrequencyScanner::run(bool signalPresent)
 {
   bool success;
+
+  if (newConfigurationAvailable)
+  {
+    // Force this at the edge of the cliff.
+    currentFrequencyInHertz = endFrequencyInHertz;
+
+    // Negate the flag so that this processing occurs one time.
+    newConfigurationAvailable = false;
+  } // if
 
   if (!signalPresent)
   {

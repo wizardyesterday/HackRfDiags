@@ -58,6 +58,9 @@ class FrequencyScanner
   // The frequency step size to take during a scan.
   uint64_t frequencyIncrementInHertz;
 
+  // This indicates when no scan parameters are available.
+  bool newConfigurationAvailable;
+
   // The current frequency of the sweep.
   uint64_t currentFrequencyInHertz;
 
