@@ -6,6 +6,9 @@
 #include <math.h>
 #include <sys/time.h>
 
+#include "Radio.h"
+#include "IqDataProcessor.h"
+
 #include "AutomaticGainControl.h"
 
 #define FREQUENCY_THRESHOLD_FOR_FRONT_END_AMP (200000000)
@@ -74,19 +77,24 @@ static void signalMagnitudeCallback(uint32_t signalMagnitude,
     None.
 
 **************************************************************************/
-AutomaticGainControl::AutomaticGainControl(Radio *radioPtr,
+AutomaticGainControl::AutomaticGainControl(void *radioPtr,
                                            int32_t operatingPointInDbFs)
 {
   uint32_t i;
   uint32_t maximumMagnitude;
   float dbFsLevel;
   float maximumDbFsLevel;
+  Radio * RadioPtr;
+  IqDataProcessor *DataProcessorPtr;
 
   // Reference this for later use.
   this->radioPtr = radioPtr;
 
   // Reference the set point to the antenna input.
   this->operatingPointInDbFs = operatingPointInDbFs;
+
+  // Reference the pointer in the proper context.
+  RadioPtr = (Radio *)radioPtr;
 
   // Set this to the midrange.
   signalMagnitude = 64;
@@ -150,13 +158,16 @@ AutomaticGainControl::AutomaticGainControl(Radio *radioPtr,
   // Register the callback to the IqDataProcessor.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Retrieve the object instance.  
-  dataProcessorPtr = radioPtr->getIqProcessor();
+  dataProcessorPtr = RadioPtr->getIqProcessor();
+
+  // Reference the pointer in the proper context.
+  DataProcessorPtr = (IqDataProcessor *)dataProcessorPtr;
 
   // Turn off notification.
-  dataProcessorPtr->disableSignalMagnitudeNotification();
+  DataProcessorPtr->disableSignalMagnitudeNotification();
 
   // Register the callback.
-  dataProcessorPtr->registerSignalMagnitudeCallback(signalMagnitudeCallback,
+  DataProcessorPtr->registerSignalMagnitudeCallback(signalMagnitudeCallback,
                                                     this);
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
@@ -184,15 +195,19 @@ AutomaticGainControl::AutomaticGainControl(Radio *radioPtr,
 **************************************************************************/
 AutomaticGainControl::~AutomaticGainControl(void)
 {
+  IqDataProcessor *DataProcessorPtr;
+
+  // Reference the pointer in the proper context.
+  DataProcessorPtr = (IqDataProcessor *)dataProcessorPtr;
 
   // Disable the AGC.
   enabled = false;
 
   // Turn off notification.
-  dataProcessorPtr->disableSignalMagnitudeNotification();
+  DataProcessorPtr->disableSignalMagnitudeNotification();
 
   // Unregister the callback.
-  dataProcessorPtr->registerSignalMagnitudeCallback(NULL,NULL);
+  DataProcessorPtr->registerSignalMagnitudeCallback(NULL,NULL);
 
   return;
 
@@ -265,6 +280,8 @@ bool  AutomaticGainControl::setAgcFilterCoefficient(float coefficient)
     success = true;
   } // if
 
+  return (success);
+
 } // setAgcFilterCoefficient
 
 /**************************************************************************
@@ -290,6 +307,10 @@ bool  AutomaticGainControl::setAgcFilterCoefficient(float coefficient)
 bool AutomaticGainControl::enable(void)
 {
   bool success;
+  IqDataProcessor *DataProcessorPtr;
+
+  // Reference the pointer in the proper context.
+  DataProcessorPtr = (IqDataProcessor *)dataProcessorPtr;
 
   // Default to failure.
   success = false;
@@ -300,7 +321,7 @@ bool AutomaticGainControl::enable(void)
     enabled = true;
 
     // Allow callback notification.
-    dataProcessorPtr->enableSignalMagnitudeNotification();
+    DataProcessorPtr->enableSignalMagnitudeNotification();
 
     // Indicate success.
     success = true;
@@ -333,6 +354,10 @@ bool AutomaticGainControl::enable(void)
 bool AutomaticGainControl::disable(void)
 {
   bool success;
+  IqDataProcessor *DataProcessorPtr;
+
+  // Reference the pointer in the proper context.
+  DataProcessorPtr = (IqDataProcessor *)dataProcessorPtr;
 
   // Default to failure.
   success = false;
@@ -343,7 +368,7 @@ bool AutomaticGainControl::disable(void)
     enabled = false;
 
     // Turn off notification.
-    dataProcessorPtr->disableSignalMagnitudeNotification();
+    DataProcessorPtr->disableSignalMagnitudeNotification();
 
     // Indicate success.
     success = true;
@@ -357,7 +382,8 @@ bool AutomaticGainControl::disable(void)
 
   Name: isEnabled
 
-  Purpose: The purpose of this function is to disable the AGC.
+  Purpose: The purpose of this function is to determine whether or not
+  the AGC is enabled.
 
   Calling Sequence: status = isEnabled()
 
@@ -453,6 +479,10 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
   int32_t adjustedBasebandGainInDb;
   int32_t signalInDbFs;
   uint64_t frequencyInHertz;
+  Radio * RadioPtr;
+
+  // Reference the pointer in the proper context.
+  RadioPtr = (Radio *)radioPtr;
 
   // Update for display purposes.
   this->signalMagnitude = signalMagnitude;
@@ -461,7 +491,7 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
   signalInDbFs = convertMagnitudeToDbFs(signalMagnitude);
 
   // Get the receiver frequency for further evaluation.
-  frequencyInHertz = radioPtr->getReceiveFrequency();
+  frequencyInHertz = RadioPtr->getReceiveFrequency();
 
   if (frequencyInHertz >= FREQUENCY_THRESHOLD_FOR_FRONT_END_AMP)
   {
@@ -542,16 +572,16 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
   if (frontEndAmpEnabled)
   {
     // Enable the front end RF amp.
-    success = radioPtr->enableReceiveFrontEndAmplifier();
+    success = RadioPtr->enableReceiveFrontEndAmplifier();
   } // if
   else
   {
     // Disable the front end RF amp.
-    success = radioPtr->disableReceiveFrontEndAmplifier();
+    success = RadioPtr->disableReceiveFrontEndAmplifier();
   } // else
 
-  success = radioPtr->setReceiveIfGainInDb(ifGainInDb);
-  success = radioPtr->setReceiveBasebandGainInDb(basebandGainInDb);
+  success = RadioPtr->setReceiveIfGainInDb(ifGainInDb);
+  success = RadioPtr->setReceiveBasebandGainInDb(basebandGainInDb);
   //+++++++++++++++++++++++++++++++++++++++++++++++++++
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
@@ -563,8 +593,8 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
 
   Name: displayInternalInformation
 
-  Purpose: The purpose of this function is to display information of the
-  frequency sweeper.
+  Purpose: The purpose of this function is to display information in the
+  AGC.
 
   Calling Sequence: displayInternalInformation()
 

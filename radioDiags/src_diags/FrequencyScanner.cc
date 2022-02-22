@@ -91,7 +91,7 @@ FrequencyScanner::FrequencyScanner(Radio *radioPtr)
   // Register the callback to the IqDataProcessor.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Retrieve the object instance.
-  dataProcessorPtr = radioPtr->getIqProcessor();
+  dataProcessorPtr = (IqDataProcessor *)radioPtr->getIqProcessor();
 
   // Turn off notification.
   dataProcessorPtr->disableSignalNotification();

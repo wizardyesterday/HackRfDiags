@@ -223,6 +223,9 @@ Radio::Radio(uint32_t txSampleRate,uint32_t rxSampleRate,
       transmitBasebandDataProcessorPtr->setModulatorMode(
         BasebandDataProcessor::None);
 
+      // Instantiate an AGC with an operating point of -6dBFs.
+      agcPtr = new AutomaticGainControl(this,-6);
+
       // Default the information source to a file.
       informationSource = File;
     } // if
@@ -329,6 +332,11 @@ Radio::~Radio(void)
   if (ssbModulatorPtr != 0)
   {
     delete ssbModulatorPtr;
+  } // if
+
+  if (agcPtr != 0)
+  {
+    delete agcPtr;
   } // if
   //-------------------------------------
 
@@ -2476,12 +2484,190 @@ void Radio::setWbFmDeviation(float deviation)
     that is used by the Radio.
 
 *****************************************************************************/
-IqDataProcessor * Radio::getIqProcessor(void)
+void * Radio::getIqProcessor(void)
 {
 
   return (receiveDataProcessorPtr);
 
 } // getIqProcessorPtr
+
+/**************************************************************************
+
+  Name: setAgcOperatingPoint
+
+  Purpose: The purpose of this function is to set the operating point
+  of the AGC.
+
+  Calling Sequence: setAgcOperatingPoint(operatingPointInDbFs)
+  Inputs:
+
+    operatingPointInDbFs - The operating point in decibels referenced to
+    the full scale value.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void Radio::setAgcOperatingPoint(int32_t operatingPointInDbFs)
+{
+
+  // Update operating point.
+  agcPtr->setOperatingPoint(operatingPointInDbFs);
+
+  return;
+
+} // setAgcOperatingPoint
+
+/**************************************************************************
+
+  Name: setAgcFilterCoefficient
+
+  Purpose: The purpose of this function is to set the coefficient of
+  the first order lowpass filter that filters the baseband gain value.
+  In effect, the time constant of the filter is set.
+
+  Calling Sequence: success = setAgcFilterCoefficient(coefficient)
+
+  Inputs:
+
+    coefficient - The filter coefficient for the lowpass filter that
+    // filters the baseband gain value.
+
+  Outputs:
+
+    success - A flag that indicates whether the filter coefficient was
+    updated.  A value of true indicates that the coefficient was
+    updated, and a value of false indicates that the coefficient was
+    not updated due to an invalid coefficient value.
+
+**************************************************************************/
+bool  Radio::setAgcFilterCoefficient(float coefficient)
+{
+  bool success;
+
+  // Update the lowpass filter coefficient.
+  success = agcPtr->setAgcFilterCoefficient(coefficient);
+
+  return (success);
+
+} // setAgcFilterCoefficient
+
+/**************************************************************************
+
+  Name: enableAgc
+
+  Purpose: The purpose of this function is to enable the AGC.
+
+  Calling Sequence: success = enableAgc();
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the operation was
+    successful.  A value of true indicates that the operation was
+    successful, and a value of false indicates that the AGC was already
+    enabled.
+
+**************************************************************************/
+bool Radio::enableAgc(void)
+{
+  bool success;
+
+  // Enable the AGC.
+  success = agcPtr->enable();
+
+  return (success);
+
+} // enableAgc
+
+/**************************************************************************
+
+  Name: disableAgc
+
+  Purpose: The purpose of this function is to disable the AGC.
+
+  Calling Sequence: success = disableAgc();
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the operation was
+    successful.  A value of true indicates that the operation was
+    successful, and a value of false indicates that the AGC was already
+    disabled.
+
+**************************************************************************/
+bool Radio::disableAgc(void)
+{
+  bool success;
+
+  // Disable the AGC.
+  success = agcPtr->disable();
+
+  return (success);
+
+} // disableAgc
+
+/**************************************************************************
+
+  Name: isAgcEnabled
+
+  Purpose: The purpose of this function is to determine whether or not
+  the AGC is enabled.
+
+  Calling Sequence: status = isAgcEnabled()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the AGC is enabled.
+    A value of true indicates that the AGC is enabled, and a value of
+    false indicates that the AGC is disabled.
+
+**************************************************************************/
+bool Radio::isAgcEnabled(void)
+{
+
+  return (agcPtr->isEnabled());
+
+} // isAgcEnabled
+
+/**************************************************************************
+
+  Name: displayAgcInternalInformation
+
+  Purpose: The purpose of this function is to display information in the
+  AGC.
+
+  Calling Sequence: displayAgcInternalInformation()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void Radio::displayAgcInternalInformation(void)
+{
+
+  agcPtr->displayInternalInformation();
+
+  return;
+
+} // displayAgcInternalInformation
 
 /**************************************************************************
 
