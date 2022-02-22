@@ -392,7 +392,7 @@ void FrequencyScanner::run(bool signalPresent)
     } // if
 
     // Select new frequency.
-    success = radioPtr->setReceiveFrequency(startFrequencyInHertz);
+    success = radioPtr->setReceiveFrequency(currentFrequencyInHertz);
   } // if
 
   return;
