@@ -26,6 +26,7 @@
 #include "WbFmModulator.h"
 #include "SsbModulator.h"
 #include "BasebandDataProcessor.h"
+#include "AutomaticGainControl.h"
 
 #include <hackrf.h>
 
@@ -107,7 +108,15 @@ class Radio
   void setFmDeviation(float deviation);
   void setWbFmDeviation(float deviation);
 
-  IqDataProcessor *getIqProcessor(void);
+  void *getIqProcessor(void);
+
+  // AGC support.
+  void setAgcOperatingPoint(int32_t operatingPointInDbFs);
+  bool setAgcFilterCoefficient(float coefficient);
+  bool enableAgc(void);
+  bool disableAgc(void);
+  bool isAgcEnabled(void);
+  void displayAgcInternalInformation(void);
 
   void displayInternalInformation(void);
 
@@ -196,6 +205,9 @@ class Radio
   FmModulator *fmModulatorPtr;
   WbFmModulator *wbFmModulatorPtr;
   SsbModulator *ssbModulatorPtr;
+
+  // Automatic gain control support.
+  AutomaticGainControl *agcPtr;
 
   // Control information.
   bool receiveEnabled;

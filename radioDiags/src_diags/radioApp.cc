@@ -13,7 +13,6 @@
 #include "Radio.h"
 #include "FrequencyScanner.h"
 #include "FrequencySweeper.h"
-#include "AutomaticGainControl.h"
 #include "diagUi.h"
 
 #define ENGINEERING_CONSOLE_PORT (20300)
@@ -25,7 +24,6 @@ extern bool diagUi_timeToExit;
 Radio *diagUi_radioPtr;
 FrequencyScanner *diagUi_frequencyScannerPtr;
 FrequencySweeper *diagUi_frequencySweeperPtr;
-AutomaticGainControl *diagUi_agcPtr;
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 //*************************************************************************
@@ -70,6 +68,7 @@ AutomaticGainControl *diagUi_agcPtr;
 //
 // Anyway, enjoy! Chris G.06/06/2017
 //*************************************************************************
+
 /*****************************************************************************
 
   Name: processPcmData
@@ -120,14 +119,11 @@ int main(int argc,char **argv)
   diagUi_radioPtr->setTransmitFrequency(transceiveFrequency);
   diagUi_radioPtr->setReceiveFrequency(transceiveFrequency);
 
-  // Indicate that no frequency scanner has been allocated.
+  // Instantiate a frequency scanner.
   diagUi_frequencyScannerPtr = new FrequencyScanner(diagUi_radioPtr);
 
   // Indicate that no frequency sweeper has been allocated.
   diagUi_frequencySweeperPtr = 0;
-
-    // Intiate and AGC with an operating point of -6dBFs.
-  diagUi_agcPtr = new AutomaticGainControl(diagUi_radioPtr,-6);
 
   // Start the user interface subsystem.
   diagUi_start(ENGINEERING_CONSOLE_PORT);
@@ -157,11 +153,6 @@ int main(int argc,char **argv)
   if (diagUi_frequencySweeperPtr != 0)
   {
     delete diagUi_frequencySweeperPtr;
-  } // if
-
-  if (diagUi_agcPtr != 0)
-  {
-    delete diagUi_agcPtr;
   } // if
 
   if (diagUi_radioPtr != 0)

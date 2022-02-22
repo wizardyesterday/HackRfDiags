@@ -9,14 +9,11 @@
 #include <unistd.h>
 #include <stdint.h>
 
-#include "Radio.h"
-#include "IqDataProcessor.h"
-
 class AutomaticGainControl
 {
   public:
 
-  AutomaticGainControl(Radio *radioPtr,int32_t operatingPointInDbFs);
+  AutomaticGainControl(void *radioPtr,int32_t operatingPointInDbFs);
 
   ~AutomaticGainControl(void);
 
@@ -59,8 +56,8 @@ class AutomaticGainControl
   // Magnitude of the latest signal.
   uint32_t signalMagnitude;
 
-  Radio *radioPtr;
-  IqDataProcessor *dataProcessorPtr;
+  void *radioPtr;
+  void *dataProcessorPtr;
 
   // This assumes 8-bit quantities for signal level.
   int32_t dbFsTable[257];

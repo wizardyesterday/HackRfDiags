@@ -35,7 +35,6 @@ using namespace std;
 extern Radio *diagUi_radioPtr;
 extern FrequencyScanner *diagUi_frequencyScannerPtr;
 extern FrequencySweeper *diagUi_frequencySweeperPtr;
-extern AutomaticGainControl *diagUi_agcPtr;
 
 /************************************************************************/
 /* general defines                                                      */
@@ -1071,7 +1070,7 @@ static void cmdEnableAgc(char *bufferPtr)
   bool success;
 
   // Enable the AGC.
-  success = diagUi_agcPtr->enable();
+  success = diagUi_radioPtr->enableAgc();
 
   if (success)
   {
@@ -1113,7 +1112,7 @@ static void cmdDisableAgc(char *bufferPtr)
   bool success;
 
   // Disable the AGC.
-  success = diagUi_agcPtr->disable();
+  success = diagUi_radioPtr->disableAgc();
 
   if (success)
   {
@@ -1159,23 +1158,16 @@ static void cmdSetAgcAlpha(char *bufferPtr)
   // Retrieve parameter.
   sscanf(bufferPtr,"%f",&alpha);
 
-  if (diagUi_agcPtr != NULL)
-  {
-    // Set the AGC filter coefficient.
-    success = diagUi_agcPtr->setAgcFilterCoefficient(alpha);
+  // Set the AGC filter coefficient.
+  success = diagUi_radioPtr->setAgcFilterCoefficient(alpha);
 
-    if (success)
-    {
-      nprintf(stderr,"AGC filter coefficient set to: %f\n",alpha);
-    } // if
-    else
-    {
-      nprintf(stderr,"0.001 < alpha < 0.999\n");
-    } // else
+  if (success)
+  {
+    nprintf(stderr,"AGC filter coefficient set to: %f\n",alpha);
   } // if
   else
   {
-    nprintf(stderr,"Error: AGC is not enabled.\n");  
+    nprintf(stderr,"0.001 < alpha < 0.999\n");
   } // else
 
   return;
@@ -1212,17 +1204,10 @@ static void cmdSetAgcLevel(char *bufferPtr)
   // Retrieve parameter.
   sscanf(bufferPtr,"%d",&operatingPointInDbFs);
 
-  if (diagUi_agcPtr != NULL)
-  {
-    // Set the operating point.
-    diagUi_agcPtr->setOperatingPoint(operatingPointInDbFs);
+  // Set the operating point.
+  diagUi_radioPtr->setAgcOperatingPoint(operatingPointInDbFs);
 
-    nprintf(stderr,"AGC level set to: %d\n",operatingPointInDbFs);
-  } // if
-  else
-  {
-    nprintf(stderr,"Error: AGC is not enabled.\n");  
-  } // else
+  nprintf(stderr,"AGC level set to: %d\n",operatingPointInDbFs);
 
   return;
 
@@ -1253,10 +1238,7 @@ static void cmdSetAgcLevel(char *bufferPtr)
 static void cmdGetAgcInfo(char *buffeerPtr)
 {
 
-  if (diagUi_agcPtr != NULL)
-  {
-    diagUi_agcPtr->displayInternalInformation();
-  } // if
+  diagUi_radioPtr->displayAgcInternalInformation();
 
   return;
 
