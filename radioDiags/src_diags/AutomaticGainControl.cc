@@ -110,8 +110,18 @@ AutomaticGainControl::AutomaticGainControl(Radio *radioPtr,
   // Initial condition of filter memory.
   filteredBasebandGainInDb = 40;
 
-  // Time constant.
-  alpha = 0.1;
+  //+++++++++++++++++++++++++++++++++++++++++++++++++
+  // Set the AGC time constant such that gain
+  // adjustment occurs rapidly while maintaining
+  // system stability.  Originally the value was set
+  // to a a value of 0.1, and the result was that
+  // the gain adjustment was so slow that weak
+  // signals would exceed the squelch threshold for
+  // a very short time; that is, most of the signal
+  // could not be heard.
+  //+++++++++++++++++++++++++++++++++++++++++++++++++
+  alpha = 0.9;
+  //+++++++++++++++++++++++++++++++++++++++++++++++++
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
