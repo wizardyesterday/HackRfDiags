@@ -347,12 +347,15 @@ the syntax of the commands realated to the AGC.
 AGC Internal Information
 --------------------------------------------
 AGC Emabled               : Yes
-Signal Magnitude          : 55
-Lowpass Filter Coefficient: 0.100
+Lowpass Filter Coefficient: 0.900
 Operating Point           : -6 dBFs
 RF Gain                   : 0 dB
 IF Gain                   : 40 dB
-Baseband Gain             : 50 dB
+Baseband Gain             : 43 dB
+/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+Signal Magnitude          : 59
+RSSI (After IF Amplifier) : -49 dBFs
+/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 ******************** End Get Agcinfo Output  **** **********************
 

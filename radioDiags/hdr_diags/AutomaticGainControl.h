@@ -56,6 +56,9 @@ class AutomaticGainControl
   // Magnitude of the latest signal.
   uint32_t signalMagnitude;
 
+  // Signal level before amplification.
+  int32_t normalizedSignalLevelInDbFs;
+
   void *radioPtr;
   void *dataProcessorPtr;
 
