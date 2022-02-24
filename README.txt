@@ -318,9 +318,9 @@ There can be a significant variation in signal level between these two
 scenarios.  This is handled automatically by the AGC.
 
 When the user types "get fscaninfo" (for the frequency scanner), the
-output appears as illustratedbelow.  Not that the start frequency, the
+output appears as illustrated below.  Not that the start frequency, the
 end frequency, and the frequency increment are configurable.  See the
-help command output for the syntax of the commands realated to the
+help command output for the syntax of the commands related to the
 frequency scanner (fscan).
 
 ******************** Begin GetFscainfo Info Output **********************
@@ -339,7 +339,7 @@ Current Frequency         : 120475000 Hz
 When the user types "get agcinfo" (for the AGC), the output appears as
 illustrated below.  Note that the lowpass filter coefficient and the
 operating point are user configurable.  See the help command output for
-the syntax of the commands realated to the AGC.
+the syntax of the commands related to the AGC.
 
 ******************** Begin Getagcinfo Info Output **********************
 
