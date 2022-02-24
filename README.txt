@@ -310,7 +310,7 @@ signal. When the signal goes away, frequency scan will continue.
 
 3. An automatic gain control (AGC) for the receiver.  For my purposes,
 this was a much-needed feature since the HackRF doesn't provide AGC
-Functionality.  I wasn't a fan of always changing the system gain
+functionality.  I wasn't a fan of always changing the system gain
 parameters manually as I listened to different frequencies.  For
 example, I might tune to a local weather station at one time, and tune
 to a strong local FM radio station (FM broadcast band) at another time.
