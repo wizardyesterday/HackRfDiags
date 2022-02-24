@@ -102,14 +102,16 @@ AutomaticGainControl::AutomaticGainControl(void *radioPtr,
   // Default to disabled.
   enabled = false;
  
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // This is a good starting point for the receiver gain
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+ // This is a good starting point for the receiver gain
   // values.
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   rfGainInDb = 0;
   ifGainInDb = 40;
   basebandGainInDb = 40;
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+  normalizedSignalLevelInDbFs =  -basebandGainInDb;
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // AGC filter initialization.  The filter is implemented
@@ -448,23 +450,41 @@ int32_t AutomaticGainControl::convertMagnitudeToDbFs(
   Purpose: The purpose of this function is to run the automatic gain
   control.
 
-  Note: There are some tweaks that must be done to this system.  For
-  example, experiments must be performed to determine the amount of
-  gain that is needed in the three amplifiers in order to hear
-  anything.  In my HackRF (using a simple indoor whip antenna), I
-  need at least 32dB gain in the IF amp. When set to lower gains, the
-  receiver is somewhat deaf.  I usually set the baseband amplifier
-  gain to about 44dB.  The frontend RF amp needs to be disabled in the
-  VHF frequencies, but on UHF (for example police on the 460MHz
-  frequencies), the amplifier needs to be enabled.  Once the receiver is
-  characterized, this AGC system (in theory) should work just fine.
+  Note:  A large gain error will result in a more rapid convergence
+  to the operating point versus a small gain error.  Let the subsystem
+  parameters be defined as follows:
 
+    R - The reference point in dBFs.
+
+    alpha - The system time constant.  This parameter dictates how
+    quickly the AGC will converge to the reference point, R, as a
+    function of the received signal magnitude (in dBFs). 
+
+    x(n) - The received signal magnitude, in dBFs, referenced at the
+    point before adjustable amplification.
+
+    y(n) - The received signal that has been amplified by the adjustable
+    gain amplifier in units of dBFs.
+
+    e(n) - The deviation from the reference point in decibels.
+
+    g(n) - The gain of the adjustable gain amplifier in decibels.
+
+  The equations for the AGC algorithm are as follows.
+
+    y(n) = x(n) + g(n).
+
+    e(n) = R - y(n).
+
+    g(n+1) = [alpha * g(n)] + [(1 - alpha) * e(n)]
+
+ 
   Calling Sequence: run(signalMagnitude )
 
   Inputs:
 
     signalMagnitude - The average magnitude of the IQ data block that
-    was received.
+    was received in units of dBFs.
 
   Outputs:
 
@@ -490,6 +510,9 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
   // Convert to decibels referenced to full scale.
   signalInDbFs = convertMagnitudeToDbFs(signalMagnitude);
 
+  // Update for display purposes.
+  normalizedSignalLevelInDbFs = signalInDbFs - basebandGainInDb;
+
   // Get the receiver frequency for further evaluation.
   frequencyInHertz = RadioPtr->getReceiveFrequency();
 
@@ -510,7 +533,7 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
     frontEndAmpEnabled = false;
   } // else
 
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Compute the gain adjustment.
   // Allocate gains appropriately.  Here is what we
   // have to work with:
   //
@@ -532,8 +555,8 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
   //
   //   2. Adjust the baseband gain as appropriate to achieve
   //   the operating point referenced at the antenna input.
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // Compute the gain adjustment. This might not be correct.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Compute the gain adjustment.
   deltaGainInDb = operatingPointInDbFs - signalInDbFs;
 
   // Adjust the gain.
@@ -583,7 +606,7 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
   success = RadioPtr->setReceiveIfGainInDb(ifGainInDb);
   success = RadioPtr->setReceiveBasebandGainInDb(basebandGainInDb);
   //+++++++++++++++++++++++++++++++++++++++++++++++++++
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   return;
 
@@ -623,9 +646,6 @@ void AutomaticGainControl::displayInternalInformation(void)
     nprintf(stderr,"AGC Emabled               : No\n");
   } // else
 
-  nprintf(stderr,"Signal Magnitude          : %u\n",
-          signalMagnitude);
-
   nprintf(stderr,"Lowpass Filter Coefficient: %0.3f\n",
           alpha);
 
@@ -640,6 +660,14 @@ void AutomaticGainControl::displayInternalInformation(void)
 
   nprintf(stderr,"Baseband Gain             : %u dB\n",
           basebandGainInDb);
+
+  nprintf(stderr,"/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/\n");
+  nprintf(stderr,"Signal Magnitude          : %u\n",
+          signalMagnitude);
+
+  nprintf(stderr,"RSSI (After IF Amplifier) : %d dBFs\n",
+          normalizedSignalLevelInDbFs);
+  nprintf(stderr,"/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/\n");
 
   return;
 
