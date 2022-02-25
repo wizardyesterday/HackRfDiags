@@ -23,7 +23,6 @@ class AutomaticGainControl
   bool disable(void);
   bool isEnabled(void);
   void run(uint32_t signalMagnitude);
-
   void displayInternalInformation(void);
 
   private:

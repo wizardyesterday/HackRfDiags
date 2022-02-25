@@ -123,14 +123,9 @@ AutomaticGainControl::AutomaticGainControl(void *radioPtr,
   //+++++++++++++++++++++++++++++++++++++++++++++++++
   // Set the AGC time constant such that gain
   // adjustment occurs rapidly while maintaining
-  // system stability.  Originally the value was set
-  // to a a value of 0.1, and the result was that
-  // the gain adjustment was so slow that weak
-  // signals would exceed the squelch threshold for
-  // a very short time; that is, most of the signal
-  // could not be heard.
+  // system stability.
   //+++++++++++++++++++++++++++++++++++++++++++++++++
-  alpha = 0.9;
+  alpha = 0.5;
   //+++++++++++++++++++++++++++++++++++++++++++++++++
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
@@ -448,7 +443,12 @@ int32_t AutomaticGainControl::convertMagnitudeToDbFs(
   Name: run
 
   Purpose: The purpose of this function is to run the automatic gain
-  control.
+  control.  This is th implementation of the algorithm described by
+  Fredric Harris in hls paper entitled, "On the Design, Implementation,
+  and Performance of a Microprocessor-Controlled AGC System for a
+  Digital Receiver".  This AGC is also described in "Understanding
+  Digital Signal Processing, Third Edition", Section 13.30 "Automatic
+  Gai Control (AGC)" by Richard G. Lyons (This is the Harris AGC).
 
   Note:  A large gain error will result in a more rapid convergence
   to the operating point versus a small gain error.  Let the subsystem
@@ -476,7 +476,7 @@ int32_t AutomaticGainControl::convertMagnitudeToDbFs(
 
     e(n) = R - y(n).
 
-    g(n+1) = [alpha * e(n)] + [1 - alpha) * g(n)]
+    g(n+1) = g(n) + [alpha * e(n)]
 
  
   Calling Sequence: run(signalMagnitude )
@@ -495,8 +495,7 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
 {
   bool success;
   bool frontEndAmpEnabled;
-  int32_t deltaGainInDb;
-  int32_t adjustedBasebandGainInDb;
+  float gainError;
   int32_t signalInDbFs;
   uint64_t frequencyInHertz;
   Radio * RadioPtr;
@@ -557,31 +556,28 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
   //   the operating point referenced at the antenna input.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Compute the gain adjustment.
-  deltaGainInDb = operatingPointInDbFs - signalInDbFs;
+  gainError = (float)(operatingPointInDbFs - signalInDbFs);
 
-  // Adjust the gain.
-  adjustedBasebandGainInDb = basebandGainInDb + deltaGainInDb;
+  //*******************************************************************
+  // Run the AGC algorithm.
+  //*******************************************************************
+  filteredBasebandGainInDb = filteredBasebandGainInDb +
+    (alpha * gainError);
 
   //+++++++++++++++++++++++++++++++++++++++++++
   // Limit the gain to valid values.
   //+++++++++++++++++++++++++++++++++++++++++++
-  if (adjustedBasebandGainInDb > 62)
+  if (filteredBasebandGainInDb > 62)
   {
-    adjustedBasebandGainInDb = 62;
+    filteredBasebandGainInDb = 62;
   } // if
   else
   {
-    if (adjustedBasebandGainInDb < 0)
+    if (filteredBasebandGainInDb < 0)
     {
-      adjustedBasebandGainInDb = 0;
+      filteredBasebandGainInDb = 0;
     } // if
   } // else
-
-  //*******************************************************************
-  // Run the computation through a lowpass filter.
-  //*******************************************************************
-  filteredBasebandGainInDb = (alpha * (float)adjustedBasebandGainInDb)
-                           + ((1 - alpha) * filteredBasebandGainInDb);
   //*******************************************************************
 
   // Update the attribute.
