@@ -476,7 +476,7 @@ int32_t AutomaticGainControl::convertMagnitudeToDbFs(
 
     e(n) = R - y(n).
 
-    g(n+1) = [alpha * g(n)] + [(1 - alpha) * e(n)]
+    g(n+1) = [alpha * e(n)] + [1 - alpha) * g(n)]
 
  
   Calling Sequence: run(signalMagnitude )
