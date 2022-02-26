@@ -532,6 +532,7 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
     frontEndAmpEnabled = false;
   } // else
 
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Compute the gain adjustment.
   // Allocate gains appropriately.  Here is what we
   // have to work with:
