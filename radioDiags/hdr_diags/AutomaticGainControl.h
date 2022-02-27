@@ -41,7 +41,7 @@ class AutomaticGainControl
   // The goal.
   int32_t operatingPointInDbFs;
 
-  // AGC filter lowpass filter coefficient for baseband gain filtering.
+  // AGC lowpass filter coefficient for baseband gain filtering.
   float alpha;
 
   // System gains.
