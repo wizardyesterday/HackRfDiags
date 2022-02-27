@@ -443,12 +443,13 @@ int32_t AutomaticGainControl::convertMagnitudeToDbFs(
   Name: run
 
   Purpose: The purpose of this function is to run the automatic gain
-  control.  This is th implementation of the algorithm described by
-  Fredric Harris in hls paper entitled, "On the Design, Implementation,
-  and Performance of a Microprocessor-Controlled AGC System for a
-  Digital Receiver".  This AGC is also described in "Understanding
-  Digital Signal Processing, Third Edition", Section 13.30 "Automatic
-  Gai Control (AGC)" by Richard G. Lyons (This is the Harris AGC).
+  control.  This is the implementation of the algorithm described by
+  Fredric Harris et. al. in the paper entitled, "On the Design,
+  Implementation, and Performance of a Microprocessor-Controlled AGC
+  System for a Digital Receiver".  This AGC is also described in
+  "Understanding Digital Signal Processing, Third Edition", Section 13.30,
+  "Automatic Gain Control (AGC)" by Richard G. Lyons (same AGC as described
+  in the previously mentioned paper).
 
   Note:  A large gain error will result in a more rapid convergence
   to the operating point versus a small gain error.  Let the subsystem
@@ -553,8 +554,16 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
   //   1b. For frequencies above 200MHz, enable the front end
   //   RF amp.
   //
-  //   2. Adjust the baseband gain as appropriate to achieve
+  //   2. Max out the IF gain to 40dB.
+  //
+  //   3. Adjust the baseband gain as appropriate to achieve
   //   the operating point referenced at the antenna input.
+  //
+  // This provides a dynamic range of 62dB (since the baseband
+  // amplifier has an adjustable gain from 0 to 62dB), of the
+  // samples that drive the A/D convertor.  If a dynamic range of
+  // 62dB is inadequate, a more sophisticated algorithm can be
+  // devised that utilitizes the adjustment range of the IF amplifier.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Compute the gain adjustment.
   gainError = (float)(operatingPointInDbFs - signalInDbFs);
