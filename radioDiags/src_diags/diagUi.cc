@@ -92,6 +92,7 @@ static void cmdEnableRxFrontendAmp(char *bufferPtr);
 static void cmdDisableRxFrontendAmp(char *bufferPtr);
 static void cmdEnableAgc(char *bufferPtr);
 static void cmdDisableAgc(char *bufferPtr);
+static void cmdSetAgcType(char *bufferPtr);
 static void cmdSetAgcAlpha(char *bufferPtr);
 static void cmdSetAgcLevel(char *bufferPtr);
 static void cmdGetAgcInfo(char *buffeerPtr);
@@ -160,6 +161,7 @@ static const commandEntry commandTable[] =
   {"disable","rxfrontendamp",cmdDisableRxFrontendAmp}, // disable rxfrontendamp
   {"enable","agc",cmdEnableAgc},             // enable agc
   {"disable","agc",cmdDisableAgc},           // disable agc
+  {"set","agctype",cmdSetAgcType},           // set agctype type
   {"set","agcalpha",cmdSetAgcAlpha},         // set agcalpha alpha
   {"set","agclevel",cmdSetAgcLevel},         // set agclevel level
   {"get","agcinfo",cmdGetAgcInfo},           // get agcinfo
@@ -1129,6 +1131,52 @@ static void cmdDisableAgc(char *bufferPtr)
 
 /*****************************************************************************
 
+  Name: cmdSetAgcType
+
+  Purpose: The purpose of this function is to set the automatic gain
+  control type.
+
+  The syntax for the corresponding command is the following:
+
+    "set agctype type"
+
+  Calling Sequence: cmdSetAgcType(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdSetAgcType(char *bufferPtr)
+{
+  uint32_t type;
+  bool success;
+
+  // Retrieve parameter.
+  sscanf(bufferPtr,"%u",&type);
+
+  // Update the AGC type.
+  success = diagUi_radioPtr->setAgcType(type);
+
+  if (success)
+  {
+    nprintf(stderr,"AGC type set to set to: %u.\n",type);
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: Invalid AGC type.\n");
+  } // else
+  
+  return;
+
+} // cmdSetAgcType
+
+/*****************************************************************************
+
   Name: cmdSetAgcAlpha
 
   Purpose: The purpose of this function is to set the automatic gain
@@ -1163,11 +1211,11 @@ static void cmdSetAgcAlpha(char *bufferPtr)
 
   if (success)
   {
-    nprintf(stderr,"AGC filter coefficient set to: %f\n",alpha);
+    nprintf(stderr,"AGC filter coefficient set to: %f.\n",alpha);
   } // if
   else
   {
-    nprintf(stderr,"0.001 < alpha < 0.999\n");
+    nprintf(stderr,"Error: 0.001 < alpha < 0.999.\n");
   } // else
 
   return;
@@ -1207,7 +1255,7 @@ static void cmdSetAgcLevel(char *bufferPtr)
   // Set the operating point.
   diagUi_radioPtr->setAgcOperatingPoint(operatingPointInDbFs);
 
-  nprintf(stderr,"AGC level set to: %d\n",operatingPointInDbFs);
+  nprintf(stderr,"AGC level set to: %d.\n",operatingPointInDbFs);
 
   return;
 
@@ -2567,6 +2615,7 @@ static void cmdHelp(void)
   nprintf(stderr,"disable rxfrontendamp\n");
   nprintf(stderr,"enable agc\n");
   nprintf(stderr,"disable agc\n");
+  nprintf(stderr,"set agctype <type: [0 (Lowpass) | 1 (Harris)]\n");
   nprintf(stderr,"set agcalpha <alpha: (0.001 <= alpha < 0.999)\n");
   nprintf(stderr,"set agclevel <level in dBFs>\n");
   nprintf(stderr,"enable txfrontendamp\n");

@@ -2493,6 +2493,40 @@ void * Radio::getIqProcessor(void)
 
 /**************************************************************************
 
+  Name: setAgcType
+
+  Purpose: The purpose of this function is to set the type of AGC
+  algorithm to be used.
+
+  Calling Sequence: success = setAgcType(type)
+
+  Inputs:
+
+    type - The type of AGC.  A value of 0 indicates that the lowpass AGC
+    is to be used, and a value of 1 indicates that the Harris AGC is to
+    be used.
+
+  Outputs:
+
+    success - A flag that indicates whether the the AGC type was set.
+    A value of true indicates that the AGC type was successfully set,
+    and a value of false indicates that the AGC type was not set due
+    to an invalid value for the AGC type was specified.
+
+**************************************************************************/
+bool Radio::setAgcType(uint32_t type)
+{
+  bool success;
+
+  // Update the AGC type.
+  success = agcPtr->setAgcType(type);
+
+  return (success);
+
+} // setAgcType
+
+/**************************************************************************
+
   Name: setAgcOperatingPoint
 
   Purpose: The purpose of this function is to set the operating point

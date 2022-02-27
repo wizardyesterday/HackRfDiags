@@ -96,6 +96,9 @@ AutomaticGainControl::AutomaticGainControl(void *radioPtr,
   // Reference the pointer in the proper context.
   RadioPtr = (Radio *)radioPtr;
 
+  // Default to more gentle system.
+  agcType = AGC_TYPE_LOWPASS;
+
   // Set this to the midrange.
   signalMagnitude = 64;
 
@@ -125,7 +128,7 @@ AutomaticGainControl::AutomaticGainControl(void *radioPtr,
   // adjustment occurs rapidly while maintaining
   // system stability.
   //+++++++++++++++++++++++++++++++++++++++++++++++++
-  alpha = 0.5;
+  alpha = 0.3;
   //+++++++++++++++++++++++++++++++++++++++++++++++++
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
@@ -209,6 +212,64 @@ AutomaticGainControl::~AutomaticGainControl(void)
   return;
 
 } // ~AutomaticGainControl
+
+/**************************************************************************
+
+  Name: setAgcType
+
+  Purpose: The purpose of this function is to set the operating point
+  of the AGC.
+
+  Calling Sequence: success = setAgcType(type)
+
+  Inputs:
+
+    type - The type of AGC.  A value of 0 indicates that the lowpass AGC
+    is to be used, and a value of 1 indicates that the Harris AGC is to
+    be used.
+
+  Outputs:
+
+    success - A flag that indicates whether the the AGC type was set.
+    A value of true indicates that the AGC type was successfully set,
+    and a value of false indicates that the AGC type was not set due
+    to an invalid value for the AGC type was specified.
+
+**************************************************************************/
+bool AutomaticGainControl::setAgcType(uint32_t type)
+{
+  bool success;
+
+  // Default to success.
+  success = true;
+
+  switch (agcType)
+  {
+    case AGC_TYPE_LOWPASS:
+    {
+      // Update the attribute.
+      agcType = type;
+      break;
+    } // case
+
+    case AGC_TYPE_HARRIS:
+    {
+      // Update the attribute.
+      agcType = type;
+      break;
+    } // case
+
+    default:
+    {
+      // Indicate failure.
+      success = false;
+      break;
+    } // case
+  } // switch
+
+  return (success);
+
+} // setAgcType
 
 /**************************************************************************
 
@@ -442,6 +503,204 @@ int32_t AutomaticGainControl::convertMagnitudeToDbFs(
 
   Name: run
 
+  Purpose: The purpose of this function is to run the selected automatic
+  gain control algorithm.
+ 
+  Calling Sequence: run(signalMagnitude )
+
+  Inputs:
+
+    signalMagnitude - The average magnitude of the IQ data block that
+    was received in units of dBFs.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void AutomaticGainControl::run(uint32_t signalMagnitude)
+{
+
+  switch (agcType)
+  {
+    case AGC_TYPE_LOWPASS:
+    {
+      runLowpass(signalMagnitude);
+      break;
+    } // case
+
+    case AGC_TYPE_HARRIS:
+    {
+      runHarris(signalMagnitude);
+      break;
+    } // case
+
+    default:
+    {
+      runLowpass(signalMagnitude);
+      break;
+    } // case
+  } // switch
+
+  return;
+
+} // run
+
+/**************************************************************************
+
+  Name: runLowpass
+
+  Purpose: The purpose of this function is to run the automatic gain
+  control.
+
+  Note:  A large gain error will result in a more rapid convergence
+  to the operating point versus a small gain error.
+ 
+  Calling Sequence: runLowpass(signalMagnitude )
+
+  Inputs:
+
+    signalMagnitude - The average magnitude of the IQ data block that
+    was received in units of dBFs.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void AutomaticGainControl::runLowpass(uint32_t signalMagnitude)
+{
+  bool success;
+  bool frontEndAmpEnabled;
+  int32_t gainError;
+  int32_t adjustedGain;
+  int32_t signalInDbFs;
+  uint64_t frequencyInHertz;
+  Radio * RadioPtr;
+
+  // Reference the pointer in the proper context.
+  RadioPtr = (Radio *)radioPtr;
+
+  // Update for display purposes.
+  this->signalMagnitude = signalMagnitude;
+
+  // Convert to decibels referenced to full scale.
+  signalInDbFs = convertMagnitudeToDbFs(signalMagnitude);
+
+  // Update for display purposes.
+  normalizedSignalLevelInDbFs = signalInDbFs - basebandGainInDb;
+
+  // Get the receiver frequency for further evaluation.
+  frequencyInHertz = RadioPtr->getReceiveFrequency();
+
+  if (frequencyInHertz >= FREQUENCY_THRESHOLD_FOR_FRONT_END_AMP)
+  {
+    // Enable the frontend amp for 14dB of extra gain.
+    rfGainInDb = 14;
+
+    // Indicate that the frontend amp is enabled.
+    frontEndAmpEnabled = true;
+  } // if
+  else
+  {
+    // Disable the frontend amp for 14dB of less gain.
+    rfGainInDb = 0;
+
+    // Indicate that the frontend amp is disabled.
+    frontEndAmpEnabled = false;
+  } // else
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Compute the gain adjustment.
+  // Allocate gains appropriately.  Here is what we
+  // have to work with:
+  //
+  //   1. The front end RF amp provides either 0
+  //    to 14dB of gain in 14dB steps.
+  //
+  //   3. The IF amp provides gains from 0 to 40dB
+  //   in 8dB steps.
+  //
+  //   3. The baseband amp provides gains from 0 to
+  //   62dB of gain in 2dB steps.
+  //
+  // Let's try this first:
+  //
+  //   1a. For frequencies below 200MHz disable the front end
+  //   RF amp.
+  //   1b. For frequencies above 200MHz, enable the front end
+  //   RF amp.
+  //
+  //   2. Max out the IF gain to 40dB.
+  //
+  //   3. Adjust the baseband gain as appropriate to achieve
+  //   the operating point referenced at the antenna input.
+  //
+  // This provides a dynamic range of 62dB (since the baseband
+  // amplifier has an adjustable gain from 0 to 62dB), of the
+  // samples that drive the A/D convertor.  If a dynamic range of
+  // 62dB is inadequate, a more sophisticated algorithm can be
+  // devised that utilitizes the adjustment range of the IF amplifier.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Compute the gain adjustment.
+  gainError = operatingPointInDbFs - signalInDbFs;
+
+  adjustedGain = basebandGainInDb + gainError;
+
+  //*******************************************************************
+  // Filter the baseband gain.
+  //*******************************************************************
+  filteredBasebandGainInDb = (alpha * (float)adjustedGain) +
+    ((1 - alpha) * filteredBasebandGainInDb);
+
+  //+++++++++++++++++++++++++++++++++++++++++++
+  // Limit the gain to valid values.
+  //+++++++++++++++++++++++++++++++++++++++++++
+  if (filteredBasebandGainInDb > 62)
+  {
+    filteredBasebandGainInDb = 62;
+  } // if
+  else
+  {
+    if (filteredBasebandGainInDb < 0)
+    {
+      filteredBasebandGainInDb = 0;
+    } // if
+  } // else
+  //*******************************************************************
+
+  // Update the attribute.
+  basebandGainInDb = (uint32_t)filteredBasebandGainInDb;
+
+  //+++++++++++++++++++++++++++++++++++++++++++
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++
+  // Update the receiver gain parameters.
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++
+  if (frontEndAmpEnabled)
+  {
+    // Enable the front end RF amp.
+    success = RadioPtr->enableReceiveFrontEndAmplifier();
+  } // if
+  else
+  {
+    // Disable the front end RF amp.
+    success = RadioPtr->disableReceiveFrontEndAmplifier();
+  } // else
+
+  success = RadioPtr->setReceiveIfGainInDb(ifGainInDb);
+  success = RadioPtr->setReceiveBasebandGainInDb(basebandGainInDb);
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+  return;
+
+} // run
+
+/**************************************************************************
+
+  Name: runHarris
+
   Purpose: The purpose of this function is to run the automatic gain
   control.  This is the implementation of the algorithm described by
   Fredric Harris et. al. in the paper entitled, "On the Design,
@@ -480,7 +739,7 @@ int32_t AutomaticGainControl::convertMagnitudeToDbFs(
     g(n+1) = g(n) + [alpha * e(n)]
 
  
-  Calling Sequence: run(signalMagnitude )
+  Calling Sequence: runHarris(signalMagnitude )
 
   Inputs:
 
@@ -492,7 +751,7 @@ int32_t AutomaticGainControl::convertMagnitudeToDbFs(
     None.
 
 **************************************************************************/
-void AutomaticGainControl::run(uint32_t signalMagnitude)
+void AutomaticGainControl::runHarris(uint32_t signalMagnitude)
 {
   bool success;
   bool frontEndAmpEnabled;
@@ -616,7 +875,7 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
 
   return;
 
-} // run
+} // runHarris
 
 /**************************************************************************
 
@@ -651,6 +910,27 @@ void AutomaticGainControl::displayInternalInformation(void)
   {
     nprintf(stderr,"AGC Emabled               : No\n");
   } // else
+
+  switch (agcType)
+  {
+    case AGC_TYPE_LOWPASS:
+    {
+      nprintf(stderr,"AGC Type                  : Lowpass\n");
+      break;
+    } // case
+
+    case AGC_TYPE_HARRIS:
+    {
+      nprintf(stderr,"AGC Type                  : Harris\n");
+      break;
+    } // case
+
+    default:
+    {
+      nprintf(stderr,"AGC Type                  : Lowpass\n");
+      break;
+    } // case
+  } // switch
 
   nprintf(stderr,"Lowpass Filter Coefficient: %0.3f\n",
           alpha);
