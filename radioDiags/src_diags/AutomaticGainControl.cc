@@ -695,7 +695,7 @@ void AutomaticGainControl::runLowpass(uint32_t signalMagnitude)
 
   return;
 
-} // run
+} // runLowpass
 
 /**************************************************************************
 
