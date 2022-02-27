@@ -158,6 +158,7 @@ enable rxfrontendamp
 disable rxfrontendamp
 enable agc
 disable agc
+set agctype <type: [0 (Lowpass) | 1 (Harris)]
 set agcalpha <alpha: (0.001 <= alpha < 0.999)
 set agclevel <level in dBFs>
 enable txfrontendamp
@@ -337,9 +338,9 @@ Current Frequency         : 120475000 Hz
 ******************** End Get Fscainfo Output  **** **********************
 
 When the user types "get agcinfo" (for the AGC), the output appears as
-illustrated below.  Note that the lowpass filter coefficient and the
-operating point are user configurable.  See the help command output for
-the syntax of the commands related to the AGC.
+illustrated below.  Note that the algorithm type, lowpass filter
+coefficient, and the operating point are user configurable.  See the
+ help command output for the syntax of the commands related to the AGC.
 
 ******************** Begin Getagcinfo Info Output **********************
 
@@ -347,7 +348,8 @@ the syntax of the commands related to the AGC.
 AGC Internal Information
 --------------------------------------------
 AGC Emabled               : Yes
-Lowpass Filter Coefficient: 0.900
+AGC Type                  : Harris
+Lowpass Filter Coefficient: 0.300
 Operating Point           : -6 dBFs
 RF Gain                   : 0 dB
 IF Gain                   : 40 dB

@@ -9,6 +9,13 @@
 #include <unistd.h>
 #include <stdint.h>
 
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// New AGC algorithms will be added as time progresses.
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+#define AGC_TYPE_LOWPASS (0)
+#define AGC_TYPE_HARRIS (1)
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
 class AutomaticGainControl
 {
   public:
@@ -19,10 +26,13 @@ class AutomaticGainControl
 
   void setOperatingPoint(int32_t operatingPointInDbFs);
   bool setAgcFilterCoefficient(float coefficient);
+  bool setAgcType(uint32_t type);
   bool enable(void);
   bool disable(void);
   bool isEnabled(void);
   void run(uint32_t signalMagnitude);
+  void runLowpass(uint32_t signalMagnitude);
+  void runHarris(uint32_t signalMagnitude);
   void displayInternalInformation(void);
 
   private:
@@ -35,6 +45,9 @@ class AutomaticGainControl
   //*****************************************
   // Attributes.
   //*****************************************
+  // The AGC algorithm to be used.
+  uint32_t agcType;
+
   // If true, the AGC is running.
   bool enabled;
 

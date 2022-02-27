@@ -111,6 +111,7 @@ class Radio
   void *getIqProcessor(void);
 
   // AGC support.
+  bool setAgcType(uint32_t type);
   void setAgcOperatingPoint(int32_t operatingPointInDbFs);
   bool setAgcFilterCoefficient(float coefficient);
   bool enableAgc(void);
