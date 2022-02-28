@@ -93,6 +93,7 @@ static void cmdDisableRxFrontendAmp(char *bufferPtr);
 static void cmdEnableAgc(char *bufferPtr);
 static void cmdDisableAgc(char *bufferPtr);
 static void cmdSetAgcType(char *bufferPtr);
+static void cmdSetAgcDeadband(char *bufferPtr);
 static void cmdSetAgcAlpha(char *bufferPtr);
 static void cmdSetAgcLevel(char *bufferPtr);
 static void cmdGetAgcInfo(char *buffeerPtr);
@@ -162,6 +163,7 @@ static const commandEntry commandTable[] =
   {"enable","agc",cmdEnableAgc},             // enable agc
   {"disable","agc",cmdDisableAgc},           // disable agc
   {"set","agctype",cmdSetAgcType},           // set agctype type
+  {"set","agcdeadband",cmdSetAgcDeadband},   // set agcdeadband deadband
   {"set","agcalpha",cmdSetAgcAlpha},         // set agcalpha alpha
   {"set","agclevel",cmdSetAgcLevel},         // set agclevel level
   {"get","agcinfo",cmdGetAgcInfo},           // get agcinfo
@@ -1128,6 +1130,52 @@ static void cmdDisableAgc(char *bufferPtr)
   return;
 
 } // cmdDisableAgc
+
+/*****************************************************************************
+
+  Name: cmdSetAgcDeadband
+
+  Purpose: The purpose of this function is to set the automatic gain
+  control deadband.
+
+  The syntax for the corresponding command is the following:
+
+    "set agcdeadband deadband"
+
+  Calling Sequence: cmdSetAgcDeadband(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdSetAgcDeadband(char *bufferPtr)
+{
+  uint32_t deadbandInDb;
+  bool success;
+
+  // Retrieve parameter.
+  sscanf(bufferPtr,"%u",&deadbandInDb);
+
+  // Update the AGC type.
+  success = diagUi_radioPtr->setAgcDeadband(deadbandInDb);
+
+  if (success)
+  {
+    nprintf(stderr,"AGC deadband set to set to: %u.\n",deadbandInDb);
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: Invalid AGC deadband.\n");
+  } // else
+  
+  return;
+
+} // cmdSetAgcDeadband
 
 /*****************************************************************************
 
@@ -2615,8 +2663,9 @@ static void cmdHelp(void)
   nprintf(stderr,"disable rxfrontendamp\n");
   nprintf(stderr,"enable agc\n");
   nprintf(stderr,"disable agc\n");
-  nprintf(stderr,"set agctype <type: [0 (Lowpass) | 1 (Harris)]\n");
-  nprintf(stderr,"set agcalpha <alpha: (0.001 <= alpha < 0.999)\n");
+  nprintf(stderr,"set agctype <type: [0 (Lowpass) | 1 (Harris)]>\n");
+  nprintf(stderr,"set agcdeadband <deadband in dB: (0 < deadband < 10)>\n");
+  nprintf(stderr,"set agcalpha <alpha: (0.001 <= alpha < 0.999)>\n");
   nprintf(stderr,"set agclevel <level in dBFs>\n");
   nprintf(stderr,"enable txfrontendamp\n");
   nprintf(stderr,"disable txfrontendamp\n");

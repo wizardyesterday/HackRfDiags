@@ -2519,11 +2519,46 @@ bool Radio::setAgcType(uint32_t type)
   bool success;
 
   // Update the AGC type.
-  success = agcPtr->setAgcType(type);
+  success = agcPtr->setType(type);
 
   return (success);
 
 } // setAgcType
+
+/**************************************************************************
+
+  Name: setAgcDeadband
+
+  Purpose: The purpose of this function is to set the deadband of the
+  AGC.  This presents gain setting oscillations
+
+  Calling Sequence: success = uint32_t deadband(deadbandInDb)
+
+  Inputs:
+
+    deadbandInDb - The deadband, in decibels, used to prevent unwanted
+    gain setting oscillations.  A window is created such that a gain
+    adjustment will not occur if the current gain is within the window
+    new gain <= current gain += deadband.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the deadband parameter
+    was updated.  A value of true indicates that the deadband was
+    updated, and a value of false indicates that the parameter was not
+    updated due to an invalid specified deadband value.
+
+**************************************************************************/
+bool  Radio::setAgcDeadband(uint32_t deadbandInDb)
+{
+  bool success;
+
+  // Update the AGC deadband.
+  success = agcPtr->setDeadband(deadbandInDb);
+
+  return (success);
+
+} // setAgcDeadband
 
 /**************************************************************************
 

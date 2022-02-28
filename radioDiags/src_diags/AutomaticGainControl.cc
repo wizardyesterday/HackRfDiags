@@ -96,8 +96,11 @@ AutomaticGainControl::AutomaticGainControl(void *radioPtr,
   // Reference the pointer in the proper context.
   RadioPtr = (Radio *)radioPtr;
 
-  // Default to more gentle system.
-  agcType = AGC_TYPE_LOWPASS;
+  // Default to snappier system.
+  agcType = AGC_TYPE_HARRIS;
+
+  // Start with a reasonable deadband.
+  deadbandInDb = 1;
 
   // Set this to the midrange.
   signalMagnitude = 64;
@@ -128,7 +131,7 @@ AutomaticGainControl::AutomaticGainControl(void *radioPtr,
   // adjustment occurs rapidly while maintaining
   // system stability.
   //+++++++++++++++++++++++++++++++++++++++++++++++++
-  alpha = 0.3;
+  alpha = 0.8;
   //+++++++++++++++++++++++++++++++++++++++++++++++++
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
@@ -215,12 +218,12 @@ AutomaticGainControl::~AutomaticGainControl(void)
 
 /**************************************************************************
 
-  Name: setAgcType
+  Name: setType
 
   Purpose: The purpose of this function is to set the operating point
   of the AGC.
 
-  Calling Sequence: success = setAgcType(type)
+  Calling Sequence: success = setType(type)
 
   Inputs:
 
@@ -236,14 +239,14 @@ AutomaticGainControl::~AutomaticGainControl(void)
     to an invalid value for the AGC type was specified.
 
 **************************************************************************/
-bool AutomaticGainControl::setAgcType(uint32_t type)
+bool AutomaticGainControl::setType(uint32_t type)
 {
   bool success;
 
   // Default to success.
   success = true;
 
-  switch (agcType)
+  switch (type)
   {
     case AGC_TYPE_LOWPASS:
     {
@@ -269,7 +272,51 @@ bool AutomaticGainControl::setAgcType(uint32_t type)
 
   return (success);
 
-} // setAgcType
+} // setType
+
+/**************************************************************************
+
+  Name: setDeadband
+
+  Purpose: The purpose of this function is to set the deadband of the
+  AGC.  This presents gain setting oscillations
+
+  Calling Sequence: success = uint32_t deadband(deadbandInDb)
+
+  Inputs:
+
+    deadbandInDb - The deadband, in decibels, used to prevent unwanted
+    gain setting oscillations.  A window is created such that a gain
+    adjustment will not occur if the current gain is within the window
+    new gain <= current gain += deadband.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the deadband parameter
+    was updated.  A value of true indicates that the deadband was
+    updated, and a value of false indicates that the parameter was not
+    updated due to an invalid specified deadband value.
+
+**************************************************************************/
+bool  AutomaticGainControl::setDeadband(uint32_t deadbandInDb)
+{
+  bool success;
+
+  // Default to failure.
+  success = false;
+
+  if ((deadbandInDb >= 0) && (deadbandInDb <= 10))
+  {
+    // Update the attribute.
+    this->deadbandInDb = deadbandInDb;
+
+    // Indicate success.
+    success = true;
+  } // if
+
+  return (success);
+
+} // setDeadband
 
 /**************************************************************************
 
@@ -645,6 +692,12 @@ void AutomaticGainControl::runLowpass(uint32_t signalMagnitude)
   // Compute the gain adjustment.
   gainError = operatingPointInDbFs - signalInDbFs;
 
+  // Apply deadband to eliminate gain oscillations.
+  if (abs(gainError) <= deadbandInDb)
+  {
+    gainError = 0;
+  } // if
+
   adjustedGain = basebandGainInDb + gainError;
 
   //*******************************************************************
@@ -756,6 +809,7 @@ void AutomaticGainControl::runHarris(uint32_t signalMagnitude)
   bool success;
   bool frontEndAmpEnabled;
   float gainError;
+  int32_t deltaGain;
   int32_t signalInDbFs;
   uint64_t frequencyInHertz;
   Radio * RadioPtr;
@@ -825,7 +879,14 @@ void AutomaticGainControl::runHarris(uint32_t signalMagnitude)
   // devised that utilitizes the adjustment range of the IF amplifier.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Compute the gain adjustment.
-  gainError = (float)(operatingPointInDbFs - signalInDbFs);
+  deltaGain = operatingPointInDbFs - signalInDbFs;
+  gainError = (float)deltaGain;
+
+  // Apply deadband to eliminate gain oscillations.
+  if (abs(deltaGain) <= deadbandInDb)
+  {
+    gainError = 0;
+  } // if
 
   //*******************************************************************
   // Run the AGC algorithm.
@@ -934,6 +995,9 @@ void AutomaticGainControl::displayInternalInformation(void)
 
   nprintf(stderr,"Lowpass Filter Coefficient: %0.3f\n",
           alpha);
+
+  nprintf(stderr,"Deadband                  : %u dB\n",
+          deadbandInDb);
 
   nprintf(stderr,"Operating Point           : %d dBFs\n",
           operatingPointInDbFs);

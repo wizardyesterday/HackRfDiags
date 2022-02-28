@@ -26,7 +26,8 @@ class AutomaticGainControl
 
   void setOperatingPoint(int32_t operatingPointInDbFs);
   bool setAgcFilterCoefficient(float coefficient);
-  bool setAgcType(uint32_t type);
+  bool setType(uint32_t type);
+  bool setDeadband(uint32_t deadbandInDb);
   bool enable(void);
   bool disable(void);
   bool isEnabled(void);
@@ -47,6 +48,9 @@ class AutomaticGainControl
   //*****************************************
   // The AGC algorithm to be used.
   uint32_t agcType;
+
+  // Yes, we need some deadband.
+  int32_t deadbandInDb;
 
   // If true, the AGC is running.
   bool enabled;

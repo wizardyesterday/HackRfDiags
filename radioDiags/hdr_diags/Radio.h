@@ -112,6 +112,7 @@ class Radio
 
   // AGC support.
   bool setAgcType(uint32_t type);
+  bool setAgcDeadband(uint32_t deadbandInDb);
   void setAgcOperatingPoint(int32_t operatingPointInDbFs);
   bool setAgcFilterCoefficient(float coefficient);
   bool enableAgc(void);
