@@ -158,8 +158,9 @@ enable rxfrontendamp
 disable rxfrontendamp
 enable agc
 disable agc
-set agctype <type: [0 (Lowpass) | 1 (Harris)]
-set agcalpha <alpha: (0.001 <= alpha < 0.999)
+set agctype <type: [0 (Lowpass) | 1 (Harris)]>
+set agcdeadband <deadband in dB: (0 < deadband < 10)>
+set aset agcalpha <alpha: (0.001 <= alpha < 0.999)>
 set agclevel <level in dBFs>
 enable txfrontendamp
 disable txfrontendamp
@@ -349,14 +350,15 @@ AGC Internal Information
 --------------------------------------------
 AGC Emabled               : Yes
 AGC Type                  : Harris
-Lowpass Filter Coefficient: 0.300
+Lowpass Filter Coefficient: 0.800
+Deadband                  : 1 dB
 Operating Point           : -6 dBFs
 RF Gain                   : 0 dB
 IF Gain                   : 40 dB
-Baseband Gain             : 43 dB
+Baseband Gain             : 49 dB
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-Signal Magnitude          : 59
-RSSI (After IF Amplifier) : -49 dBFs
+Signal Magnitude          : 51
+RSSI (After IF Amplifier) : -56 dBFs
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 ******************** End Get Agcinfo Output  **** **********************
