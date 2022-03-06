@@ -402,6 +402,9 @@ bool Radio::setupReceiver(void)
   // Set receive baseband gain to 16dB.
   success = success || !setReceiveBasebandGainInDb(16);
 
+  // Other subsystems need to know this.
+  radio_adjustableReceiveGainInDb = 16;  
+
   // Default to no frequency error.
   receiveWarpInPartsPerMillion = 0;
 
