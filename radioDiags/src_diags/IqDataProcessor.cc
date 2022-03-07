@@ -844,7 +844,7 @@ void IqDataProcessor::displayInternalInformation(void)
     } // case
   } // switch
 
-  nprintf(stderr,"Signal Detect Threhold   : %d\n",signalDetectThreshold);
+  nprintf(stderr,"Signal Detect Threhold   : %d dBFs\n",signalDetectThreshold);
 
   return;
 

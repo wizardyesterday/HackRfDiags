@@ -239,7 +239,7 @@ IQ Sample Buffer Index  : 1245184
 IQ Data Processor Internal Information
 --------------------------------------------
 Demodulator Mode         : AM
-Signal Detect Threhold   : 20
+Signal Detect Threhold   : -20 dBFs
 
 --------------------------------------------
 Baseband Data Processor Internal Information
