@@ -541,9 +541,9 @@ uint32_t SsbDemodulator::reduceSampleRate(int8_t *bufferPtr,uint32_t bufferLengt
   signal is appropriately processed.  Depending upon which sideband is
   desired, the processed Q component is either added or subtracted from the
   processed I component of t he signal.  For lower sideband demodulation,
-  the processed Q component is added from the processed I component of
+  the processed Q component is subtracted from the processed I component of
   the signal.  For upper sideband demodulation, the processed Q component is
-  subtracted from the I component of the signal.  Finally, the dc offset is
+  added from the I component of the signal.  Finally, the dc offset is
   removed from the signal.  The demodulated value is then multiplied by the
   demodulator gain with the result that there exists a scaled demodulated
   signal.
@@ -577,12 +577,12 @@ uint32_t SsbDemodulator::demodulateSignal(uint32_t bufferLength)
     if (lsbDemodulationMode)
     {
       // Demodulate as lower sideband.
-      outputValue = (float)(iDelayed + qPhaseShifted);
+      outputValue = (float)(iDelayed - qPhaseShifted);
     } // if
     else
     {
       // Demodulate as upper sideband.
-      outputValue = (float)(iDelayed - qPhaseShifted);
+      outputValue = (float)(iDelayed + qPhaseShifted);
     } // else
 
     // Remove dc from the signal.
