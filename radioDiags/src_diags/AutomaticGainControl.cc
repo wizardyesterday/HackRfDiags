@@ -11,8 +11,13 @@
 
 #include "AutomaticGainControl.h"
 
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// Hardware-dependent defines.
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+#define MAX_ADJUSTIBLE_GAIN (62)
 #define FREQUENCY_THRESHOLD_FOR_FRONT_END_AMP (200000000)
 #define FREQUENCY_THRESHOLD_FOR_MAX_IF_GAIN (200000000)
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 extern void nprintf(FILE *s,const char *formatPtr, ...);
 
@@ -790,7 +795,7 @@ void AutomaticGainControl::runLowpass(uint32_t signalMagnitude)
   // we don't want to make an adjustment.  This is
   // easily solved by setting the gain error to zero.
   //************************************************** 
-  if (ifGainInDb == 62)
+  if (ifGainInDb == MAX_ADJUSTIBLE_GAIN)
   {
     if (gainError > 0)
     {
@@ -826,9 +831,9 @@ void AutomaticGainControl::runLowpass(uint32_t signalMagnitude)
   //+++++++++++++++++++++++++++++++++++++++++++
   // Limit the gain to valid values.
   //+++++++++++++++++++++++++++++++++++++++++++
-  if (filteredBasebandGainInDb > 62)
+  if (filteredBasebandGainInDb > MAX_ADJUSTIBLE_GAIN)
   {
-    filteredBasebandGainInDb = 62;
+    filteredBasebandGainInDb = MAX_ADJUSTIBLE_GAIN;
   } // if
   else
   {
@@ -1010,7 +1015,7 @@ void AutomaticGainControl::runHarris(uint32_t signalMagnitude)
   // we don't want to make an adjustment.  This is
   // easily solved by setting the gain error to zero.
   //************************************************** 
-  if (ifGainInDb == 62)
+  if (ifGainInDb == MAX_ADJUSTIBLE_GAIN)
   {
     if (gainError > 0)
     {
@@ -1044,9 +1049,9 @@ void AutomaticGainControl::runHarris(uint32_t signalMagnitude)
   //+++++++++++++++++++++++++++++++++++++++++++
   // Limit the gain to valid values.
   //+++++++++++++++++++++++++++++++++++++++++++
-  if (filteredBasebandGainInDb > 62)
+  if (filteredBasebandGainInDb > MAX_ADJUSTIBLE_GAIN)
   {
-    filteredBasebandGainInDb = 62;
+    filteredBasebandGainInDb = MAX_ADJUSTIBLE_GAIN;
   } // if
   else
   {
