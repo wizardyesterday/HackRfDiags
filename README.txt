@@ -356,10 +356,10 @@ Blanking Limit:             2 ticks
 Lowpass Filter Coefficient: 0.800
 Deadband                  : 1 dB
 Operating Point           : -6 dBFs
-IF Gain                   : 40 dB
+Baseband Gain             : 50 dB
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-Signal Magnitude          : 62
-RSSI (After Mixer)        : -64 dBFs
+Signal Magnitude          : 59
+RSSI (After Mixer)        : -56 dBFs
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 ******************** End Get Agcinfo Output  **** **********************
