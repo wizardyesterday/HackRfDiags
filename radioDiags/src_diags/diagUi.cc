@@ -94,6 +94,7 @@ static void cmdEnableAgc(char *bufferPtr);
 static void cmdDisableAgc(char *bufferPtr);
 static void cmdSetAgcType(char *bufferPtr);
 static void cmdSetAgcDeadband(char *bufferPtr);
+static void cmdSetAgcBlank(char *bufferPtr);
 static void cmdSetAgcAlpha(char *bufferPtr);
 static void cmdSetAgcLevel(char *bufferPtr);
 static void cmdGetAgcInfo(char *buffeerPtr);
@@ -164,6 +165,7 @@ static const commandEntry commandTable[] =
   {"disable","agc",cmdDisableAgc},           // disable agc
   {"set","agctype",cmdSetAgcType},           // set agctype type
   {"set","agcdeadband",cmdSetAgcDeadband},   // set agcdeadband deadband
+  {"set","agcblank",cmdSetAgcBlank}, // setagcblank blankinglimit
   {"set","agcalpha",cmdSetAgcAlpha},         // set agcalpha alpha
   {"set","agclevel",cmdSetAgcLevel},         // set agclevel level
   {"get","agcinfo",cmdGetAgcInfo},           // get agcinfo
@@ -1176,6 +1178,52 @@ static void cmdSetAgcDeadband(char *bufferPtr)
   return;
 
 } // cmdSetAgcDeadband
+
+/*****************************************************************************
+
+  Name: cmdSetAgcBlank
+
+  Purpose: The purpose of this function is to set the automatic gain
+  control blanking interval.
+
+  The syntax for the corresponding command is the following:
+
+    "set agcblank blanklimit"
+
+  Calling Sequence: cmdSetAgcBlank(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdSetAgcBlank(char *bufferPtr)
+{
+  uint32_t blankingLimit;
+  bool success;
+
+  // Retrieve parameter.
+  sscanf(bufferPtr,"%u",&blankingLimit);
+
+  // Update the AGC blanking limit.
+  success = diagUi_radioPtr->setAgcBlankingLimit(blankingLimit);
+
+  if (success)
+  {
+    nprintf(stderr,"AGC blanking limit set to set to: %u.\n",blankingLimit);
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: Invalid AGC blanking limit.\n");
+  } // else
+  
+  return;
+
+} // cmdSetAgcBlank
 
 /*****************************************************************************
 
@@ -2665,6 +2713,10 @@ static void cmdHelp(void)
   nprintf(stderr,"disable agc\n");
   nprintf(stderr,"set agctype <type: [0 (Lowpass) | 1 (Harris)]>\n");
   nprintf(stderr,"set agcdeadband <deadband in dB: (0 < deadband < 10)>\n");
+
+  nprintf(stderr,
+    "set agcblank <blankinglimit in ticks: (0 =< blankinglimit <= 10)>\n");
+
   nprintf(stderr,"set agcalpha <alpha: (0.001 <= alpha < 0.999)>\n");
   nprintf(stderr,"set agclevel <level in dBFs>\n");
   nprintf(stderr,"enable txfrontendamp\n");
@@ -2683,6 +2735,7 @@ static void cmdHelp(void)
   nprintf(stderr,"stop receiver\n");
   nprintf(stderr,"start livestream\n");
   nprintf(stderr,"stop livestream\n");
+
   nprintf(stderr,
       "set fscanvalues <startfrequency> <endfrequency> <stepsize>\n");
 

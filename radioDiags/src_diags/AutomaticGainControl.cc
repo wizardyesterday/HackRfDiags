@@ -109,6 +109,23 @@ AutomaticGainControl::AutomaticGainControl(void *radioPtr,
   enabled = false;
  
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Sometimes, adjustments need to be avoided when a transient in the
+  // hardware occurs as a result of a gain adjustment.  In the rtlsdr,
+  // it was initially thought that the transient was occurring in the
+  // tuner chip.  This was not the case.  Instead, a transient in the
+  // demodulated data was occurring as a result of the IIC repeater
+  // being enabled (and/or disabled) in the Realtek 2832U chip.  The
+  // simplest thing to do in software is to perform a transient
+  // avoidance strategy.  While it is true that the performance of the
+  // AGC becomes less than optimal, it is still better than experiencing
+  // limit cycles.  The blankingLimit is configurable so that the
+  // user can change the value to suit the needs of the application.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  blankingCounter = 1;
+  blankingLimit = 0;
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  // This is a good starting point for the receiver gain
   // values.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -281,7 +298,7 @@ bool AutomaticGainControl::setType(uint32_t type)
   Purpose: The purpose of this function is to set the deadband of the
   AGC.  This presents gain setting oscillations
 
-  Calling Sequence: success = uint32_t deadband(deadbandInDb)
+  Calling Sequence: success = setDeadband(deadbandInDb)
 
   Inputs:
 
@@ -317,6 +334,54 @@ bool  AutomaticGainControl::setDeadband(uint32_t deadbandInDb)
   return (success);
 
 } // setDeadband
+
+/**************************************************************************
+
+  Name: setBlankingLimit
+
+  Purpose: The purpose of this function is to set the blanking limit of
+  the AGC.  This presents gain setting oscillations.  What happens if
+  transients exist after an adjustment is made is that the AGC becomes
+  blind to the actual signal that is being received since the transient
+  can swamp the system.
+
+  Calling Sequence: success = setBlankingLimit(blankingLimit)
+
+  Inputs:
+
+    blankingLimit - The number of measurements to ignore before making
+    the next gain adjustment.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the blanking limit
+    parameter was updated.  A value of true indicates that the blanking
+    limit was updated, and a value of false indicates that the parameter
+    was not updated due to an invalid specified blanking limit value.
+
+**************************************************************************/
+bool  AutomaticGainControl::setBlankingLimit(uint32_t blankingLimit)
+{
+  bool success;
+
+  // Default to failure.
+  success = false;
+
+  if ((blankingLimit >= 0) && (blankingLimit <= 10))
+  {
+    // Update the attributes.
+    this->blankingLimit = blankingLimit;
+
+    // Ensure that the next measurement can be made.    
+    blankingCounter = blankingLimit + 1;
+
+    // Indicate success.
+    success = true;
+  } // if
+
+  return (success);
+
+} // setBlankingLimit
 
 /**************************************************************************
 
@@ -359,7 +424,7 @@ void AutomaticGainControl::setOperatingPoint(int32_t operatingPointInDbFs)
   Inputs:
 
     coefficient - The filter coefficient for the lowpass filter that
-    // filters the baseband gain value.
+    filters the baseband gain value.
 
   Outputs:
 
@@ -413,23 +478,36 @@ bool AutomaticGainControl::enable(void)
 {
   bool success;
   IqDataProcessor *DataProcessorPtr;
+  Radio *RadioPtr;
 
-  // Reference the pointer in the proper context.
+  // Reference the pointers in the proper context.
   DataProcessorPtr = (IqDataProcessor *)dataProcessorPtr;
+  RadioPtr = (Radio *)radioPtr;
 
   // Default to failure.
   success = false;
 
-  if (!enabled)
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Ensure that the radio is already in the receiving state so
+  // that AGC transients do not occur when the receiver is
+  // first enabled.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  if (RadioPtr->isReceiving())
   {
-    // Enable the AGC.
-    enabled = true;
+    if (!enabled)
+    {
+      // Enable the AGC.
+      enabled = true;
 
-    // Allow callback notification.
-    DataProcessorPtr->enableSignalMagnitudeNotification();
+      // Ensure that the next measurement can be made.    
+      blankingCounter = blankingLimit + 1;
 
-    // Indicate success.
-    success = true;
+      // Allow callback notification.
+      DataProcessorPtr->enableSignalMagnitudeNotification();
+
+      // Indicate success.
+      success = true;
+    } // if
   } // if
 
   return (success);
@@ -568,26 +646,37 @@ int32_t AutomaticGainControl::convertMagnitudeToDbFs(
 void AutomaticGainControl::run(uint32_t signalMagnitude)
 {
 
-  switch (agcType)
+  if (blankingCounter < blankingLimit)
   {
-    case AGC_TYPE_LOWPASS:
-    {
-      runLowpass(signalMagnitude);
-      break;
-    } // case
+    // We're not ready to make an adjustment.
+    blankingCounter++;
+  } // if
+  else
+  {
+    // Reset the blanking counter.
+    blankingCounter = 1;
 
-    case AGC_TYPE_HARRIS:
+    switch (agcType)
     {
-      runHarris(signalMagnitude);
-      break;
-    } // case
+      case AGC_TYPE_LOWPASS:
+      {
+        runLowpass(signalMagnitude);
+        break;
+      } // case
 
-    default:
-    {
-      runLowpass(signalMagnitude);
-      break;
-    } // case
-  } // switch
+      case AGC_TYPE_HARRIS:
+      {
+        runHarris(signalMagnitude);
+        break;
+      } // case
+
+      default:
+      {
+        runLowpass(signalMagnitude);
+        break;
+      } // case
+    } // switch
+  } // else
 
   return;
 
@@ -1006,6 +1095,12 @@ void AutomaticGainControl::displayInternalInformation(void)
     } // case
   } // switch
 
+  nprintf(stderr,"Blanking Counter:           %u ticks\n",
+          blankingCounter);
+
+  nprintf(stderr,"Blanking Limit:             %u ticks\n",
+          blankingLimit);
+
   nprintf(stderr,"Lowpass Filter Coefficient: %0.3f\n",
           alpha);
 
@@ -1015,20 +1110,14 @@ void AutomaticGainControl::displayInternalInformation(void)
   nprintf(stderr,"Operating Point           : %d dBFs\n",
           operatingPointInDbFs);
 
-  nprintf(stderr,"RF Gain                   : %u dB\n",
-          rfGainInDb);
-
-  nprintf(stderr,"IF Gain                   : %u dB\n",
+ nprintf(stderr,"IF Gain                   : %u dB\n",
           ifGainInDb);
-
-  nprintf(stderr,"Baseband Gain             : %u dB\n",
-          basebandGainInDb);
 
   nprintf(stderr,"/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/\n");
   nprintf(stderr,"Signal Magnitude          : %u\n",
           signalMagnitude);
 
-  nprintf(stderr,"RSSI (After IF Amplifier) : %d dBFs\n",
+  nprintf(stderr,"RSSI (After Mixer)        : %d dBFs\n",
           normalizedSignalLevelInDbFs);
   nprintf(stderr,"/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/\n");
 
