@@ -652,6 +652,9 @@ bool Radio::stopReceiver(void)
 
       // Ensure that the data consumer will not accept data.
       dataConsumerPtr->stop();
+
+      // Disable the AGC to avoid startup transients later.
+      agcPtr->disable();
     } // if
   } // if
 

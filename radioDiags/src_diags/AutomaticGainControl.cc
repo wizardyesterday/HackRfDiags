@@ -115,19 +115,16 @@ AutomaticGainControl::AutomaticGainControl(void *radioPtr,
  
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Sometimes, adjustments need to be avoided when a transient in the
-  // hardware occurs as a result of a gain adjustment.  In the rtlsdr,
-  // it was initially thought that the transient was occurring in the
-  // tuner chip.  This was not the case.  Instead, a transient in the
-  // demodulated data was occurring as a result of the IIC repeater
-  // being enabled (and/or disabled) in the Realtek 2832U chip.  The
-  // simplest thing to do in software is to perform a transient
+  // hardware occurs as a result of a gain adjustment.  In the HackRF,
+  //  The, simplest thing to do in software is to perform a transient
   // avoidance strategy.  While it is true that the performance of the
   // AGC becomes less than optimal, it is still better than experiencing
   // limit cycles.  The blankingLimit is configurable so that the
   // user can change the value to suit the needs of the application.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  blankingCounter = 1;
-  blankingLimit = 0;
+  // Let's process every other signal reading.
+  blankingCounter = 2;
+  blankingLimit = 2;
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/

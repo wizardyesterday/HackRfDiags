@@ -1084,7 +1084,7 @@ static void cmdEnableAgc(char *bufferPtr)
   } // if
   else
   {
-    nprintf(stderr,"Error: AGC is already enabled.\n");  
+    nprintf(stderr,"Error: AGC is already enabled or receiver is disabled.\n");  
   } // else
 
   return;
