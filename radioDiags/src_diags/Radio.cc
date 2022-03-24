@@ -2565,6 +2565,42 @@ bool  Radio::setAgcDeadband(uint32_t deadbandInDb)
 
 /**************************************************************************
 
+  Name: setBlankingLimit
+
+  Purpose: The purpose of this function is to set the blanking limit of
+  the AGC.  This presents gain setting oscillations.  What happens if
+  transients exist after an adjustment is made is that the AGC becomes
+  blind to the actual signal that is being received since the transient
+  can swamp the system.
+
+  Calling Sequence: success = setBlankingLimit(blankingLimit)
+
+  Inputs:
+
+    blankingLimit - The number of measurements to ignore before making
+    the next gain adjustment.
+
+  Outputs:
+
+    success - A flag that indicates whether or not the blanking limit
+    parameter was updated.  A value of true indicates that the blanking
+    limit was updated, and a value of false indicates that the parameter
+    was not updated due to an invalid specified blanking limit value.
+
+**************************************************************************/
+bool  Radio::setAgcBlankingLimit(uint32_t blankingLimit)
+{
+  bool success;
+
+  // Set the blank counter limit to avoid transients.
+  success = agcPtr->setBlankingLimit(blankingLimit);
+
+  return (success);
+
+} // setAgcBlankingLimit
+
+/**************************************************************************
+
   Name: setAgcOperatingPoint
 
   Purpose: The purpose of this function is to set the operating point

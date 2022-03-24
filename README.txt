@@ -160,7 +160,8 @@ enable agc
 disable agc
 set agctype <type: [0 (Lowpass) | 1 (Harris)]>
 set agcdeadband <deadband in dB: (0 < deadband < 10)>
-set aset agcalpha <alpha: (0.001 <= alpha < 0.999)>
+set agcblank <blankinglimit in ticks: (0 =< blankinglimit <= 10)>
+set set agcalpha <alpha: (0.001 <= alpha < 0.999)>
 set agclevel <level in dBFs>
 enable txfrontendamp
 disable txfrontendamp
@@ -350,15 +351,15 @@ AGC Internal Information
 --------------------------------------------
 AGC Emabled               : Yes
 AGC Type                  : Harris
+Blanking Counter:           2 ticks
+Blanking Limit:             2 ticks
 Lowpass Filter Coefficient: 0.800
 Deadband                  : 1 dB
 Operating Point           : -6 dBFs
-RF Gain                   : 0 dB
 IF Gain                   : 40 dB
-Baseband Gain             : 49 dB
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-Signal Magnitude          : 51
-RSSI (After IF Amplifier) : -56 dBFs
+Signal Magnitude          : 62
+RSSI (After Mixer)        : -64 dBFs
 /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 ******************** End Get Agcinfo Output  **** **********************
