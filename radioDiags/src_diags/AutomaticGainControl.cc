@@ -781,6 +781,34 @@ void AutomaticGainControl::runLowpass(uint32_t signalMagnitude)
   // Compute the gain adjustment.
   gainError = operatingPointInDbFs - signalInDbFs;
 
+  //**************************************************
+  // Make sure that we aren't at the gain rails.  If
+  // the system is already at maximum gain, and the
+  // gain error is positive, we don't want to make an
+  // adjustment.  Similarly, if the system is already
+  // at minimum gain, and the gain error is negative,
+  // we don't want to make an adjustment.  This is
+  // easily solved by setting the gain error to zero.
+  //************************************************** 
+  if (ifGainInDb == 62)
+  {
+    if (gainError > 0)
+    {
+      gainError = 0;
+    } // if
+  } // if
+  else
+  {
+    if (ifGainInDb == 0)
+    {
+      if (gainError < 0)
+      {
+        gainError = 0;
+      } // if
+    } // if
+  } // else
+  //**************************************************
+
   // Apply deadband to eliminate gain oscillations.
   if (abs(gainError) <= deadbandInDb)
   {
@@ -813,8 +841,6 @@ void AutomaticGainControl::runLowpass(uint32_t signalMagnitude)
 
   // Update the attribute.
   basebandGainInDb = (uint32_t)filteredBasebandGainInDb;
-
-  //+++++++++++++++++++++++++++++++++++++++++++
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++
   // Update the receiver gain parameters.
@@ -903,8 +929,7 @@ void AutomaticGainControl::runHarris(uint32_t signalMagnitude)
 {
   bool success;
   bool frontEndAmpEnabled;
-  float gainError;
-  int32_t deltaGain;
+  int32_t gainError;
   int32_t signalInDbFs;
   uint64_t frequencyInHertz;
   Radio * RadioPtr;
@@ -974,21 +999,47 @@ void AutomaticGainControl::runHarris(uint32_t signalMagnitude)
   // devised that utilitizes the adjustment range of the IF amplifier.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Compute the gain adjustment.
-  deltaGain = operatingPointInDbFs - signalInDbFs;
-  gainError = (float)deltaGain;
+  gainError = operatingPointInDbFs - signalInDbFs;
+
+  //**************************************************
+  // Make sure that we aren't at the gain rails.  If
+  // the system is already at maximum gain, and the
+  // gain error is positive, we don't want to make an
+  // adjustment.  Similarly, if the system is already
+  // at minimum gain, and the gain error is negative,
+  // we don't want to make an adjustment.  This is
+  // easily solved by setting the gain error to zero.
+  //************************************************** 
+  if (ifGainInDb == 62)
+  {
+    if (gainError > 0)
+    {
+      gainError = 0;
+    } // if
+  } // if
+  else
+  {
+    if (ifGainInDb == 0)
+    {
+      if (gainError < 0)
+      {
+        gainError = 0;
+      } // if
+    } // if
+  } // else
+  //**************************************************
 
   // Apply deadband to eliminate gain oscillations.
-  if (abs(deltaGain) <= deadbandInDb)
+  if (abs(gainError) <= deadbandInDb)
   {
     gainError = 0;
-    deltaGain = 0;
   } // if
 
   //*******************************************************************
   // Run the AGC algorithm.
   //*******************************************************************
   filteredBasebandGainInDb = filteredBasebandGainInDb +
-    (alpha * gainError);
+    (alpha * (float)gainError);
 
   //+++++++++++++++++++++++++++++++++++++++++++
   // Limit the gain to valid values.
@@ -1029,7 +1080,7 @@ void AutomaticGainControl::runHarris(uint32_t signalMagnitude)
 
   // There is no need to update the gain if no change has occurred.
   // This way, we're nicer to the hardware.
-  if (deltaGain != 0)
+  if (gainError != 0)
   {
     success = RadioPtr->setReceiveBasebandGainInDb(basebandGainInDb);
   } // if
@@ -1110,8 +1161,8 @@ void AutomaticGainControl::displayInternalInformation(void)
   nprintf(stderr,"Operating Point           : %d dBFs\n",
           operatingPointInDbFs);
 
- nprintf(stderr,"IF Gain                   : %u dB\n",
-          ifGainInDb);
+  nprintf(stderr,"Baseband Gain             : %u dB\n",
+          basebandGainInDb);
 
   nprintf(stderr,"/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/\n");
   nprintf(stderr,"Signal Magnitude          : %u\n",
