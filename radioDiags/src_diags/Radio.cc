@@ -2850,8 +2850,17 @@ void Radio::displayInternalInformation(void)
 
   nprintf(stderr,"Receive IF Gain:                    : %u dB\n",
           receiveIfGainInDb);
-  nprintf(stderr,"Receive Baseband Gain:              : %u dB\n",
-          receiveBasebandGainInDb);
+
+ if (agcPtr->isEnabled())
+  {
+    nprintf(stderr,"Receive Baseband Gain:              : Auto\n");
+  } // if
+  else
+  {
+    nprintf(stderr,"Receive Baseband Gain               : %u dB\n",
+            receiveBasebandGainInDb);
+  } // else
+
   nprintf(stderr,"Receive Frequency                   : %llu Hz\n",
           receiveFrequency);
   nprintf(stderr,"Receive Bandwidth                   : %u Hz\n",
