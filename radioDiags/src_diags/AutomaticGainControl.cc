@@ -122,9 +122,11 @@ AutomaticGainControl::AutomaticGainControl(void *radioPtr,
   // limit cycles.  The blankingLimit is configurable so that the
   // user can change the value to suit the needs of the application.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // Let's process every other signal reading.
-  blankingCounter = 2;
-  blankingLimit = 2;
+  blankingCounter = 0;
+  blankingLimit = 1;
+
+  // Allow the AGC to run the first time.
+  receiveGainWasAdjusted = false;
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -374,8 +376,8 @@ bool  AutomaticGainControl::setBlankingLimit(uint32_t blankingLimit)
     // Update the attributes.
     this->blankingLimit = blankingLimit;
 
-    // Ensure that the next measurement can be made.    
-    blankingCounter = blankingLimit + 1;
+    // Set the blanking system to its initial state.
+    resetBlankingSystem();
 
     // Indicate success.
     success = true;
@@ -498,11 +500,11 @@ bool AutomaticGainControl::enable(void)
   {
     if (!enabled)
     {
+      // Set the system to an initial state.
+      resetBlankingSystem();
+
       // Enable the AGC.
       enabled = true;
-
-      // Ensure that the next measurement can be made.    
-      blankingCounter = blankingLimit + 1;
 
       // Allow callback notification.
       DataProcessorPtr->enableSignalMagnitudeNotification();
@@ -592,6 +594,37 @@ bool AutomaticGainControl::isEnabled(void)
 
 /**************************************************************************
 
+  Name: resetBlankingSystem
+
+  Purpose: The purpose of this function is to reset the blanking system
+  to its starting state.
+
+  Calling Sequence: resetBlankingSystem()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void AutomaticGainControl::resetBlankingSystem(void)
+{
+
+  // Reset the counter for the next blanking interval.
+  blankingCounter = 0;
+
+  // Ensure that the AGC can run the next time.
+  receiveGainWasAdjusted = false;
+
+  return;
+
+} // resetBlankingSystem
+
+/**************************************************************************
+
   Name: convertMagnitudeToDbFs
 
   Purpose: The purpose of this function is to convert a signal magnitude
@@ -647,17 +680,45 @@ int32_t AutomaticGainControl::convertMagnitudeToDbFs(
 **************************************************************************/
 void AutomaticGainControl::run(uint32_t signalMagnitude)
 {
+  bool allowedToRun;
 
-  if (blankingCounter < blankingLimit)
+  // Default to not being able to run.
+  allowedToRun = false;
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // This block of code ensures that if a gain adjustment was
+  // made by the AGC, the system will blank itself for an
+  // interval specified by the blankingLimit parameter.  If the
+  // blankingLimit parameter is set to zero, blanking will be
+  // disabled.  Note that if a gain adjustment was not made,
+  // the AGC will be allowed to run.  This allows the AGC to
+  // react quickly to signal changes.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  if (receiveGainWasAdjusted)
   {
-    // We're not ready to make an adjustment.
-    blankingCounter++;
+    if (blankingCounter < blankingLimit)
+    {
+      // The systemn is still blanked.
+      blankingCounter++;
+    } // if
+    else
+    {
+      // We're done blanking.
+      resetBlankingSystem();
+
+      // Let the AGC run.
+      allowedToRun = true;
+    } // else
   } // if
   else
   {
-    // Reset the blanking counter.
-    blankingCounter = 1;
+    // Let the AGC run if no gain adjustment was made.
+    allowedToRun = true;
+  } // else
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
+  if (allowedToRun)
+  {
     switch (agcType)
     {
       case AGC_TYPE_LOWPASS:
@@ -865,6 +926,9 @@ void AutomaticGainControl::runLowpass(uint32_t signalMagnitude)
   if (gainError != 0)
   {
     success = RadioPtr->setReceiveBasebandGainInDb(basebandGainInDb);
+
+    // Indicate that the gain was modified.
+    receiveGainWasAdjusted = true;
   } // if
   //+++++++++++++++++++++++++++++++++++++++++++++++++++
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -1085,6 +1149,9 @@ void AutomaticGainControl::runHarris(uint32_t signalMagnitude)
   if (gainError != 0)
   {
     success = RadioPtr->setReceiveBasebandGainInDb(basebandGainInDb);
+
+    // Indicate that the gain was modified.
+    receiveGainWasAdjusted = true;
   } // if
   //+++++++++++++++++++++++++++++++++++++++++++++++++++
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
