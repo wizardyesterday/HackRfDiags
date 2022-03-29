@@ -42,6 +42,7 @@ class AutomaticGainControl
   //*****************************************
   // Utility functions.
   //*****************************************
+  void resetBlankingSystem(void);
   int32_t convertMagnitudeToDbFs(uint32_t signalMagnitude);
 
   //*****************************************
@@ -53,6 +54,7 @@ class AutomaticGainControl
   // These parameters are sometimes needed to avoid transients.
   uint32_t blankingCounter;
   uint32_t blankingLimit;
+  bool receiveGainWasAdjusted;
 
   // Yes, we need some deadband.
   int32_t deadbandInDb;
