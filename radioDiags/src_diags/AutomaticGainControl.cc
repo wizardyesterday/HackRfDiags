@@ -1215,10 +1215,10 @@ void AutomaticGainControl::displayInternalInformation(void)
     } // case
   } // switch
 
-  nprintf(stderr,"Blanking Counter:           %u ticks\n",
+  nprintf(stderr,"Blanking Counter          : %u ticks\n",
           blankingCounter);
 
-  nprintf(stderr,"Blanking Limit:             %u ticks\n",
+  nprintf(stderr,"Blanking Limit            : %u ticks\n",
           blankingLimit);
 
   nprintf(stderr,"Lowpass Filter Coefficient: %0.3f\n",

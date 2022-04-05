@@ -351,8 +351,8 @@ AGC Internal Information
 --------------------------------------------
 AGC Emabled               : Yes
 AGC Type                  : Harris
-Blanking Counter:           2 ticks
-Blanking Limit:             2 ticks
+Blanking Counter          : 2 ticks
+Blanking Limit            : 2 ticks
 Lowpass Filter Coefficient: 0.800
 Deadband                  : 1 dB
 Operating Point           : -6 dBFs
