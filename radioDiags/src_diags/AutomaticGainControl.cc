@@ -11,6 +11,9 @@
 
 #include "AutomaticGainControl.h"
 
+// The current variable gain setting.
+extern int32_t radio_adjustableReceiveGainInDb;
+
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 // Hardware-dependent defines.
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -684,6 +687,19 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
 
   // Default to not being able to run.
   allowedToRun = false;
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // This block of code deals with the case where some external
+  // entity adjusted the receiver IF gain without knowledge of
+  // the AGC.  If this block of code were not here, data
+  // inconsistancy can occur between the hardware setting of
+  // the IF gain, and the AGC's idea of what the gain should be.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  if (basebandGainInDb != (uint32_t)radio_adjustableReceiveGainInDb)
+  {
+    basebandGainInDb = (uint32_t)radio_adjustableReceiveGainInDb;
+  } // if
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // This block of code ensures that if a gain adjustment was
