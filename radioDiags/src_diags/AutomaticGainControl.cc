@@ -11,9 +11,6 @@
 
 #include "AutomaticGainControl.h"
 
-// The current variable gain setting.
-extern int32_t radio_adjustableReceiveGainInDb;
-
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 // Hardware-dependent defines.
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -322,7 +319,7 @@ bool AutomaticGainControl::setType(uint32_t type)
     updated due to an invalid specified deadband value.
 
 **************************************************************************/
-bool  AutomaticGainControl::setDeadband(uint32_t deadbandInDb)
+bool AutomaticGainControl::setDeadband(uint32_t deadbandInDb)
 {
   bool success;
 
@@ -367,7 +364,7 @@ bool  AutomaticGainControl::setDeadband(uint32_t deadbandInDb)
     was not updated due to an invalid specified blanking limit value.
 
 **************************************************************************/
-bool  AutomaticGainControl::setBlankingLimit(uint32_t blankingLimit)
+bool AutomaticGainControl::setBlankingLimit(uint32_t blankingLimit)
 {
   bool success;
 
@@ -441,7 +438,7 @@ void AutomaticGainControl::setOperatingPoint(int32_t operatingPointInDbFs)
     not updated due to an invalid coefficient value.
 
 **************************************************************************/
-bool  AutomaticGainControl::setAgcFilterCoefficient(float coefficient)
+bool AutomaticGainControl::setAgcFilterCoefficient(float coefficient)
 {
   bool success;
 
@@ -684,6 +681,11 @@ int32_t AutomaticGainControl::convertMagnitudeToDbFs(
 void AutomaticGainControl::run(uint32_t signalMagnitude)
 {
   bool allowedToRun;
+  uint32_t adjustableGain;
+  Radio * RadioPtr;
+
+  // Reference the pointer in the proper context.
+  RadioPtr = (Radio *)radioPtr;
 
   // Default to not being able to run.
   allowedToRun = false;
@@ -695,9 +697,11 @@ void AutomaticGainControl::run(uint32_t signalMagnitude)
   // inconsistancy can occur between the hardware setting of
   // the IF gain, and the AGC's idea of what the gain should be.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  if (basebandGainInDb != (uint32_t)radio_adjustableReceiveGainInDb)
+  adjustableGain = RadioPtr->getReceiveBasebandGainInDb();
+
+  if (basebandGainInDb != adjustableGain)
   {
-    basebandGainInDb = (uint32_t)radio_adjustableReceiveGainInDb;
+    basebandGainInDb = adjustableGain;
   } // if
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
