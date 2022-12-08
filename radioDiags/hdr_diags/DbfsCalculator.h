@@ -1,32 +1,27 @@
 //**************************************************************************
-// file name: SignalDetector.h
+// file name: DbfsCalculator.h
 //**************************************************************************
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// This class implements a signal processing block known as a signal
-// detector.
+// This class implements a signal processing block that computes decibles
+// below a full scale value of a finite word length quantity.
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-#ifndef __SIGNALDETECTOR__
-#define __SIGNALDETECTOR__
+#ifndef __DBFSCALCULATOR__
+#define __DBFSCALCULATOR__
 
 #include <stdint.h>
 
-#include "DbfsCalculator.h"
-
-class SignalDetector
+class DbfsCalculator
 {
   //***************************** operations **************************
 
   public:
 
-  SignalDetector(int32_t threshold);
+  DbfsCalculator(uint32_t wordLengthInBits);
 
-  ~SignalDetector(void);
+  ~DbfsCalculator(void);
 
-  void setThreshold(int32_t threshold);
-  int32_t getThreshold(void);
-  uint32_t getSignalMagnitude(void);
-  bool detectSignal(int8_t *bufferPtr,uint32_t bufferLength);
+  int32_t convertMagnitudeToDbFs(uint32_t signalMagnitude);
 
   //***************************** attributes **************************
   private:
@@ -38,15 +33,16 @@ class SignalDetector
   //*****************************************
   // Attributes.
   //*****************************************
-  // The threshold is in dBFs units.
-  int32_t threshold;
+  // The full scale value is 2^(number of bits).
+  uint32_t fullScaleValue;
 
-  // The average magnitude of the last IQ data block processed.
-  uint32_t signalMagnitude;
+  // This is used for dBFs computations.
+  uint32_t fullScaleValueInDb;
 
   uint8_t magnitudeBuffer[16384];
 
-  DbfsCalculator *calculatorPtr;
+  // This table is used to compute decibels for values [0,255].
+  int32_t dbTable[257];
 };
 
-#endif // __SIGNALDETECTOR__
+#endif // __DBFSCALCULATOR__

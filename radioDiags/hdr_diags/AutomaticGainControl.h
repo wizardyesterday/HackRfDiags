@@ -9,7 +9,11 @@
 #include <unistd.h>
 #include <stdint.h>
 
-//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+#include "DbfsCalculator.h"
+
+
+
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_///_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 // New AGC algorithms will be added as time progresses.
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 #define AGC_TYPE_LOWPASS (0)
@@ -43,7 +47,6 @@ class AutomaticGainControl
   // Utility functions.
   //*****************************************
   void resetBlankingSystem(void);
-  int32_t convertMagnitudeToDbFs(uint32_t signalMagnitude);
 
   //*****************************************
   // Attributes.
@@ -84,9 +87,7 @@ class AutomaticGainControl
 
   void *radioPtr;
   void *dataProcessorPtr;
-
-  // This assumes 8-bit quantities for signal level.
-  int32_t dbFsTable[257];
+  DbfsCalculator *calculatorPtr;
 };
 
 #endif // _AUTOMATICGAINCONTROL_H_
