@@ -173,7 +173,7 @@
         <dia:point val="34.1,7.55"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="34.1,6.90478;38.468,9.45478"/>
+        <dia:rectangle val="34.1,6.95478;38.418,9.35478"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -232,7 +232,7 @@ Indicator#</dia:string>
         <dia:point val="4.15,8.1"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="2.47078,7.45478;5.87922,8.40478"/>
+        <dia:rectangle val="2.47078,7.50478;5.82922,8.30478"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -262,7 +262,7 @@ Indicator#</dia:string>
         <dia:point val="3.5,11.2"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="1.341,10.5548;5.709,11.5048"/>
+        <dia:rectangle val="1.341,10.6048;5.659,11.4048"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -292,7 +292,7 @@ Indicator#</dia:string>
         <dia:point val="11.9,9.5"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="8.30167,8.85478;15.5483,9.80478"/>
+        <dia:rectangle val="8.30167,8.90478;15.4983,9.70478"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -322,7 +322,7 @@ Indicator#</dia:string>
         <dia:point val="28.4,9.7"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="25.0416,9.05478;31.8084,10.0048"/>
+        <dia:rectangle val="25.0416,9.10478;31.7584,9.90478"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -407,17 +407,17 @@ Indicator#</dia:string>
     </dia:object>
     <dia:object type="Standard - Arc" version="0" id="O14">
       <dia:attribute name="obj_pos">
-        <dia:point val="28.65,23.4"/>
+        <dia:point val="39.741,23.734"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="28.5997,22.6696;39.3665,25.5735"/>
+        <dia:rectangle val="28.9076,22.4826;39.793,25.9221"/>
       </dia:attribute>
       <dia:attribute name="conn_endpoints">
-        <dia:point val="28.65,23.4"/>
-        <dia:point val="39.3112,23.4699"/>
+        <dia:point val="39.741,23.734"/>
+        <dia:point val="28.991,23.284"/>
       </dia:attribute>
       <dia:attribute name="curve_distance">
-        <dia:real val="2.08839"/>
+        <dia:real val="-2.35882"/>
       </dia:attribute>
       <dia:attribute name="end_arrow">
         <dia:enum val="3"/>
@@ -490,7 +490,7 @@ Indicator#</dia:string>
         <dia:point val="42,22.85"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="40.0809,22.2048;43.9691,23.1548"/>
+        <dia:rectangle val="40.0809,22.2548;43.9191,23.0548"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -520,7 +520,7 @@ Indicator#</dia:string>
         <dia:point val="25.9,22.5"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="23.9809,21.8548;27.8691,22.8048"/>
+        <dia:rectangle val="23.9809,21.9048;27.8191,22.7048"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -550,7 +550,7 @@ Indicator#</dia:string>
         <dia:point val="47.05,26.1"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="43.4517,25.4548;50.6983,27.2048"/>
+        <dia:rectangle val="43.4517,25.5048;50.6483,27.1048"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -581,7 +581,7 @@ SignalPresent#</dia:string>
         <dia:point val="23.1,25.7"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="20.2213,25.0548;26.0287,26.8048"/>
+        <dia:rectangle val="20.2213,25.1048;25.9787,26.7048"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -612,7 +612,7 @@ Noise#</dia:string>
         <dia:point val="17.55,7.45"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="17.55,6.80478;21.918,9.35478"/>
+        <dia:rectangle val="17.55,6.85478;21.868,9.25478"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -644,7 +644,7 @@ Indicator#</dia:string>
         <dia:point val="2.05,17.45"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="2.05,16.9536;21.8908,27.3036"/>
+        <dia:rectangle val="2.05,17.0036;21.8408,26.0036"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -663,9 +663,7 @@ Signal Tracker.
 indicated by the Signal Tracker State Diagram.
 6. Signal Presence Indicator is used to
 enable/disable the demodulators (performed
-by the IQ Data Processor.
-
-#</dia:string>
+by the IQ Data Processor.#</dia:string>
           </dia:attribute>
           <dia:attribute name="font">
             <dia:font name="Courier"/>
@@ -687,10 +685,10 @@ by the IQ Data Processor.
     </dia:object>
     <dia:object type="Standard - Text" version="0" id="O23">
       <dia:attribute name="obj_pos">
-        <dia:point val="14.5,4.05"/>
+        <dia:point val="9.5,5"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="14.5,3.25463;27.1442,4.40463"/>
+        <dia:rectangle val="9.5,3.88397;28.3912,5.38397"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -701,10 +699,10 @@ by the IQ Data Processor.
             <dia:font name="Courier"/>
           </dia:attribute>
           <dia:attribute name="height">
-            <dia:real val="1"/>
+            <dia:real val="1.5"/>
           </dia:attribute>
           <dia:attribute name="pos">
-            <dia:point val="14.5,4.05"/>
+            <dia:point val="9.5,5"/>
           </dia:attribute>
           <dia:attribute name="color">
             <dia:color val="#000000"/>
@@ -717,10 +715,10 @@ by the IQ Data Processor.
     </dia:object>
     <dia:object type="Standard - Text" version="0" id="O24">
       <dia:attribute name="obj_pos">
-        <dia:point val="26.21,30.2154"/>
+        <dia:point val="19.66,31.1654"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="26.21,29.42;43.0522,30.57"/>
+        <dia:rectangle val="19.66,30.0494;44.8483,31.5494"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -731,10 +729,72 @@ by the IQ Data Processor.
             <dia:font name="Courier"/>
           </dia:attribute>
           <dia:attribute name="height">
-            <dia:real val="1"/>
+            <dia:real val="1.5"/>
           </dia:attribute>
           <dia:attribute name="pos">
-            <dia:point val="26.21,30.2154"/>
+            <dia:point val="19.66,31.1654"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="0"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="Standard - Text" version="0" id="O25">
+      <dia:attribute name="obj_pos">
+        <dia:point val="29.941,18.756"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="29.941,18.1608;37.1377,19.7608"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#SignalDetected/
+StartOfSignal#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font name="Courier"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.8"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="29.941,18.756"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="0"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="Standard - Text" version="0" id="O26">
+      <dia:attribute name="obj_pos">
+        <dia:point val="31.641,26.906"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="31.641,26.2608;37.4483,28.0108"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#NoDetection/
+EndOfSignal#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font name="Courier"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.8"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="31.641,26.906"/>
           </dia:attribute>
           <dia:attribute name="color">
             <dia:color val="#000000"/>
