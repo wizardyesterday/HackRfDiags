@@ -1194,7 +1194,7 @@ Demod#</dia:string>
         <dia:point val="10.85,34.085"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="10.85,33.4398;20.0158,38.3898"/>
+        <dia:rectangle val="10.85,33.4898;19.9658,38.2898"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -1487,13 +1487,13 @@ presence of a signal.#</dia:string>
         <dia:point val="37.9309,39.2023"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="37.9309,38.6071;51.8445,42.6071"/>
+        <dia:rectangle val="37.9309,38.5571;55.7327,42.7071"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
           <dia:attribute name="string">
             <dia:string>#Note: IQ data flows from the
-Demod Mux to the demodulators
+Demod Mux to the selected demodulator
 when enabled, that is, when
 the Squelch is not muting the
 signal.#</dia:string>
