@@ -726,14 +726,14 @@ Demod#</dia:string>
     </dia:object>
     <dia:object type="Standard - Line" version="0" id="O26">
       <dia:attribute name="obj_pos">
-        <dia:point val="25.15,22.235"/>
+        <dia:point val="24.9,22.285"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="25.098,21.6464;30.5131,23.2492"/>
+        <dia:rectangle val="24.8495,21.5365;30.5383,23.1374"/>
       </dia:attribute>
       <dia:attribute name="conn_endpoints">
-        <dia:point val="25.15,22.235"/>
-        <dia:point val="30.4309,22.4478"/>
+        <dia:point val="24.9,22.285"/>
+        <dia:point val="30.4809,22.3369"/>
       </dia:attribute>
       <dia:attribute name="numcp">
         <dia:int val="1"/>
@@ -1101,13 +1101,13 @@ Demod#</dia:string>
     </dia:object>
     <dia:object type="Standard - Line" version="0" id="O40">
       <dia:attribute name="obj_pos">
-        <dia:point val="22.6156,28.9795"/>
+        <dia:point val="22.5809,28.6619"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="21.7444,23.5495;23.3456,29.0302"/>
+        <dia:rectangle val="21.7447,23.5543;23.3453,28.7123"/>
       </dia:attribute>
       <dia:attribute name="conn_endpoints">
-        <dia:point val="22.6156,28.9795"/>
+        <dia:point val="22.5809,28.6619"/>
         <dia:point val="22.545,23.61"/>
       </dia:attribute>
       <dia:attribute name="numcp">
@@ -1191,10 +1191,10 @@ Demod#</dia:string>
     </dia:object>
     <dia:object type="Standard - Text" version="0" id="O43">
       <dia:attribute name="obj_pos">
-        <dia:point val="10.4,34.535"/>
+        <dia:point val="10.85,34.085"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="10.4,33.9398;19.5158,37.9398"/>
+        <dia:rectangle val="10.85,33.4398;20.0158,38.3898"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -1203,7 +1203,8 @@ Demod#</dia:string>
 2. Time Constant
 3. Deadband (dB)
 4. Blanking Timeout
-5. AGC Type#</dia:string>
+5. AGC Type
+6. Enable/Disable#</dia:string>
           </dia:attribute>
           <dia:attribute name="font">
             <dia:font name="Courier"/>
@@ -1212,7 +1213,7 @@ Demod#</dia:string>
             <dia:real val="0.8"/>
           </dia:attribute>
           <dia:attribute name="pos">
-            <dia:point val="10.4,34.535"/>
+            <dia:point val="10.85,34.085"/>
           </dia:attribute>
           <dia:attribute name="color">
             <dia:color val="#000000"/>
@@ -1420,10 +1421,10 @@ Scanner#</dia:string>
     </dia:object>
     <dia:object type="Standard - Text" version="0" id="O52">
       <dia:attribute name="obj_pos">
-        <dia:point val="17.95,9.335"/>
+        <dia:point val="35.7,14.535"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="17.95,8.73978;30.904,11.9398"/>
+        <dia:rectangle val="35.7,13.8898;48.704,17.2398"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -1440,7 +1441,7 @@ presence of a signal.#</dia:string>
             <dia:real val="0.8"/>
           </dia:attribute>
           <dia:attribute name="pos">
-            <dia:point val="17.95,9.335"/>
+            <dia:point val="35.7,14.535"/>
           </dia:attribute>
           <dia:attribute name="color">
             <dia:color val="#000000"/>
@@ -1456,7 +1457,7 @@ presence of a signal.#</dia:string>
         <dia:point val="35.3309,47.1898"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="24.5359,45.6518;46.1759,47.8018"/>
+        <dia:rectangle val="24.5359,45.7018;46.1259,47.7018"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -1829,6 +1830,70 @@ signal.#</dia:string>
           </dia:attribute>
           <dia:attribute name="alignment">
             <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="Standard - Line" version="0" id="O66">
+      <dia:attribute name="obj_pos">
+        <dia:point val="23.5809,10.0619"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="22.8046,10.0115;24.4054,12.6975"/>
+      </dia:attribute>
+      <dia:attribute name="conn_endpoints">
+        <dia:point val="23.5809,10.0619"/>
+        <dia:point val="23.605,12.64"/>
+      </dia:attribute>
+      <dia:attribute name="numcp">
+        <dia:int val="1"/>
+      </dia:attribute>
+      <dia:attribute name="line_style">
+        <dia:enum val="4"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="3"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.8"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.8"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="1" to="O44" connection="1"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - Text" version="0" id="O67">
+      <dia:attribute name="obj_pos">
+        <dia:point val="20.1809,7.36194"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="20.1809,6.71673;28.8669,10.8667"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#1. Start Frequency
+2. End Frequency
+3. Frequency Step
+4. Enable/Disable
+#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font name="Courier"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.8"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="20.1809,7.36194"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="0"/>
           </dia:attribute>
         </dia:composite>
       </dia:attribute>
