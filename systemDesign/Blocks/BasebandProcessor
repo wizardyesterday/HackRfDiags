@@ -221,11 +221,11 @@
         <dia:point val="35.8309,22.1478"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="35.7798,21.4991;42.7179,23.1009"/>
+        <dia:rectangle val="35.7796,21.5157;42.5149,23.1177"/>
       </dia:attribute>
       <dia:attribute name="conn_endpoints">
         <dia:point val="35.8309,22.1478"/>
-        <dia:point val="42.6501,22.3"/>
+        <dia:point val="42.4445,22.3167"/>
       </dia:attribute>
       <dia:attribute name="numcp">
         <dia:int val="1"/>
@@ -729,7 +729,7 @@ Demod#</dia:string>
         <dia:point val="24.9,22.285"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="24.8495,21.5365;30.5383,23.1374"/>
+        <dia:rectangle val="24.8495,21.5365;30.5383,23.1373"/>
       </dia:attribute>
       <dia:attribute name="conn_endpoints">
         <dia:point val="24.9,22.285"/>
@@ -1194,7 +1194,7 @@ Demod#</dia:string>
         <dia:point val="10.85,34.085"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="10.85,33.4398;20.0158,38.3898"/>
+        <dia:rectangle val="10.85,33.4898;19.9658,38.2898"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -1424,7 +1424,7 @@ Scanner#</dia:string>
         <dia:point val="35.7,14.535"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="35.7,13.8898;48.704,17.2398"/>
+        <dia:rectangle val="35.7,13.9398;48.654,17.1398"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -1662,14 +1662,14 @@ signal.#</dia:string>
     </dia:object>
     <dia:object type="Standard - Line" version="0" id="O60">
       <dia:attribute name="obj_pos">
-        <dia:point val="39.0309,27.0398"/>
+        <dia:point val="39.1309,27.0398"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="38.9801,26.1891;42.2436,27.7905"/>
+        <dia:rectangle val="39.0801,26.1891;42.3436,27.7905"/>
       </dia:attribute>
       <dia:attribute name="conn_endpoints">
-        <dia:point val="39.0309,27.0398"/>
-        <dia:point val="42.1809,26.9898"/>
+        <dia:point val="39.1309,27.0398"/>
+        <dia:point val="42.2809,26.9898"/>
       </dia:attribute>
       <dia:attribute name="numcp">
         <dia:int val="1"/>
@@ -1839,7 +1839,7 @@ signal.#</dia:string>
         <dia:point val="23.5809,10.0619"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="22.8046,10.0115;24.4054,12.6975"/>
+        <dia:rectangle val="22.8046,10.0114;24.4054,12.6975"/>
       </dia:attribute>
       <dia:attribute name="conn_endpoints">
         <dia:point val="23.5809,10.0619"/>
@@ -1869,7 +1869,7 @@ signal.#</dia:string>
         <dia:point val="20.1809,7.36194"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="20.1809,6.71673;28.8669,10.8667"/>
+        <dia:rectangle val="20.1809,6.76672;28.8169,9.96672"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -1877,8 +1877,7 @@ signal.#</dia:string>
             <dia:string>#1. Start Frequency
 2. End Frequency
 3. Frequency Step
-4. Enable/Disable
-#</dia:string>
+4. Enable/Disable#</dia:string>
           </dia:attribute>
           <dia:attribute name="font">
             <dia:font name="Courier"/>
