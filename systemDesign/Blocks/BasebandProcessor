@@ -1487,7 +1487,7 @@ presence of a signal.#</dia:string>
         <dia:point val="37.9309,39.2023"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="37.9309,38.5571;55.7327,42.7071"/>
+        <dia:rectangle val="37.9309,38.6071;55.6827,42.6071"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -1746,15 +1746,17 @@ signal.#</dia:string>
     </dia:object>
     <dia:object type="Standard - Text" version="0" id="O63">
       <dia:attribute name="obj_pos">
-        <dia:point val="40.2809,35.7315"/>
+        <dia:point val="37.7809,35.8315"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="39.3213,35.1363;41.2405,35.9363"/>
+        <dia:rectangle val="37.7809,35.1863;42.6287,37.7363"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
           <dia:attribute name="string">
-            <dia:string>#Gain#</dia:string>
+            <dia:string>#1. Gain
+2. LSB/USB
+#</dia:string>
           </dia:attribute>
           <dia:attribute name="font">
             <dia:font name="Courier"/>
@@ -1763,13 +1765,13 @@ signal.#</dia:string>
             <dia:real val="0.8"/>
           </dia:attribute>
           <dia:attribute name="pos">
-            <dia:point val="40.2809,35.7315"/>
+            <dia:point val="37.7809,35.8315"/>
           </dia:attribute>
           <dia:attribute name="color">
             <dia:color val="#000000"/>
           </dia:attribute>
           <dia:attribute name="alignment">
-            <dia:enum val="1"/>
+            <dia:enum val="0"/>
           </dia:attribute>
         </dia:composite>
       </dia:attribute>
