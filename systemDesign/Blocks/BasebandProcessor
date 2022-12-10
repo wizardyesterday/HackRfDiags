@@ -1194,12 +1194,12 @@ Demod#</dia:string>
         <dia:point val="10.85,34.085"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="10.85,33.4898;19.9658,38.2898"/>
+        <dia:rectangle val="10.85,33.4398;20.0158,38.3898"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
           <dia:attribute name="string">
-            <dia:string>#1. Set Pomt (dBFs)
+            <dia:string>#1. Set Point (dBFs)
 2. Time Constant
 3. Deadband (dB)
 4. Blanking Timeout
