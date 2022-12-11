@@ -9,6 +9,12 @@
 
 #include "DbfsCalculator.h"
 
+// Allow a maximum of 31 bit wordlength.
+#define MAX_WORD_LENGTH (31)
+
+// This is the size of the magnitude to decibel lookup.
+#define MAX_LOOKUP_INDEX (256)
+
 /*****************************************************************************
 
   Name: DbfsCalculator
@@ -30,35 +36,26 @@
 DbfsCalculator::DbfsCalculator(uint32_t wordLengthInBits)
 {
   uint32_t i;
-  uint32_t maximumMagnitude;
   float dbLevel;
-  float maximumDbLevel;
 
-  if (wordLengthInBits > 16)
+  if (wordLengthInBits > MAX_WORD_LENGTH)
   {
     // Clip it.
-    wordLengthInBits = 16;
+    wordLengthInBits = MAX_WORD_LENGTH;
   } // if
 
   // Save for later use.
-  fullScaleValue = 1 << wordLengthInBits;
+  fullScaleValue = (1 << wordLengthInBits) - 1;
 
   // Note that 2's complement demands (full scale) / 2.
-  fullScaleValueInDb = (uint32_t)(20 * log10((double)fullScaleValue/2));
+  fullScaleValueInDb = (uint32_t)(20 * log10((double)fullScaleValue));
   
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // Construct the dB table.  The largest expected signal
-  // magnitude, after scaling, is 128 for a 2's
-  // complement 8-bit quantity.  A larger range of values is
-  // stored to handle the case of system saturation.  Values
-  // can reach a maximum of sqrt(128^2 + 128^2) = 181.02.
-  // Staying on the safe side, a maximum value of 256 will
-  // be handled.
+  // Construct the decibel table. The table can allow a
+  // lookup that maps magnitudes from zero to 256 into
+  // decibels.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  maximumMagnitude = 256;
-  maximumDbLevel = 20 * log10(128);
-
-  for (i = 1; i <= maximumMagnitude; i++)
+  for (i = 1; i <= MAX_LOOKUP_INDEX; i++)
   {
     dbLevel = 20 * log10((float)i);
     dbTable[i] = (int32_t)dbLevel;
@@ -127,7 +124,7 @@ int32_t DbfsCalculator::convertMagnitudeToDbFs(
   } // if
 
   // Scale the signal magnitude so that it can be used as an index.
-  while (signalMagnitude > 256)
+  while (signalMagnitude > MAX_LOOKUP_INDEX)
   {
     // Scale it..
     signalMagnitude /= 2;

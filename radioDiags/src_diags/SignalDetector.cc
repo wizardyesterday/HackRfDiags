@@ -33,8 +33,8 @@ SignalDetector::SignalDetector(int32_t threshold)
   // Save for later use.
   this->threshold = threshold;
 
-  // Instantiate for 8-bit 2's complement values.
-  calculatorPtr = new DbfsCalculator(8);
+  // Instantiate for a maximum signal magnitude of 127.
+  calculatorPtr = new DbfsCalculator(7);
 
 } // SignalDetector
 
