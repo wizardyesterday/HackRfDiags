@@ -704,7 +704,7 @@ void IqDataProcessor::acceptIqData(unsigned long timeStamp,
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   if ((signalNotificationEnabled) && (signalCallbackPtr != NULL))
   {
-    // Notify the client client of new signal state information.
+    // Notify the client of new signal state information.
     signalCallbackPtr(signalAllowed,signalCallbackContextPtr);
   } // if
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -718,7 +718,7 @@ void IqDataProcessor::acceptIqData(unsigned long timeStamp,
     // Retrieve the average magnitude of the last received IQ block.
     signalMagnitude = trackerPtr->getSignalMagnitude();
 
-    // Notify the client client of new signal magnitude information.
+    // Notify the client of new signal magnitude information.
     signalMagnitudeCallbackPtr(signalMagnitude,
                                signalMagnitudeCallbackContextPtr);
   } // if
