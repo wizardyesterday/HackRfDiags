@@ -11,7 +11,7 @@
 #include "FmDemodulator.h"
 #include "WbFmDemodulator.h"
 #include "SsbDemodulator.h"
-#include "SignalTracker.h"
+#include "Squelch.h"
 
 class IqDataProcessor
 {
@@ -88,7 +88,7 @@ private:
   SsbDemodulator *ssbDemodulatorPtr;
 
   // Squelch support.
-  SignalTracker *trackerPtr;
+  Squelch *squelchPtr;
 
   // Signal notification support.
   bool signalNotificationEnabled;
