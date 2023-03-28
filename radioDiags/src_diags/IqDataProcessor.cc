@@ -26,6 +26,9 @@ static float decimator3Coefficients[] =
   0.2570951
 };
 
+// The current variable gain setting.
+extern uint32_t radio_adjustableReceiveGainInDb;
+
 extern void nprintf(FILE *s,const char *formatPtr, ...);
 
 /**************************************************************************
@@ -113,8 +116,8 @@ IqDataProcessor::IqDataProcessor(void)
   // Let all signal exceed threshold.
   signalDetectThreshold = -200;
 
-  // Instantiate a signal tracker.
-  trackerPtr = new SignalTracker(signalDetectThreshold);
+  // Instantiate a squelch.
+  squelchPtr = new Squelch(signalDetectThreshold);
 
   // Default to no notification of signal state.p
   signalNotificationEnabled = false;
@@ -154,14 +157,40 @@ IqDataProcessor::~IqDataProcessor()
 {
 
   // Release resources.
-  delete stage1IDecimatorPtr;
-  delete stage1QDecimatorPtr;
-  delete stage2IDecimatorPtr;
-  delete stage2QDecimatorPtr;
-  delete stage3IDecimatorPtr;
-  delete stage3QDecimatorPtr;
+  if (stage1IDecimatorPtr != NULL)
+  {
+    delete stage1IDecimatorPtr;
+  } // if
 
-  delete trackerPtr;
+  if (stage1QDecimatorPtr != NULL)
+  {
+    delete stage1QDecimatorPtr;
+  } // ig
+
+  if (stage2IDecimatorPtr != NULL)
+  {
+    delete stage2IDecimatorPtr;
+  } // if
+
+  if (stage2QDecimatorPtr != NULL)
+  {
+      delete stage2QDecimatorPtr;
+  } // if
+
+  if (stage3IDecimatorPtr != NULL)
+  {
+  delete stage3IDecimatorPtr;
+  } // if
+
+  if (stage3QDecimatorPtr != NULL)
+  {
+    delete stage3QDecimatorPtr;
+  } // if
+
+  if (squelchPtr != NULL)
+  {
+    delete squelchPtr;
+  } // if
 
   return; 
 
@@ -354,7 +383,7 @@ void IqDataProcessor::setSignalDetectThreshold(int32_t threshold)
   this->signalDetectThreshold = threshold;
 
   // Notify the signal tracker of the new threshold.
-  trackerPtr->setThreshold(threshold);
+  squelchPtr->setThreshold(threshold);
 
   return;
 
@@ -657,7 +686,6 @@ void IqDataProcessor::acceptIqData(unsigned long timeStamp,
                                    unsigned long byteCount)
 {
   uint32_t decimatedByteCount;
-  uint16_t signalPresenceIndicator;
   bool signalAllowed;
   uint32_t signalMagnitude;
 
@@ -665,38 +693,9 @@ void IqDataProcessor::acceptIqData(unsigned long timeStamp,
   decimatedByteCount = reduceSampleRate(bufferPtr,byteCount);
 
   // Determine if a signal is available.
-  signalPresenceIndicator = trackerPtr->run(bufferPtr,decimatedByteCount);
-
-  switch (signalPresenceIndicator)
-  {
-    case SIGNALTRACKER_NOISE:
-    {
-      // We have no signal.
-      signalAllowed = false;
-      break;
-    } // case
-
-    case SIGNALTRACKER_STARTOFSIGNAL:
-    case SIGNALTRACKER_SIGNALPRESENT:
-    {
-      // We have a signal.
-      signalAllowed = true;
-      break;
-    } // case
-
-    case SIGNALTRACKER_ENDOFSIGNAL:
-    {
-      // We like a squelch tail.
-      signalAllowed = true;
-      break;
-    } // case
-
-    default:
-    {
-      signalAllowed = false;
-      break;
-    } // case
-  } // switch
+  signalAllowed = squelchPtr->run(radio_adjustableReceiveGainInDb,
+                                 bufferPtr,
+                                 decimatedByteCount);
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // In this context, signalAllowed is used as a signal presence
@@ -716,7 +715,7 @@ void IqDataProcessor::acceptIqData(unsigned long timeStamp,
       (signalMagnitudeCallbackPtr != NULL))
   {
     // Retrieve the average magnitude of the last received IQ block.
-    signalMagnitude = trackerPtr->getSignalMagnitude();
+    signalMagnitude = squelchPtr->getSignalMagnitude();
 
     // Notify the client of new signal magnitude information.
     signalMagnitudeCallbackPtr(signalMagnitude,

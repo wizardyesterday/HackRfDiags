@@ -5,9 +5,6 @@
 
 #include "SignalDetector.h"
 
-// The current variable gain setting.
-extern int32_t radio_adjustableReceiveGainInDb;
-
 /*****************************************************************************
 
   Name: SignalDetector
@@ -184,9 +181,13 @@ uint32_t SignalDetector::getSignalMagnitude(void)
   Additionally, the detection threshold can be changed at run time.  This
   might be usable in a dynamic (changing over time) signal environment.
 
-  Calling Sequence: result = detectSignal(bufferPtr,bufferLength)
+  Calling Sequence: result = detectSignal(gainInDb,bufferPtr,bufferLength)
 
   Inputs:
+
+    gainInDb - The current setting of the system gain.  This is used so
+    that the detection threshold can be compared to the signal level
+    referenced before the gain element in the system.
 
     bufferPtr - A pointer to IQ data.  The representation is described
     above.
@@ -201,7 +202,9 @@ uint32_t SignalDetector::getSignalMagnitude(void)
     false indicates that a signal is absent.
 
 *****************************************************************************/
-bool SignalDetector::detectSignal(int8_t *bufferPtr,uint32_t bufferLength)
+bool SignalDetector::detectSignal(uint32_t gainInDb,
+                                  int8_t *bufferPtr,
+                                  uint32_t bufferLength)
 {
   bool signalIsPresent;
   uint32_t i;
@@ -255,7 +258,7 @@ bool SignalDetector::detectSignal(int8_t *bufferPtr,uint32_t bufferLength)
   signalInDbFs = calculatorPtr->convertMagnitudeToDbFs(magnitude);
 
   // Subtract out gain.
-  signalInDbFs -= radio_adjustableReceiveGainInDb;
+  signalInDbFs -= gainInDb;
 
   if (signalInDbFs >= threshold)
   {

@@ -1,40 +1,44 @@
 //**************************************************************************
-// file name: SignalTracker.h
+// file name: Squelch.h
 //**************************************************************************
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 // This class implements a signal-operated squelch function.
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-#ifndef __SIGNALTRACKER__
-#define __SIGNALTRACKER__
+#ifndef __SQUELCH__
+#define __SQUELCH__
 
 #include <stdint.h>
 
+#include "SignalTracker.h"
 #include "SignalDetector.h"
 
-#define SIGNALTRACKER_NOISE (0)
-#define SIGNALTRACKER_STARTOFSIGNAL (1)
-#define SIGNALTRACKER_SIGNALPRESENT (2)
-#define SIGNALTRACKER_ENDOFSIGNAL (3)
-
-class SignalTracker
+class Squelch
 {
   //***************************** operations **************************
 
   public:
 
-  enum TrackerState {NoSignal, Tracking};
-
-  SignalTracker(void);
-  ~SignalTracker(void);
+  Squelch(int32_t threshold);
+  ~Squelch(void);
 
   void reset(void);
-  uint16_t run(bool signalIsPresent);
+  void setThreshold(int32_t threshold);
+  int32_t getThreshold(void);
+  uint32_t getSignalMagnitude(void);
+  bool run(uint32_t gainInDb,int8_t *bufferPtr,uint32_t bufferLength);
 
   //***************************** attributes **************************
   private:
 
-  TrackerState state;
+  // The threshold is in dBFs units.
+  int32_t threshold;
+
+  // Signal tracking support.
+  SignalTracker *trackerPtr;
+
+  // Signal detection support.
+  SignalDetector *detectorPtr;
 };
 
-#endif // __SIGNALTRACKER__
+#endif // __SQUELCH__
