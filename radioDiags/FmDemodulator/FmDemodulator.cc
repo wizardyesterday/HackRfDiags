@@ -167,9 +167,6 @@ FmDemodulator::FmDemodulator(
       xArg = (double)x - 128;
       yArg = (double)y - 128;
 
-      // Kludge to prevent 0/0 condition for the atan2() function.
-      yArg = yArg + 1e-10;
-
       // Save entry into the table.
       atan2LookupTable[y][x] = atan2(yArg,xArg);
     } // for
