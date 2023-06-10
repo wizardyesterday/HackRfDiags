@@ -183,7 +183,17 @@ int16_t Interpolator_int16::filterData(int16_t *coefficientsPtr)
     } // else
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  
-    // Decrement the index in a modulo fashion.
+
+    else
+    {
+      if (accumulator < -0x40000000)
+      {
+        accumulator = -0x40000000;
+      } // if
+    } // else
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+ 
+    // Decrement the in    // Decrement the index in a modulo fashion.
     xIndex--;
     if (xIndex < 0)
     {
