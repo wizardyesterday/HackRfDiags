@@ -172,22 +172,6 @@ int16_t FirFilter_int16::filterData(int16_t x)
    accumulator =
       accumulator + ((int32_t)h[k] * (int32_t)filterStatePtr[xIndex]);
  
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Saturate the result.
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    if (accumulator > 0x3ffffff)
-    {
-      accumulator = 0x3ffffff;
-    } // if
-    else
-    {
-      if (accumulator < -0x40000000)
-      {
-        accumulator = -0x40000000;
-      } // if
-    } // else
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- 
     // Decrement the index in a modulo fashion.
     xIndex--;
     if (xIndex < 0)
