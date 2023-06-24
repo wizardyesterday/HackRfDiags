@@ -197,6 +197,33 @@ int16_t Decimator_int16::filterData(int16_t x)
     accumulator =
       accumulator + ((int32_t)h[k] * (int32_t)filterStatePtr[xIndex]);
 
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // We're okay to not check for overflow
+    // when the input data are 8 bit signed
+    // values (type casted to int16_t). We
+    // need this when the data actually spans
+    // the signed 16 bit range.  This is
+    // actually how we deal with data that is
+    // interpreted as Q15 format.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+#if 0
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Saturate the result.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    if (accumulator > 0x3ffffff)
+    {
+      accumulator = 0x3ffffff;
+    } // if
+    else
+    {
+      if (accumulator < -0x40000000)
+      {
+        accumulator = -0x40000000;
+      } // if
+    } // else
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+#endif
+ 
     // Decrement the index in a modulo fashion.
     xIndex--;
     if (xIndex < 0)
@@ -214,7 +241,7 @@ int16_t Decimator_int16::filterData(int16_t x)
     ringBufferIndex = 0;
   } // if
 
-  // Transform from Q31 format to Q15 format. 
+  // Transform from Q30 format to Q15 format. 
   y = (int16_t)(accumulator >> 15);
  
   return (y);
