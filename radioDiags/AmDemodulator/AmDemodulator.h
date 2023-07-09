@@ -47,26 +47,28 @@ class AmDemodulator
   float demodulatorGain;
 
   // Decimated in-phase and quadrature data samples.
-  int16_t iData[4096];
-  int16_t qData[4096];
+  int16_t iData[512];
+  int16_t qData[512];
 
-  // Demodulated data is the demodulator gain times delta theta.
-  int16_t demodulatedData[4096];
+  // Demodulated data is the demodulator gain times envelope.
+  int16_t demodulatedData[512];
 
   // Demodulated data is converted into PCM data for listening.
   int16_t pcmData[512];
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // The first two decimators are used to lower the sample rate to 64000S/s
-  // that is useful for AM demodulation.  Note that we have
-  // tuner decimators for both, the I and the Q arm.  The third decimator
-  // lowers the sample rate to 16000S/s. The fourth decimator lowers the
-  // sample rate to that needed for 8000S/s PCM audio.
+  // The first decimator pair is used to lower the sample rate to 64000S/s.
+  // The second decimator pair is used to lower the sample rate to 16000S/s.
+  // The third decimator pair is used to lower the sample rate to 8000S/s.
+  // The demodulation process is applied to the signal at the final sample
+  // rate.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  Decimator_int16 *iTunerDecimatorPtr;
-  Decimator_int16 *qTunerDecimatorPtr;
-  Decimator_int16 *postDemodDecimatorPtr;
-  Decimator_int16 *audioDecimatorPtr;
+  Decimator_int16 *stage1IDecimatorPtr;
+  Decimator_int16 *stage1QDecimatorPtr;
+  Decimator_int16 *stage2IDecimatorPtr;
+  Decimator_int16 *stage2QDecimatorPtr;
+  Decimator_int16 *stage3IDecimatorPtr;
+  Decimator_int16 *stage3QDecimatorPtr;
 
   IirFilter *dcRemovalFilterPtr;
 
