@@ -11,118 +11,54 @@
 using namespace std;
 
 // These coefficients are used for decimation by 4.
-static float tunerDecimatorCoefficients[] =
+static float stage1DecimatorCoefficients[] =
 {
-   0.0142160,
-   0.0172016,
-   0.0208329,
-   0.0186518,
-   0.0092485,
-  -0.0061460,
-  -0.0235060,
-  -0.0371215,
-  -0.0417151,
-  -0.0348236,
-  -0.0183720,
-   0.0014735,
-   0.0163144,
-   0.0188833,
-   0.0064515,
-  -0.0171519,
-  -0.0420162,
-  -0.0552787,
-  -0.0458543,
-  -0.0091367,
-   0.0503878,
-   0.1195422,
-   0.1803717,
-   0.2159224,
-   0.2159224,
-   0.1803717,
-   0.1195422,
-   0.0503878,
-  -0.0091367,
-  -0.0458543,
-  -0.0552787,
-  -0.0420162,
-  -0.0171519,
-   0.0064515,
-   0.0188833,
-   0.0163144,
-   0.0014735,
-  -0.0183720,
-  -0.0348236,
-  -0.0417151,
-  -0.0371215,
-  -0.0235060,
-  -0.0061460,
-   0.0092485,
-   0.0186518,
-   0.0208329,
-   0.0172016,
-   0.0142160
+   0.0242683,
+   0.0766338,
+   0.1457589,
+   0.1959036,
+   0.1959036,
+   0.1457589,
+   0.0766338,
+   0.0242683
 };
 
 // These coefficients are used for decimation by 4.
-static float postDemodDecimatorCoefficients[] =
+static float stage2DecimatorCoefficients[] =
 {
-   0.0022977,
-   0.0237042,
-   0.0605386,
-   0.1127073,
-   0.1645167,
-   0.1971107,
-   0.1971107,
-   0.1645167,
-   0.1127073,
-   0.0605386,
-   0.0237042,
-   0.0022977
+   0.0057496,
+   0.0263853,
+   0.0605301,
+   0.1074406,
+   0.1523486,
+   0.1804951,
+   0.1804951,
+   0.1523486,
+   0.1074406,
+   0.0605301,
+   0.0263853,
+   0.0057496
 };
 
 // These coefficients are used for decimation by 2.
-static float audioDecimatorCoefficients[] =
+static float stage3DecimatorCoefficients[] =
 {
-   0.0015969,
-  -0.0111080,
-  -0.0270501,
-  -0.0265610,
-  -0.0023190,
-   0.0180618,
-   0.0065495,
-  -0.0183409,
-  -0.0133345,
-   0.0184489,
-   0.0230891,
-  -0.0161248,
-  -0.0363745,
-   0.0091343,
-   0.0550219,
-   0.0070312,
-  -0.0862280,
-  -0.0497761,
-   0.1793543,
-   0.4145808,
-   0.4145808,
-   0.1793543,
-  -0.0497761,
-  -0.0862280,
-   0.0070312,
-   0.0550219,
-   0.0091343,
-  -0.0363745,
-  -0.0161248,
-   0.0230891,
-   0.0184489,
-  -0.0133345,
-  -0.0183409,
-   0.0065495,
-   0.0180618,
-  -0.0023190,
-  -0.0265610,
-  -0.0270501,
-  -0.0111080,
-   0.0015969
+   0.0116487,
+   0.0152694,
+  -0.0109804,
+  -0.0611915,
+  -0.0736143,
+   0.0187617,
+   0.1988190,
+   0.3481364,
+   0.3481364,
+   0.1988190,
+   0.0187617,
+  -0.0736143,
+  -0.0611915,
+  -0.0109804,
+   0.0152694,
+   0.0116487
 };
 
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -156,23 +92,23 @@ extern void nprintf(FILE *s,const char *formatPtr, ...);
 AmDemodulator::AmDemodulator(
     void (*pcmCallbackPtr)(int16_t *bufferPtr,uint32_t bufferLength))
 {
-  int numberOfTunerDecimatorTaps;
-  int numberOfPostDemodDecimatorTaps;
-  int numberOfAudioDecimatorTaps;
+  int numberOfStage1DecimatorTaps;
+  int numberOfStage2DecimatorTaps;
+  int numberOfStage3DecimatorTaps;
   int numberOfDcRemovalNumeratorTaps;
   int numberOfDcRemovalDenominatorTaps;
 
   // Set to a nominal gain.
   demodulatorGain = 300;
 
-  numberOfTunerDecimatorTaps =
-      sizeof(tunerDecimatorCoefficients) / sizeof(float);
+  numberOfStage1DecimatorTaps =
+      sizeof(stage1DecimatorCoefficients) / sizeof(float);
 
-  numberOfPostDemodDecimatorTaps =
-      sizeof(postDemodDecimatorCoefficients) / sizeof(float);
+  numberOfStage2DecimatorTaps =
+      sizeof(stage2DecimatorCoefficients) / sizeof(float);
 
-  numberOfAudioDecimatorTaps =
-    sizeof(audioDecimatorCoefficients) / sizeof(float);
+  numberOfStage3DecimatorTaps =
+      sizeof(stage3DecimatorCoefficients) / sizeof(float);
 
   numberOfDcRemovalNumeratorTaps =
       sizeof(dcRemovalNumeratorCoefficients) / sizeof(float);
@@ -182,38 +118,47 @@ AmDemodulator::AmDemodulator(
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // This pair of decimators reduce the sample rate from 256000S/s to
-  // 64000S/s for use by the AM demodulator.
+  // 64000S/s.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Allocate the decimator for the in-phase component.
-  iTunerDecimatorPtr = new Decimator_int16(numberOfTunerDecimatorTaps,
-                                          tunerDecimatorCoefficients,
-                                          4);
+  stage1IDecimatorPtr = new Decimator_int16(numberOfStage1DecimatorTaps,
+                                            stage1DecimatorCoefficients,
+                                            4);
 
   // Allocate the decimator for the quadrature component.
-  qTunerDecimatorPtr = new Decimator_int16(numberOfTunerDecimatorTaps,
-                                          tunerDecimatorCoefficients,
-                                          4);
+  stage1QDecimatorPtr = new Decimator_int16(numberOfStage1DecimatorTaps,
+                                            stage1DecimatorCoefficients,
+                                            4);
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // The decimator reduces the sample rate of the demodulated data to
-  // 16000S/s.  The output of this decimator is used by the next
-  // decimator state.
+  // This pair of decimators reduce the sample rate from 64000S/s to
+  // 16000S/s.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // Allocate the post demodulator decimator.
-  postDemodDecimatorPtr = new Decimator_int16(numberOfPostDemodDecimatorTaps,
-                                             postDemodDecimatorCoefficients,
-                                             4); 
+  // Allocate the decimator for the in-phase component.
+  stage2IDecimatorPtr = new Decimator_int16(numberOfStage2DecimatorTaps,
+                                            stage2DecimatorCoefficients,
+                                            4);
+
+  // Allocate the decimator for the quadrature component.
+  stage2QDecimatorPtr = new Decimator_int16(numberOfStage2DecimatorTaps,
+                                            stage2DecimatorCoefficients,
+                                            4);
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // This decimator has an input sample rate of 16000S/s and an
-  // output sample rate of 8000S/s.
+  // This pair of decimators reduce the sample rate from 16000S/s to
+  // 8000S/s.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // Allocate the audio decimator.
-  audioDecimatorPtr = new Decimator_int16(numberOfAudioDecimatorTaps,
-                                         audioDecimatorCoefficients,
-                                         2);
+  // Allocate the decimator for the in-phase component.
+  stage3IDecimatorPtr = new Decimator_int16(numberOfStage3DecimatorTaps,
+                                            stage3DecimatorCoefficients,
+                                            2);
+
+  // Allocate the decimator for the quadrature component.
+  stage3QDecimatorPtr = new Decimator_int16(numberOfStage3DecimatorTaps,
+                                            stage3DecimatorCoefficients,
+                                            2);
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -254,10 +199,12 @@ AmDemodulator::~AmDemodulator(void)
 {
 
   // Release resources.
-  delete iTunerDecimatorPtr;
-  delete qTunerDecimatorPtr;
-  delete postDemodDecimatorPtr;
-  delete audioDecimatorPtr;
+  delete stage1IDecimatorPtr;
+  delete stage1QDecimatorPtr;
+  delete stage2IDecimatorPtr;
+  delete stage2QDecimatorPtr;
+  delete stage3IDecimatorPtr;
+  delete stage3QDecimatorPtr;
   delete dcRemovalFilterPtr;
 
   return;
@@ -286,10 +233,12 @@ void AmDemodulator::resetDemodulator(void)
 {
 
   // Reset all filter structures to their initial conditions.
-  iTunerDecimatorPtr->resetFilterState();
-  qTunerDecimatorPtr->resetFilterState();
-  postDemodDecimatorPtr->resetFilterState();
-  audioDecimatorPtr->resetFilterState();
+  stage1IDecimatorPtr->resetFilterState();
+  stage1QDecimatorPtr->resetFilterState();
+  stage2IDecimatorPtr->resetFilterState();
+  stage2QDecimatorPtr->resetFilterState();
+  stage3IDecimatorPtr->resetFilterState();
+  stage3QDecimatorPtr->resetFilterState();
   dcRemovalFilterPtr->resetFilterState();
 
   return;
@@ -402,15 +351,26 @@ uint32_t AmDemodulator::reduceSampleRate(
   // Decimate the in-phase samples.
   for (i = 0; i < bufferLength; i += 2)
   {
-    sampleAvailable = iTunerDecimatorPtr->decimate((int16_t)bufferPtr[i],
-                                                   &sample);
+    sampleAvailable = stage1IDecimatorPtr->decimate((int16_t)bufferPtr[i],
+                                                    &sample);
+
     if (sampleAvailable)
     {
-      // Store the decimated sample.
-      iData[outputBufferIndex] = sample;
+      sampleAvailable = stage2IDecimatorPtr->decimate(sample,&sample);
 
-      // Reference the next storage location.
-      outputBufferIndex++;
+      if (sampleAvailable)
+      {
+        sampleAvailable = stage3IDecimatorPtr->decimate(sample,&sample);
+
+        if (sampleAvailable)
+        {
+          // Store the decimated sample.
+          iData[outputBufferIndex] = sample;
+
+          // Reference the next storage location.
+          outputBufferIndex++;
+        } // if
+      } // if
     } // if
   } // for
 
@@ -420,15 +380,26 @@ uint32_t AmDemodulator::reduceSampleRate(
   // Decimate the quadrature samples.
   for (i = 1; i < (bufferLength + 1); i += 2)
   {
-    sampleAvailable = qTunerDecimatorPtr->decimate((int16_t)bufferPtr[i],
-                                                   &sample);
+    sampleAvailable = stage1QDecimatorPtr->decimate((int16_t)bufferPtr[i],
+                                                    &sample);
+
     if (sampleAvailable)
     {
-      // Store the decimated sample.
-      qData[outputBufferIndex] = sample;
+      sampleAvailable = stage2QDecimatorPtr->decimate(sample,&sample);
 
-      // Reference the next storage location.
-      outputBufferIndex++;
+      if (sampleAvailable)
+      {
+        sampleAvailable = stage3QDecimatorPtr->decimate(sample,&sample);
+
+        if (sampleAvailable)
+        {
+          // Store the decimated sample.
+          qData[outputBufferIndex] = sample;
+
+          // Reference the next storage location.
+          outputBufferIndex++;
+        } // if
+      } // if
     } // if
   } // for
 
@@ -521,36 +492,14 @@ uint32_t AmDemodulator::demodulateSignal(uint32_t bufferLength)
 uint32_t AmDemodulator::createPcmData(uint32_t bufferLength)
 {
   uint32_t i;
-  uint32_t outputBufferIndex;
-  bool sampleAvailable;
-  int16_t sample;
-
-  // Reference the beginning of the PCM output buffer.
-  outputBufferIndex = 0;
 
   for (i = 0; i < bufferLength; i++)
   {
-    // Perform the first stage of decimation.
-    sampleAvailable = postDemodDecimatorPtr->decimate(demodulatedData[i],
-                                                      &sample);
-    if (sampleAvailable)
-    {
-      // Perform the second stage of decimation.
-      sampleAvailable = audioDecimatorPtr->decimate(sample,&sample);
-
-      if (sampleAvailable)
-      {
-        // Store PCM sample with dc offset removed.
-        pcmData[outputBufferIndex] = sample;
-
-        // Reference the next storage location.
-        outputBufferIndex++;
-      } // if
-    } // if
-
+    // Store PCM sample with dc offset removed.
+    pcmData[i] = demodulatedData[i];
   } // for
 
-  return (outputBufferIndex);
+  return (bufferLength);
 
 } // createPcmData
 

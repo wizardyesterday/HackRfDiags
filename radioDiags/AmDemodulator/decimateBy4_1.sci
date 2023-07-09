@@ -1,7 +1,8 @@
 //******************************************************************
+//******************************************************************
 // This program generates the required filter coefficients so that
-// an input signal, that is sampled at 64000 S/s can be decimated
-// to 16000 S/s.  This set of coefficients is used for the second 
+// an input signal, that is sampled at 256000 S/s can be decimated
+// to 64000 S/s.  This set of coefficients is used for the first 
 // stage of a 3-stage decimator.  Due to the nature of a multi-stage
 // decimator, the transition width can be relaxed since the final
 // stage of decimation will filter out any aliased components.
@@ -11,8 +12,8 @@
 // The filter specifications are listed below.
 //
 // Pass Band: 0 <= F <= 2400 Hz.
-// Transition Band: 2400 < F <= 12000 Hz.
-// Stop Band: 12000 < F < 16000 Hz.
+// Transition Band: 2400 < F <= 60000 Hz.
+// Stop Band: 60000 < F < 64000 Hz.
 // Passband Ripple: 0.1
 // Stopband Ripple: 0.005
 //
@@ -27,14 +28,14 @@ exec('../Common/utils.sci',-1);
 //******************************************************************
 // Set up parameters.
 //******************************************************************
-// Sample rate is 64000 S/s.
-Fsample = 64000;
+// Sample rate is 256000 S/s.
+Fsample = 256000;
 
 // Passband edge.
 Fp = 2400;
 
 // Stopband edge.
-Fs = 12000;
+Fs = 60000;
 
 // The desired demodulator bandwidth.
 F = [0 Fp; Fs Fsample/2];
@@ -73,7 +74,7 @@ h = eqfir(n,F/Fsample,[1 0],[1/deltaP 1/deltaS]);
 //******************************************************************
 set("figure_style","new");
 
-title("Antialiasing Filter - Sample Rate: 64000 S/s  (non-decimated)");
+title("Antialiasing Filter - Sample Rate: 256000 S/s  (non-decimated)");
 a = gca();
 a.margins = [0.225 0.1 0.125 0.2];
 a.grid = [1 1];
