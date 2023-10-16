@@ -674,6 +674,148 @@ void IqDataProcessor::registerSignalMagnitudeCallback(
 
 /**************************************************************************
 
+  Name: downconvertByFsOver4
+
+  Purpose: The purpose of this function is to downconvert an IQ
+  data stream by Fs/4.  The equations for this function originated
+  from "Understanding Digital Signal Processing, Third Edition" by
+  Richard G. Lyons.  Section 13.1.2 Frequency Translation by -Fs/4,
+  explains how this all works.  Equations (13-2) portray downconversion,
+  and Equations (13-3) portray upconversion.
+
+  Calling Sequence: downconvertByFsOver4(bufferPtr,byteCount)
+
+  Inputs:
+
+    bufferPtr - A pointer to signed IQ data.
+
+    byteCount - The number of bytes contained in the buffer that is
+    in the buffer.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void IqDataProcessor::downconvertByFsOver4(
+  int8_t *bufferPtr,
+  uint32_t byteCount)
+{
+  uint32_t i;
+  int8_t x, y;
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // This block of code translates the spectrum by -Fs/4.
+  // Here's how it works.  The IQ samples are multiplied by
+  // exp(j*PI/2) = {1,-j1,-1,j1,...}. Note that this sequence
+  // repeats modulo 4.  Consider that z(n) = x(n) + jy(n).
+  // The first 4 values of the translated spectrum are,
+  //
+  //    znew(0) =1[x(0) + jy(0)] = x(0) + jy(0).
+  //    znew(1) = -j[(x(1) + jy(1)] = y(1) - jx(1).
+  //    znew(2) = -1[x(2) + jy(2)] = -x(2) -jy(2).
+  //    znew(3) = j[x(3) + jy(3)] = -y(3) + jx(3).
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  for (i = 0; i < byteCount; i += 8)
+  {
+    // znew(0) = x(0) + jy(0).
+    // No processing needs to be done.
+
+    // znew(1) = y(1) - jx(1).
+    x = bufferPtr[i + 2];
+    y = bufferPtr[i + 3];
+    bufferPtr[i + 2] = y;
+    bufferPtr[i + 3] = -x;  
+
+    // znew(2) = -x(2) - jy(2).
+    x = bufferPtr[i + 4];
+    y = bufferPtr[i + 5];
+    bufferPtr[i + 4] = -x;
+    bufferPtr[i + 5] = -y;
+
+    // znew(3) = -y(3) + jx(3).
+    x = bufferPtr[i + 6];
+    y = bufferPtr[i + 7];
+    bufferPtr[i + 6] = -y;
+    bufferPtr[i + 7] = x;
+  } // for
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+} // downconvertByFsOver4
+
+/**************************************************************************
+
+  Name: upconvertByFsOver4
+
+  Purpose: The purpose of this function is to upconvert an IQ
+  data stream by Fs/4.  The equations for this function originated
+  from "Understanding Digital Signal Processing, Third Edition" by
+  Richard G. Lyons.  Section 13.1.2 Frequency Translation by Fs/4,
+  explains how this all works.  Equations (13-2) portray downconversion,
+  and Equations (13-3) portray upconversion.
+
+  Calling Sequence: upconvertByFsOver4(bufferPtr,byteCount)
+
+  Inputs:
+
+    bufferPtr - A pointer to signed IQ data.
+
+    byteCount - The number of bytes contained in the buffer that is
+    in the buffer.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void IqDataProcessor::upconvertByFsOver4(
+  int8_t *bufferPtr,
+  uint32_t byteCount)
+{
+  uint32_t i;
+  int8_t x, y;
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // This block of code translates the spectrum by Fs/4.
+  // Here's how it works.  The IQ samples are multiplied by
+  // exp(j*PI/2) = {1,j1,-1,-j1,...}. Note that this sequence
+  // repeats modulo 4.  Consider that z(n) = x(n) + jy(n).
+  // The first 4 values of the translated spectrum are,
+  //
+  //    znew(0) =1[x(0) + jy(0)] = x(0) + jy(0).
+  //    znew(1) = j[(x(1) + jy(1)] = -y(1) + jx(1).
+  //    znew(2) = -1[x(2) + jy(2)] = -x(2) -jy(2).
+  //    znew(3) = -j[x(3) + jy(3)] = y(3) - jx(3).
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  for (i = 0; i < byteCount; i += 8)
+  {
+    // znew(0) = x(0) + jy(0).
+    // No processing needs to be done.
+
+    // znew(1) = -y(1) + jx(1).
+    x = bufferPtr[i + 2];
+    y = bufferPtr[i + 3];
+    bufferPtr[i + 2] = -y;
+    bufferPtr[i + 3] = x;  
+
+    // znew(2) = -x(2) - jy(2).
+    x = bufferPtr[i + 4];
+    y = bufferPtr[i + 5];
+    bufferPtr[i + 4] = -x;
+    bufferPtr[i + 5] = -y;
+
+    // znew(3) = y(3) - jx(3).
+    x = bufferPtr[i + 6];
+    y = bufferPtr[i + 7];
+    bufferPtr[i + 6] = y;
+    bufferPtr[i + 7] = -x;
+  } // for
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+} // upconvertByFsOver4
+
+/**************************************************************************
+
   Name: enableIqDump
 
   Purpose: The purpose of this function is to enable the streaming of
@@ -793,19 +935,31 @@ void IqDataProcessor::acceptIqData(unsigned long timeStamp,
   decimatedByteCount = reduceSampleRate(bufferPtr,byteCount);
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // When the receive frequency is set by the Radio object, the
+  // radio is tuned to the frequency with an offset of Fs/4.
+  // This allows the 1/f noise to be translated away from the
+  // desired frequency, once the signal is mixed back to
+  // baseband in the digital domain.  Before frequency
+  // translation, the desired signal resides at -Fs/4.  Once
+  // upconverted, the signal will reside at baseband.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  upconvertByFsOver4(decimatedData,decimatedByteCount);
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Send IQ data independent of squelch threshold.  This way,
   // we maintain a live display.
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   if (iqDumpEnabled == true)
   {
     // Send the IQ data to the peer over the network.
-    networkInterfacePtr->sendData(bufferPtr,decimatedByteCount);
+    networkInterfacePtr->sendData(decimatedData,decimatedByteCount);
   } // if
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   // Determine if a signal is available.
   signalAllowed = squelchPtr->run(radio_adjustableReceiveGainInDb,
-                                 bufferPtr,
+                                 decimatedData,
                                  decimatedByteCount);
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/

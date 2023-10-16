@@ -31,6 +31,9 @@ class IqDataProcessor
   void setSignalDetectThreshold(int32_t threshold);
   uint32_t reduceSampleRate(int8_t *bufferPtr,uint32_t bufferLength);
 
+  void downconvertByFsOver4(int8_t *bufferPtr,uint32_t byteCount);
+  void upconvertByFsOver4(int8_t *bufferPtr,uint32_t byteCount);
+
   void acceptIqData(unsigned long timeStamp,
                     int8_t *bufferPtr,
                     unsigned long byteCount);

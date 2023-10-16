@@ -235,7 +235,7 @@ int main(int argc,char **argv)
   sampleRate = 2048000;
 
   // Instantiate a radio.
-  diagUi_radioPtr = new Radio(0,
+  diagUi_radioPtr = new Radio(sampleRate,
                               sampleRate,
                               hostIpAddress,
                               hostPort,

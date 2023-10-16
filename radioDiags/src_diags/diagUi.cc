@@ -107,6 +107,8 @@ static void cmdSetRxFrequency(char *bufferPtr);
 static void cmdSetRxBandwidth(char *bufferPtr);
 static void cmdSetRxSampleRate(char *bufferPtr);
 static void cmdSetRxWarp(char *bufferPtr);
+static void cmdEnableIqDump(char *bufferPtr);
+static void cmdDisableIqDump(char *bufferPtr);
 static void cmdSetSquelch(char *bufferPtr);
 static void cmdStartTransmitter(char *bufferPtr);
 static void cmdStopTransmitter(char *bufferPtr);
@@ -179,6 +181,8 @@ static const commandEntry commandTable[] =
   {"set","samplerate",cmdSetRxSampleRate}, // set rxsamplerate samplerate 
   {"set","warp",cmdSetRxWarp},             // set rxwarp warp 
   {"set","squelch",cmdSetSquelch},           // set squelch threshold
+  {"enable","iqdump",cmdEnableIqDump},       // enable iqdump
+  {"disable","iqdump",cmdDisableIqDump},       // disable iqdump
   {"start","transmitter",cmdStartTransmitter}, // start transmitter
   {"stop","transmitter",cmdStopTransmitter}, // stop transmitter
   {"start","receiver",cmdStartReceiver}, // start receiver
@@ -1862,6 +1866,96 @@ static void cmdSetRxWarp(char *bufferPtr)
 
 /*****************************************************************************
 
+  Name: cmdEnableIqDump
+
+  Purpose: The purpose of this function is to enable the streaming of
+  IQ data over a UDP connection.  This allows a link parter to
+  process this data in any required way: for example, demodulation,
+  spectrum analysis, etc.
+
+  The syntax for the corresponding command is the following:
+
+    "enable iqdump"
+
+  Calling Sequence: cmdEnableIqDump(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdEnableIqDump(char *bufferPtr)
+{
+  bool enabled;
+
+  enabled = diagUi_radioPtr->isIqDumpEnabled();
+
+  if (!enabled)
+  {
+    // Enable IQ data streaming over a UDP connection.
+    diagUi_radioPtr->enableIqDump();
+
+    nprintf(stderr,"IQ data streaming enabled.\n");
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: IQ data streaming is already enabled.\n");
+  } // else
+
+  return;
+
+} // cmdEnableIqDump
+
+/*****************************************************************************
+
+  Name: cmdDisableIqDump
+
+  Purpose: The purpose of this function is to disable the streaming of
+  IQ data over a UDP connection.
+
+  The syntax for the corresponding command is the following:
+
+    "disable iqdump"
+
+  Calling Sequence: cmdDisableIqDump(bufferPtr)
+
+  Inputs:
+
+    bufferPtr - A pointer to the command parameters.
+
+  Outputs:
+
+    None.
+
+*****************************************************************************/
+static void cmdDisableIqDump(char *bufferPtr)
+{
+  bool enabled;
+
+  enabled = diagUi_radioPtr->isIqDumpEnabled();
+
+  if (enabled)
+  {
+  // Disable IQ data streaming over a UDP connection.
+  diagUi_radioPtr->disableIqDump();
+
+  nprintf(stderr,"IQ data streaming disabled.\n");
+  } // if
+  else
+  {
+    nprintf(stderr,"Error: IQ data streaming is already disabled.\n");
+  } // else
+
+  return;
+
+} // cmdEnableIqDump
+
+/*****************************************************************************
+
   Name: cmdSetSquelch
 
   Purpose: The purpose of this function is to set the squelch threshold of
@@ -2729,6 +2823,8 @@ static void cmdHelp(void)
   nprintf(stderr,"set samplerate <samplerate in S/s>\n");
   nprintf(stderr,"set warp <warp in ppm>\n");
   nprintf(stderr,"set squelch <threshold in dBFs>\n");
+  nprintf(stderr,"enable iqdump\n");
+  nprintf(stderr,"disable iqdump\n");
   nprintf(stderr,"start transmitter\n");
   nprintf(stderr,"stop transmitter\n");
   nprintf(stderr,"start receiver\n");
