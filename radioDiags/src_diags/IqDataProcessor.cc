@@ -38,18 +38,22 @@ extern void nprintf(FILE *s,const char *formatPtr, ...);
   Purpose: The purpose of this function is to serve as the constructor
   of an IqDataProcessor object.
 
-  Calling Sequence: IqDataProcessor()
+  Calling Sequence: IqDataProcessor(hostIpAddress,hostPort)
 
   Inputs:
 
-    None.
+    hostIpAddress - A dotted decimal representation of the IP address
+    of the host to support streaming of IQ data.
+
+    hostPort - The UDP port for which the above mentioned host is
+    listening.
 
   Outputs:
 
     None.
 
 **************************************************************************/
-IqDataProcessor::IqDataProcessor(void)
+IqDataProcessor::IqDataProcessor(char *hostIpAddress,int hostPort)
 {
   int numberOfDecimator1Taps;
   int numberOfDecimator2Taps;
@@ -131,6 +135,12 @@ IqDataProcessor::IqDataProcessor(void)
   // Default to no callback registered.
   signalMagnitudeCallbackPtr = NULL;
 
+  // Instantiate network connection.
+  networkInterfacePtr = new UdpClient(hostIpAddress,hostPort);
+
+  // Initially, dumping IQ data over a network connection is disabled.
+  iqDumpEnabled = false;
+
   return; 
 
 } // IqDataProcessor
@@ -190,6 +200,11 @@ IqDataProcessor::~IqDataProcessor()
   if (squelchPtr != NULL)
   {
     delete squelchPtr;
+  } // if
+
+  if (networkInterfacePtr != NULL)
+  {
+    delete networkInterfacePtr;
   } // if
 
   return; 
@@ -659,6 +674,91 @@ void IqDataProcessor::registerSignalMagnitudeCallback(
 
 /**************************************************************************
 
+  Name: enableIqDump
+
+  Purpose: The purpose of this function is to enable the streaming of
+  IQ data over a UDP connection.  This allows a link parter to
+  process this data in any required way: for example, demodulation,
+  spectrum analysis, etc.
+
+  Calling Sequence: enableIqDump()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void IqDataProcessor::enableIqDump(void)
+{
+
+  // Enable the streaming of IQ data over a UDP connection.
+  iqDumpEnabled = true;
+
+  return;
+
+} // enableIqDump
+
+/**************************************************************************
+
+  Name: disableIqDump
+
+  Purpose: The purpose of this function is to disable the streaming of
+  IQ data over a UDP connection.
+
+  Calling Sequence: disableIqDump()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void IqDataProcessor::disableIqDump(void)
+{
+
+  // Disable the streaming of IQ data over a UDP connection.
+  iqDumpEnabled = false;
+
+  return;
+
+} // disableIqDump
+
+/**************************************************************************
+
+  Name: isIqDumpEnabled
+
+  Purpose: The purpose of this function is to determine whether or not
+  the dumping of IQ data, over a UDP connection is enabled or not.
+
+  Calling Sequence: enabled = isIqDumpEnabled()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    enabled - A flag that indicates whether or not the dumping of IQ
+    data is enabled.  A value of true indicates that IQ dumping is
+    enabled, and a value of false indicates that IQ dumping is disabled.
+
+**************************************************************************/
+bool IqDataProcessor::isIqDumpEnabled(void)
+{
+
+  return (iqDumpEnabled);
+
+} // isIqDumpEnabled
+
+/**************************************************************************
+
   Name: acceptIqData
 
   Purpose: The purpose of this function is to queue data to be transmitted
@@ -691,6 +791,17 @@ void IqDataProcessor::acceptIqData(unsigned long timeStamp,
 
   // Decimate to a sample rate that is usable further downstream.
   decimatedByteCount = reduceSampleRate(bufferPtr,byteCount);
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Send IQ data independent of squelch threshold.  This way,
+  // we maintain a live display.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  if (iqDumpEnabled == true)
+  {
+    // Send the IQ data to the peer over the network.
+    networkInterfacePtr->sendData(bufferPtr,decimatedByteCount);
+  } // if
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   // Determine if a signal is available.
   signalAllowed = squelchPtr->run(radio_adjustableReceiveGainInDb,
@@ -845,7 +956,15 @@ void IqDataProcessor::displayInternalInformation(void)
 
   nprintf(stderr,"Signal Detect Threhold   : %d dBFs\n",signalDetectThreshold);
 
+  if (iqDumpEnabled)
+  {
+    nprintf(stderr,"IQ Dump Enabled          : Yes\n");
+  } // if
+  else
+  {
+    nprintf(stderr,"IQ Dump Enabled          : No\n");
+  } // else
+
   return;
 
 } // displayInternalInformation
-

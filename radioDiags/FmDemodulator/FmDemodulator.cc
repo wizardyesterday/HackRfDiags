@@ -16,54 +16,38 @@ static float atan2LookupTable[256][256];
 // These coefficients are used for decimation by 4.
 static float tunerDecimatorCoefficients[] =
 {
-   0.0142160,
-   0.0172016,
-   0.0208329,
-   0.0186518,
-   0.0092485,
-  -0.0061460,
-  -0.0235060,
-  -0.0371215,
-  -0.0417151,
-  -0.0348236,
-  -0.0183720,
-   0.0014735,
-   0.0163144,
-   0.0188833,
-   0.0064515,
-  -0.0171519,
-  -0.0420162,
-  -0.0552787,
-  -0.0458543,
-  -0.0091367,
-   0.0503878,
-   0.1195422,
-   0.1803717,
-   0.2159224,
-   0.2159224,
-   0.1803717,
-   0.1195422,
-   0.0503878,
-  -0.0091367,
-  -0.0458543,
-  -0.0552787,
-  -0.0420162,
-  -0.0171519,
-   0.0064515,
-   0.0188833,
-   0.0163144,
-   0.0014735,
-  -0.0183720,
-  -0.0348236,
-  -0.0417151,
-  -0.0371215,
-  -0.0235060,
-  -0.0061460,
-   0.0092485,
-   0.0186518,
-   0.0208329,
-   0.0172016,
-   0.0142160
+    0.0041331,
+    0.0054174,
+    0.0076016,
+    0.0115481,
+    0.0151685,
+    0.0203192,
+    0.0251608,
+    0.0311322,
+    0.0366372,
+    0.0427168,
+    0.0480527,
+    0.0533425,
+    0.0575831,
+    0.0611914,
+    0.0635413,
+    0.0648239,
+    0.0648239,
+    0.0635413,
+    0.0611914,
+    0.0575831,
+    0.0533425,
+    0.0480527,
+    0.0427168,
+    0.0366372,
+    0.0311322,
+    0.0251608,
+    0.0203192,
+    0.0151685,
+    0.0115481,
+    0.0076016,
+    0.0054174,
+    0.0041331
 };
 
 // These coefficients are used for decimation by 4.
@@ -128,6 +112,18 @@ static float audioDecimatorCoefficients[] =
    0.0015969
 };
 
+// These coefficients are used for the demodulator differentiator.
+static float differentiatorCoefficients[] =
+{
+  -1/16,
+  0,
+  1,
+  0,
+  -1,
+  0,
+  1/16
+};
+
 extern void nprintf(FILE *s,const char *formatPtr, ...);
 
 /*****************************************************************************
@@ -155,6 +151,7 @@ FmDemodulator::FmDemodulator(
   int numberOfTunerDecimatorTaps;
   int numberOfPostDemodDecimatorTaps;
   int numberOfAudioDecimatorTaps;
+  int numberOfDifferentiatorTaps;
   int x, y;
   double xArg, yArg;
 
@@ -183,6 +180,9 @@ FmDemodulator::FmDemodulator(
 
   numberOfAudioDecimatorTaps =
     sizeof(audioDecimatorCoefficients) / sizeof(float);
+
+  numberOfDifferentiatorTaps = 
+      sizeof(differentiatorCoefficients) / sizeof(float);
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // This pair of decimators reduce the sample rate from 256000S/s to
@@ -220,8 +220,15 @@ FmDemodulator::FmDemodulator(
                                           2);
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-  // Initial phase angle for d(theta)/dt computation.
-  previousTheta = 0;
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // This filter performs differentiation of the phase value of the
+  // signal.  It replaces the first-order differentiator in the FM
+  // demodulator.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Allocate the filter.
+  differentiatorPtr = new FirFilter(numberOfDifferentiatorTaps,
+                                    differentiatorCoefficients);
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
   // This is needed for outputting of PCM data.
   this->pcmCallbackPtr = pcmCallbackPtr;
@@ -256,6 +263,7 @@ FmDemodulator::~FmDemodulator(void)
   delete qTunerDecimatorPtr;
   delete postDemodDecimatorPtr;
   delete audioDecimatorPtr;
+  delete differentiatorPtr;
 
   return;
 
@@ -287,9 +295,7 @@ void FmDemodulator::resetDemodulator(void)
   qTunerDecimatorPtr->resetFilterState();
   postDemodDecimatorPtr->resetFilterState();
   audioDecimatorPtr->resetFilterState();
-
-  // Initial phase angle for d(theta)/dt computation.
-  previousTheta = 0;
+  differentiatorPtr->resetFilterState();
 
   return;
 
@@ -473,17 +479,18 @@ uint32_t FmDemodulator::demodulateSignal(uint32_t bufferLength)
 
   for (i = 0; i < bufferLength; i++)
   {
-    // Comput lookup table indices.
+    // Compute lookup table indices.
     iIndex = (uint8_t)iData[i] + 128;
     qIndex = (uint8_t)qData[i] + 128;
 
     // Compute phase angle.
     theta = atan2LookupTable[qIndex][iIndex];
+//    theta = atan2((double)qData[i],(double)iData[i]);
 
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     // Compute d(theta)/dt.
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    deltaTheta = theta - previousTheta;
+    deltaTheta = differentiatorPtr->filterData(theta);
 
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     // We want -M_PI <= deltaTheta <= M_PI.
@@ -501,9 +508,6 @@ uint32_t FmDemodulator::demodulateSignal(uint32_t bufferLength)
 
     // Store the demodulated data.
     demodulatedData[i] = demodulatorGain * deltaTheta;
-
-    // Update our last phase angle for the next iteration.
-    previousTheta = theta;
 
   } // for
 

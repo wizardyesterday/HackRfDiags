@@ -37,6 +37,7 @@ class Radio
   enum informationSourceType {File, Live};
 
   Radio(uint32_t txSampleRate,uint32_t rxSampleRate,
+        char *hostIpAddress,int hostPort,
         void (*pcmCallbackPtr)(int16_t *bufferPtr,uint32_t bufferLength));
 
   ~Radio(void);
@@ -109,6 +110,9 @@ class Radio
   void setWbFmDeviation(float deviation);
 
   void *getIqProcessor(void);
+  void enableIqDump(void);
+  void disableIqDump(void);
+  bool isIqDumpEnabled(void);
 
   // AGC support.
   bool setAgcType(uint32_t type);
