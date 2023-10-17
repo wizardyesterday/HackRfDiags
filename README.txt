@@ -173,6 +173,8 @@ set bandwidth <bandwidth in Hertz>
 set samplerate <samplerate in S/s>
 set warp <warp in ppm>
 set squelch <threshold>
+enable iqdump
+disable iqdump
 start transmitter
 stop transmitter
 start receiver

@@ -37,6 +37,7 @@ class Radio
   enum informationSourceType {File, Live};
 
   Radio(uint32_t txSampleRate,uint32_t rxSampleRate,
+        char *hostIpAddress,int hostPort,
         void (*pcmCallbackPtr)(int16_t *bufferPtr,uint32_t bufferLength));
 
   ~Radio(void);
@@ -44,11 +45,10 @@ class Radio
   // Setters.
   void selectFileSource(void);
   void selectLiveSource(void);
-  bool setReceiveFrequency(uint64_t frequency);
+  bool setFrequency(uint64_t frequency);
   bool setReceiveBandwidth(uint32_t bandwidth);
   bool setReceiveSampleRate(uint32_t sampleRate);
   bool setReceiveWarpInPartsPerMillion(int warp);
-  bool setTransmitFrequency(uint64_t frequency);
   bool setTransmitBandwidth(uint32_t bandwidth);
   bool setTransmitSampleRate(uint32_t sampleRate);
   bool setSignalDetectThreshold(int32_t threshold);
@@ -109,6 +109,9 @@ class Radio
   void setWbFmDeviation(float deviation);
 
   void *getIqProcessor(void);
+  void enableIqDump(void);
+  void disableIqDump(void);
+  bool isIqDumpEnabled(void);
 
   // AGC support.
   bool setAgcType(uint32_t type);
@@ -132,7 +135,9 @@ class Radio
   void tearDownTransmitter(void);
 
   // Core functions used by the interface functions.
-  bool setFrequency(uint64_t frequency);
+  bool setReceiveFrequency(uint64_t frequency);
+  bool setTransmitFrequency(uint64_t frequency);
+
   bool setBandwidth(uint32_t bandwidth);
   bool setSampleRate(uint32_t sampleRate);
   bool setWarpInPartsPerMillion(int warp);

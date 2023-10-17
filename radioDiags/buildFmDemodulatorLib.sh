@@ -11,6 +11,7 @@ CcFiles="\
 
 Includes="\
     -I Filters/Int16 \
+    -I Filters \
     -I FmDemodulator"
  
 # Compile string.

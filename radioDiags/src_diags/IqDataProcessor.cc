@@ -38,18 +38,22 @@ extern void nprintf(FILE *s,const char *formatPtr, ...);
   Purpose: The purpose of this function is to serve as the constructor
   of an IqDataProcessor object.
 
-  Calling Sequence: IqDataProcessor()
+  Calling Sequence: IqDataProcessor(hostIpAddress,hostPort)
 
   Inputs:
 
-    None.
+    hostIpAddress - A dotted decimal representation of the IP address
+    of the host to support streaming of IQ data.
+
+    hostPort - The UDP port for which the above mentioned host is
+    listening.
 
   Outputs:
 
     None.
 
 **************************************************************************/
-IqDataProcessor::IqDataProcessor(void)
+IqDataProcessor::IqDataProcessor(char *hostIpAddress,int hostPort)
 {
   int numberOfDecimator1Taps;
   int numberOfDecimator2Taps;
@@ -131,6 +135,12 @@ IqDataProcessor::IqDataProcessor(void)
   // Default to no callback registered.
   signalMagnitudeCallbackPtr = NULL;
 
+  // Instantiate network connection.
+  networkInterfacePtr = new UdpClient(hostIpAddress,hostPort);
+
+  // Initially, dumping IQ data over a network connection is disabled.
+  iqDumpEnabled = false;
+
   return; 
 
 } // IqDataProcessor
@@ -190,6 +200,11 @@ IqDataProcessor::~IqDataProcessor()
   if (squelchPtr != NULL)
   {
     delete squelchPtr;
+  } // if
+
+  if (networkInterfacePtr != NULL)
+  {
+    delete networkInterfacePtr;
   } // if
 
   return; 
@@ -659,6 +674,233 @@ void IqDataProcessor::registerSignalMagnitudeCallback(
 
 /**************************************************************************
 
+  Name: downconvertByFsOver4
+
+  Purpose: The purpose of this function is to downconvert an IQ
+  data stream by Fs/4.  The equations for this function originated
+  from "Understanding Digital Signal Processing, Third Edition" by
+  Richard G. Lyons.  Section 13.1.2 Frequency Translation by -Fs/4,
+  explains how this all works.  Equations (13-2) portray downconversion,
+  and Equations (13-3) portray upconversion.
+
+  Calling Sequence: downconvertByFsOver4(bufferPtr,byteCount)
+
+  Inputs:
+
+    bufferPtr - A pointer to signed IQ data.
+
+    byteCount - The number of bytes contained in the buffer that is
+    in the buffer.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void IqDataProcessor::downconvertByFsOver4(
+  int8_t *bufferPtr,
+  uint32_t byteCount)
+{
+  uint32_t i;
+  int8_t x, y;
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // This block of code translates the spectrum by -Fs/4.
+  // Here's how it works.  The IQ samples are multiplied by
+  // exp(j*PI/2) = {1,-j1,-1,j1,...}. Note that this sequence
+  // repeats modulo 4.  Consider that z(n) = x(n) + jy(n).
+  // The first 4 values of the translated spectrum are,
+  //
+  //    znew(0) =1[x(0) + jy(0)] = x(0) + jy(0).
+  //    znew(1) = -j[(x(1) + jy(1)] = y(1) - jx(1).
+  //    znew(2) = -1[x(2) + jy(2)] = -x(2) -jy(2).
+  //    znew(3) = j[x(3) + jy(3)] = -y(3) + jx(3).
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  for (i = 0; i < byteCount; i += 8)
+  {
+    // znew(0) = x(0) + jy(0).
+    // No processing needs to be done.
+
+    // znew(1) = y(1) - jx(1).
+    x = bufferPtr[i + 2];
+    y = bufferPtr[i + 3];
+    bufferPtr[i + 2] = y;
+    bufferPtr[i + 3] = -x;  
+
+    // znew(2) = -x(2) - jy(2).
+    x = bufferPtr[i + 4];
+    y = bufferPtr[i + 5];
+    bufferPtr[i + 4] = -x;
+    bufferPtr[i + 5] = -y;
+
+    // znew(3) = -y(3) + jx(3).
+    x = bufferPtr[i + 6];
+    y = bufferPtr[i + 7];
+    bufferPtr[i + 6] = -y;
+    bufferPtr[i + 7] = x;
+  } // for
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+} // downconvertByFsOver4
+
+/**************************************************************************
+
+  Name: upconvertByFsOver4
+
+  Purpose: The purpose of this function is to upconvert an IQ
+  data stream by Fs/4.  The equations for this function originated
+  from "Understanding Digital Signal Processing, Third Edition" by
+  Richard G. Lyons.  Section 13.1.2 Frequency Translation by Fs/4,
+  explains how this all works.  Equations (13-2) portray downconversion,
+  and Equations (13-3) portray upconversion.
+
+  Calling Sequence: upconvertByFsOver4(bufferPtr,byteCount)
+
+  Inputs:
+
+    bufferPtr - A pointer to signed IQ data.
+
+    byteCount - The number of bytes contained in the buffer that is
+    in the buffer.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void IqDataProcessor::upconvertByFsOver4(
+  int8_t *bufferPtr,
+  uint32_t byteCount)
+{
+  uint32_t i;
+  int8_t x, y;
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // This block of code translates the spectrum by Fs/4.
+  // Here's how it works.  The IQ samples are multiplied by
+  // exp(j*PI/2) = {1,j1,-1,-j1,...}. Note that this sequence
+  // repeats modulo 4.  Consider that z(n) = x(n) + jy(n).
+  // The first 4 values of the translated spectrum are,
+  //
+  //    znew(0) =1[x(0) + jy(0)] = x(0) + jy(0).
+  //    znew(1) = j[(x(1) + jy(1)] = -y(1) + jx(1).
+  //    znew(2) = -1[x(2) + jy(2)] = -x(2) -jy(2).
+  //    znew(3) = -j[x(3) + jy(3)] = y(3) - jx(3).
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  for (i = 0; i < byteCount; i += 8)
+  {
+    // znew(0) = x(0) + jy(0).
+    // No processing needs to be done.
+
+    // znew(1) = -y(1) + jx(1).
+    x = bufferPtr[i + 2];
+    y = bufferPtr[i + 3];
+    bufferPtr[i + 2] = -y;
+    bufferPtr[i + 3] = x;  
+
+    // znew(2) = -x(2) - jy(2).
+    x = bufferPtr[i + 4];
+    y = bufferPtr[i + 5];
+    bufferPtr[i + 4] = -x;
+    bufferPtr[i + 5] = -y;
+
+    // znew(3) = y(3) - jx(3).
+    x = bufferPtr[i + 6];
+    y = bufferPtr[i + 7];
+    bufferPtr[i + 6] = y;
+    bufferPtr[i + 7] = -x;
+  } // for
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+} // upconvertByFsOver4
+
+/**************************************************************************
+
+  Name: enableIqDump
+
+  Purpose: The purpose of this function is to enable the streaming of
+  IQ data over a UDP connection.  This allows a link parter to
+  process this data in any required way: for example, demodulation,
+  spectrum analysis, etc.
+
+  Calling Sequence: enableIqDump()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void IqDataProcessor::enableIqDump(void)
+{
+
+  // Enable the streaming of IQ data over a UDP connection.
+  iqDumpEnabled = true;
+
+  return;
+
+} // enableIqDump
+
+/**************************************************************************
+
+  Name: disableIqDump
+
+  Purpose: The purpose of this function is to disable the streaming of
+  IQ data over a UDP connection.
+
+  Calling Sequence: disableIqDump()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void IqDataProcessor::disableIqDump(void)
+{
+
+  // Disable the streaming of IQ data over a UDP connection.
+  iqDumpEnabled = false;
+
+  return;
+
+} // disableIqDump
+
+/**************************************************************************
+
+  Name: isIqDumpEnabled
+
+  Purpose: The purpose of this function is to determine whether or not
+  the dumping of IQ data, over a UDP connection is enabled or not.
+
+  Calling Sequence: enabled = isIqDumpEnabled()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    enabled - A flag that indicates whether or not the dumping of IQ
+    data is enabled.  A value of true indicates that IQ dumping is
+    enabled, and a value of false indicates that IQ dumping is disabled.
+
+**************************************************************************/
+bool IqDataProcessor::isIqDumpEnabled(void)
+{
+
+  return (iqDumpEnabled);
+
+} // isIqDumpEnabled
+
+/**************************************************************************
+
   Name: acceptIqData
 
   Purpose: The purpose of this function is to queue data to be transmitted
@@ -692,9 +934,32 @@ void IqDataProcessor::acceptIqData(unsigned long timeStamp,
   // Decimate to a sample rate that is usable further downstream.
   decimatedByteCount = reduceSampleRate(bufferPtr,byteCount);
 
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // When the receive frequency is set by the Radio object, the
+  // radio is tuned to the frequency with an offset of Fs/4.
+  // This allows the 1/f noise to be translated away from the
+  // desired frequency, once the signal is mixed back to
+  // baseband in the digital domain.  Before frequency
+  // translation, the desired signal resides at -Fs/4.  Once
+  // upconverted, the signal will reside at baseband.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  upconvertByFsOver4(decimatedData,decimatedByteCount);
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Send IQ data independent of squelch threshold.  This way,
+  // we maintain a live display.
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  if (iqDumpEnabled == true)
+  {
+    // Send the IQ data to the peer over the network.
+    networkInterfacePtr->sendData(decimatedData,decimatedByteCount);
+  } // if
+  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
   // Determine if a signal is available.
   signalAllowed = squelchPtr->run(radio_adjustableReceiveGainInDb,
-                                 bufferPtr,
+                                 decimatedData,
                                  decimatedByteCount);
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -845,7 +1110,15 @@ void IqDataProcessor::displayInternalInformation(void)
 
   nprintf(stderr,"Signal Detect Threhold   : %d dBFs\n",signalDetectThreshold);
 
+  if (iqDumpEnabled)
+  {
+    nprintf(stderr,"IQ Dump Enabled          : Yes\n");
+  } // if
+  else
+  {
+    nprintf(stderr,"IQ Dump Enabled          : No\n");
+  } // else
+
   return;
 
 } // displayInternalInformation
-

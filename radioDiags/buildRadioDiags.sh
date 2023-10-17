@@ -22,7 +22,8 @@ CcFiles="\
     src_diags/SignalDetector.cc \
     src_diags/SignalTracker.cc \
     src_diags/console.cc \
-    src_diags/diagUi.cc"
+    src_diags/diagUi.cc \
+    src_diags/UdpClient.cc"
 
 Includes="\
     -I hackRf \

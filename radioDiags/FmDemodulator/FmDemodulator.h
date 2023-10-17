@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 
+#include "FirFilter.h"
 #include "Decimator_int16.h"
 
 class FmDemodulator
@@ -45,9 +46,6 @@ class FmDemodulator
   // This gain maps d(phi)/dt to an information signal.
   float demodulatorGain;
 
-  // Storage for last phase angle.
-  float previousTheta;
-
   // Decimated in-phase and quadrature data samples.
   int16_t iData[4096];
   int16_t qData[4096];
@@ -69,6 +67,7 @@ class FmDemodulator
   Decimator_int16 *qTunerDecimatorPtr;
   Decimator_int16 *postDemodDecimatorPtr;
   Decimator_int16 *audioDecimatorPtr;
+  FirFilter *differentiatorPtr;
 
   // Client callback support.
   void (*pcmCallbackPtr)(int16_t *bufferPtr,uint32_t bufferLength);

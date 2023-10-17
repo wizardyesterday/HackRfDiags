@@ -56,7 +56,8 @@ static void nullPcmDataHandler(int16_t *bufferPtr,uint32_t bufferLength)
   Purpose: The purpose of this function is to serve as the constructor
   of a Radio object.
 
-  Calling Sequence: RadiotxSampleRate,rxSampleRate,pcmCallbackPtr)
+  Calling Sequence: Radio(txSampleRate,rxSampleRate,
+                          hostIpAddress,hostPort,pcmCallbackPtr)
 
   Inputs:
 
@@ -65,6 +66,12 @@ static void nullPcmDataHandler(int16_t *bufferPtr,uint32_t bufferLength)
 
     rxSampleRate - The sample rate of the baseband portion of the
     receiver in samples per second.
+
+    hostIpAddress - A dotted decimal representation of the IP address
+    of the host to support streaming of IQ data.
+
+    hostPort - The UDP port for which the above mentioned host is
+    listening.
 
     pcmCallbackPtr - A pointer to a callback function that is to
     process demodulated data.
@@ -75,8 +82,8 @@ static void nullPcmDataHandler(int16_t *bufferPtr,uint32_t bufferLength)
 
 **************************************************************************/
 Radio::Radio(uint32_t txSampleRate,uint32_t rxSampleRate,
-    void (*pcmCallbackPtr)(int16_t *bufferPtr,uint32_t bufferLength))
-
+             char *hostIpAddress,int hostPort,
+             void (*pcmCallbackPtr)(int16_t *bufferPtr,uint32_t bufferLength))
 { 
   int i;
   int status;
@@ -162,7 +169,7 @@ Radio::Radio(uint32_t txSampleRate,uint32_t rxSampleRate,
 
       // Instantiate the IQ data processor object.  The data consumer object
       // will need this.
-      receiveDataProcessorPtr = new IqDataProcessor();
+      receiveDataProcessorPtr = new IqDataProcessor(hostIpAddress,hostPort);
 
       // Instantiate the data consumer object.  eventConsumerProcedure method
       // will need this.
@@ -576,6 +583,9 @@ bool Radio::startReceiver(void)
 
       if (status == HACKRF_SUCCESS)
       {
+        // Ensure that the proper frequency is set.
+        status = setFrequency(receiveFrequency);
+
         // Ensure that the system will accept any arriving data.
         receiveEnabled = true;
       } // if
@@ -723,8 +733,11 @@ bool Radio::startTransmitter(void)
 
       if (status == HACKRF_SUCCESS)
       {
+        // Ensure that the proper frequency is set.
+        status = setFrequency(transmitFrequency);
+
         // Ensure that the system will allow transmission of data.
-        transmitEnabled = true;;
+        transmitEnabled = true;
       } // if
       else
       {
@@ -937,8 +950,6 @@ void Radio::stopLiveStream(void)
 bool Radio::setFrequency(uint64_t frequency)
 {
   bool success;
-  int error;
-  int64_t correctedFrequency;
 
   // Acquire the I/O subsystem lock.
   pthread_mutex_lock(&ioSubsystemLock);
@@ -948,22 +959,14 @@ bool Radio::setFrequency(uint64_t frequency)
 
   if (devicePtr != 0)
   {
-    // Correct for warp.
-    correctedFrequency = frequency *
-                         (1000000 - receiveWarpInPartsPerMillion) /1000000; 
-
-    // Set the system to the new frequency.
-    error = hackrf_set_freq((hackrf_device *)devicePtr,correctedFrequency);
-
-    if (error == HACKRF_SUCCESS)
+    if (isTransmitting())
     {
-      // Update attributes.
-      receiveFrequency = frequency;
-      transmitFrequency = frequency;
-
-      // indicate success.
-      success = true;
+      success = setTransmitFrequency(frequency);
     } // if
+    else
+    {
+      success = setReceiveFrequency(frequency);
+    } // else
   } // if
 
   // Release the I/O subsystem lock.
@@ -1159,9 +1162,49 @@ bool Radio::setWarpInPartsPerMillion(int warp)
 bool Radio::setReceiveFrequency(uint64_t frequency)
 {
   bool success;
+  int error;
+  int64_t correctedFrequency;
+  uint64_t shiftedFrequency;
 
-  // Invoke the core function.
-  success = setFrequency(frequency);
+  // Acquire the I/O subsystem lock.
+  pthread_mutex_lock(&ioSubsystemLock);
+
+  // Default to failure.
+  success = false;
+
+  if (devicePtr != 0)
+  {
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Tune high, upconvert when the IQ data arrives.  Where did
+    // this 440000 come from? I would have expected that all that
+    // needed to be done would be to tune high Fs/4.  This does
+    // not seem to be the case.  I need to look at the HackRF One
+    // schematic and the associated data sheets to resolve this.
+    // For now, I'll just use this magic number.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    shiftedFrequency = frequency - 440000 + receiveSampleRate / 4;
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+    // Correct for warp.
+    correctedFrequency = shiftedFrequency *
+                         (1000000 - receiveWarpInPartsPerMillion) /1000000; 
+
+    // Set the system to the new frequency.
+    error = hackrf_set_freq((hackrf_device *)devicePtr,correctedFrequency);
+
+    if (error == HACKRF_SUCCESS)
+    {
+      // Update attributes.
+      receiveFrequency = frequency;
+      transmitFrequency = frequency;
+
+      // indicate success.
+      success = true;
+    } // if
+  } // if
+
+  // Release the I/O subsystem lock.
+  pthread_mutex_unlock(&ioSubsystemLock);
 
   return (success);
   
@@ -1648,12 +1691,40 @@ bool Radio::setReceiveWarpInPartsPerMillion(int warp)
 bool Radio::setTransmitFrequency(uint64_t frequency)
 {
   bool success;
+  int error;
+  int64_t correctedFrequency;
 
-  // Invoke the core function.
-  success = setFrequency(frequency);
+  // Acquire the I/O subsystem lock.
+  pthread_mutex_lock(&ioSubsystemLock);
+
+  // Default to failure.
+  success = false;
+
+  if (devicePtr != 0)
+  {
+     // Correct for warp.
+    correctedFrequency = frequency *
+                         (1000000 - receiveWarpInPartsPerMillion) /1000000; 
+
+    // Set the system to the new frequency.
+    error = hackrf_set_freq((hackrf_device *)devicePtr,correctedFrequency);
+
+    if (error == HACKRF_SUCCESS)
+    {
+      // Update attributes.
+      receiveFrequency = frequency;
+      transmitFrequency = frequency;
+
+      // indicate success.
+      success = true;
+    } // if
+  } // if
+
+  // Release the I/O subsystem lock.
+  pthread_mutex_unlock(&ioSubsystemLock);
 
   return (success);
-  
+    
 } // setTransmitFrequency
 
 /**************************************************************************
@@ -1771,6 +1842,94 @@ bool Radio::setTransmitSampleRate(uint32_t sampleRate)
   return (success);
   
 } // setTransmitSampleRate
+
+/**************************************************************************
+
+  Name: enableIqDump
+
+  Purpose: The purpose of this function is to enable the streaming of
+  IQ data over a UDP connection.  This allows a link parter to
+  process this data in any required way: for example, demodulation,
+  spectrum analysis, etc.
+
+  Calling Sequence: enableIqDump()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void Radio::enableIqDump(void)
+{
+
+  // Enable the streaming of IQ data over a UDP connection.
+  receiveDataProcessorPtr->enableIqDump();
+
+  return;
+
+} // enableIqDump
+
+/**************************************************************************
+
+  Name: disableIqDump
+
+  Purpose: The purpose of this function is to disable the streaming of
+  IQ data over a UDP connection.
+  Calling Sequence: disableIqDump()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    None.
+
+**************************************************************************/
+void Radio::disableIqDump(void)
+{
+
+  // Disable the streaming of IQ data over a UDP connection.
+  receiveDataProcessorPtr->disableIqDump();
+
+  return;
+
+} // disableIqDump
+
+/**************************************************************************
+
+  Name: isIqDumpEnabled
+
+  Purpose: The purpose of this function is to determine whether or not
+  the dumping of IQ data, over a UDP connection is enabled or not.
+
+  Calling Sequence: enabled = isIqDumpEnabled()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    enabled - A flag that indicates whether or not the dumping of IQ
+    data is enabled.  A value of true indicates that IQ dumping is
+    enabled, and a value of false indicates that IQ dumping is disabled.
+
+**************************************************************************/
+bool Radio::isIqDumpEnabled(void)
+{
+  bool enabled;
+
+  // Retrieve the IQ dump state.
+  enabled = receiveDataProcessorPtr->isIqDumpEnabled();
+
+  return (enabled);
+
+} // isIqDumpEnabled
 
 /**************************************************************************
 

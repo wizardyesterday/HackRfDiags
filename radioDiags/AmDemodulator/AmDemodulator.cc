@@ -302,7 +302,7 @@ void AmDemodulator::acceptIqData(int8_t *bufferPtr,uint32_t bufferLength)
   sampleCount = reduceSampleRate(bufferPtr,bufferLength);
 
   // Demodulate the decimated signal.
-  demodulateSignal(sampleCount);
+  sampleCount = demodulateSignal(sampleCount);
 
   // Create the PCM data stream.
   sampleCount = createPcmData(sampleCount);

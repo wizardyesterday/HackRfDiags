@@ -16,7 +16,7 @@ Includes="\
      -I pfkUtils"
  
 # Compile string.
-Compile="g++ -O3 -c $Includes $CcFiles"
+Compile="g++ -std=c++98 -O3 -c $Includes $CcFiles"
 
 # Build our library.
 $Compile
