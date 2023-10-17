@@ -583,6 +583,9 @@ bool Radio::startReceiver(void)
 
       if (status == HACKRF_SUCCESS)
       {
+        // Ensure that the proper frequency is set.
+        status = setFrequency(receiveFrequency);
+
         // Ensure that the system will accept any arriving data.
         receiveEnabled = true;
       } // if
@@ -730,8 +733,11 @@ bool Radio::startTransmitter(void)
 
       if (status == HACKRF_SUCCESS)
       {
+        // Ensure that the proper frequency is set.
+        status = setFrequency(transmitFrequency);
+
         // Ensure that the system will allow transmission of data.
-        transmitEnabled = true;;
+        transmitEnabled = true;
       } // if
       else
       {
@@ -944,9 +950,6 @@ void Radio::stopLiveStream(void)
 bool Radio::setFrequency(uint64_t frequency)
 {
   bool success;
-  int error;
-  int64_t correctedFrequency;
-  uint64_t slidedFrequency;
 
   // Acquire the I/O subsystem lock.
   pthread_mutex_lock(&ioSubsystemLock);
@@ -956,33 +959,14 @@ bool Radio::setFrequency(uint64_t frequency)
 
   if (devicePtr != 0)
   {
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Tune high, upconvert when the IQ data arrives.  Where did
-    // this 440000 come from? I would have expected that all that
-    // needed to be done would be to tune high Fs/4.  This does
-    // not seem to be the case.  I need to look at the HackRF One
-    // schematic and the associated data sheets to resolve this.
-    // For now, I'll just use this magic number.
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    slidedFrequency = frequency - 440000 + receiveSampleRate / 4;
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-
-    // Correct for warp.
-    correctedFrequency = slidedFrequency *
-                         (1000000 - receiveWarpInPartsPerMillion) /1000000; 
-
-    // Set the system to the new frequency.
-    error = hackrf_set_freq((hackrf_device *)devicePtr,correctedFrequency);
-
-    if (error == HACKRF_SUCCESS)
+    if (isTransmitting())
     {
-      // Update attributes.
-      receiveFrequency = frequency;
-      transmitFrequency = frequency;
-
-      // indicate success.
-      success = true;
+      success = setTransmitFrequency(frequency);
     } // if
+    else
+    {
+      success = setReceiveFrequency(frequency);
+    } // else
   } // if
 
   // Release the I/O subsystem lock.
@@ -1178,9 +1162,49 @@ bool Radio::setWarpInPartsPerMillion(int warp)
 bool Radio::setReceiveFrequency(uint64_t frequency)
 {
   bool success;
+  int error;
+  int64_t correctedFrequency;
+  uint64_t shiftedFrequency;
 
-  // Invoke the core function.
-  success = setFrequency(frequency);
+  // Acquire the I/O subsystem lock.
+  pthread_mutex_lock(&ioSubsystemLock);
+
+  // Default to failure.
+  success = false;
+
+  if (devicePtr != 0)
+  {
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Tune high, upconvert when the IQ data arrives.  Where did
+    // this 440000 come from? I would have expected that all that
+    // needed to be done would be to tune high Fs/4.  This does
+    // not seem to be the case.  I need to look at the HackRF One
+    // schematic and the associated data sheets to resolve this.
+    // For now, I'll just use this magic number.
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    shiftedFrequency = frequency - 440000 + receiveSampleRate / 4;
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+    // Correct for warp.
+    correctedFrequency = shiftedFrequency *
+                         (1000000 - receiveWarpInPartsPerMillion) /1000000; 
+
+    // Set the system to the new frequency.
+    error = hackrf_set_freq((hackrf_device *)devicePtr,correctedFrequency);
+
+    if (error == HACKRF_SUCCESS)
+    {
+      // Update attributes.
+      receiveFrequency = frequency;
+      transmitFrequency = frequency;
+
+      // indicate success.
+      success = true;
+    } // if
+  } // if
+
+  // Release the I/O subsystem lock.
+  pthread_mutex_unlock(&ioSubsystemLock);
 
   return (success);
   
@@ -1667,12 +1691,40 @@ bool Radio::setReceiveWarpInPartsPerMillion(int warp)
 bool Radio::setTransmitFrequency(uint64_t frequency)
 {
   bool success;
+  int error;
+  int64_t correctedFrequency;
 
-  // Invoke the core function.
-  success = setFrequency(frequency);
+  // Acquire the I/O subsystem lock.
+  pthread_mutex_lock(&ioSubsystemLock);
+
+  // Default to failure.
+  success = false;
+
+  if (devicePtr != 0)
+  {
+     // Correct for warp.
+    correctedFrequency = frequency *
+                         (1000000 - receiveWarpInPartsPerMillion) /1000000; 
+
+    // Set the system to the new frequency.
+    error = hackrf_set_freq((hackrf_device *)devicePtr,correctedFrequency);
+
+    if (error == HACKRF_SUCCESS)
+    {
+      // Update attributes.
+      receiveFrequency = frequency;
+      transmitFrequency = frequency;
+
+      // indicate success.
+      success = true;
+    } // if
+  } // if
+
+  // Release the I/O subsystem lock.
+  pthread_mutex_unlock(&ioSubsystemLock);
 
   return (success);
-  
+    
 } // setTransmitFrequency
 
 /**************************************************************************

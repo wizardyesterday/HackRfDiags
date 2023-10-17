@@ -45,11 +45,10 @@ class Radio
   // Setters.
   void selectFileSource(void);
   void selectLiveSource(void);
-  bool setReceiveFrequency(uint64_t frequency);
+  bool setFrequency(uint64_t frequency);
   bool setReceiveBandwidth(uint32_t bandwidth);
   bool setReceiveSampleRate(uint32_t sampleRate);
   bool setReceiveWarpInPartsPerMillion(int warp);
-  bool setTransmitFrequency(uint64_t frequency);
   bool setTransmitBandwidth(uint32_t bandwidth);
   bool setTransmitSampleRate(uint32_t sampleRate);
   bool setSignalDetectThreshold(int32_t threshold);
@@ -136,7 +135,9 @@ class Radio
   void tearDownTransmitter(void);
 
   // Core functions used by the interface functions.
-  bool setFrequency(uint64_t frequency);
+  bool setReceiveFrequency(uint64_t frequency);
+  bool setTransmitFrequency(uint64_t frequency);
+
   bool setBandwidth(uint32_t bandwidth);
   bool setSampleRate(uint32_t sampleRate);
   bool setWarpInPartsPerMillion(int warp);

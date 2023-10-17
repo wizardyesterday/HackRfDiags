@@ -202,7 +202,7 @@ void FrequencySweeper::sweepProcedure(void *arg)
   currentFrequency = thisPtr->startFrequencyInHertz;
 
   // Select initial frequency.
-  outcome = thisPtr->radioPtr->setReceiveFrequency(currentFrequency);
+  outcome = thisPtr->radioPtr->setFrequency(currentFrequency);
 
   // Indicate that the system is sweeping.
   thisPtr->sweepState = Sweeping;
@@ -227,7 +227,7 @@ void FrequencySweeper::sweepProcedure(void *arg)
       thisPtr->currentFrequencyInHertz = currentFrequency;
   
       // Select new frequency.
-      outcome = thisPtr->radioPtr->setReceiveFrequency(currentFrequency);
+      outcome = thisPtr->radioPtr->setFrequency(currentFrequency);
 
       if (dwellTime != 0)
       {

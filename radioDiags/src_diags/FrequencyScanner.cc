@@ -237,7 +237,7 @@ bool FrequencyScanner::start(void)
       currentFrequencyInHertz = endFrequencyInHertz;
 
       // Select new frequency.
-      result = radioPtr->setReceiveFrequency(currentFrequencyInHertz);
+      result = radioPtr->setFrequency(currentFrequencyInHertz);
 
 
       // Negate the flag so that this processing occurs one time.
@@ -392,7 +392,7 @@ void FrequencyScanner::run(bool signalPresent)
     } // if
 
     // Select new frequency.
-    success = radioPtr->setReceiveFrequency(currentFrequencyInHertz);
+    success = radioPtr->setFrequency(currentFrequencyInHertz);
   } // if
 
   return;

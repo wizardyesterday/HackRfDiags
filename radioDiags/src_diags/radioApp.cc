@@ -242,8 +242,7 @@ int main(int argc,char **argv)
                               processPcmData);
 
   // Set the desired frequency.
-  diagUi_radioPtr->setTransmitFrequency(transceiveFrequency);
-  diagUi_radioPtr->setReceiveFrequency(transceiveFrequency);
+  diagUi_radioPtr->setFrequency(transceiveFrequency);
 
   // Instantiate a frequency scanner.
   diagUi_frequencyScannerPtr = new FrequencyScanner(diagUi_radioPtr);

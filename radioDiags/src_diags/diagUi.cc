@@ -103,7 +103,7 @@ static void cmdDisableTxFrontendAmp(char *bufferPtr);
 static void cmdSetTxIfGain(char *bufferPtr);
 static void cmdSetRxIfGain(char *bufferPtr);
 static void cmdSetRxBasebandGain(char *bufferPtr);
-static void cmdSetRxFrequency(char *bufferPtr);
+static void cmdSetFrequency(char *bufferPtr);
 static void cmdSetRxBandwidth(char *bufferPtr);
 static void cmdSetRxSampleRate(char *bufferPtr);
 static void cmdSetRxWarp(char *bufferPtr);
@@ -176,7 +176,7 @@ static const commandEntry commandTable[] =
   {"set","txifgain",cmdSetTxIfGain},           // set txifgain gain
   {"set","rxifgain",cmdSetRxIfGain},           // set rxifgain gain
   {"set","rxbasebandgain",cmdSetRxBasebandGain},// set rxbasebandgain gain
-  {"set","frequency",cmdSetRxFrequency},   // set frequency frequency
+  {"set","frequency",cmdSetFrequency},   // set frequency frequency
   {"set","bandwidth",cmdSetRxBandwidth},   // set rxbandwidth bandwidth 
   {"set","samplerate",cmdSetRxSampleRate}, // set rxsamplerate samplerate 
   {"set","warp",cmdSetRxWarp},             // set rxwarp warp 
@@ -1661,16 +1661,16 @@ static void cmdSetRxBasebandGain(char *bufferPtr)
 
 /*****************************************************************************
 
-  Name: cmdSetRxFrequency
+  Name: cmdSetFrequency
 
   Purpose: The purpose of this function is to set the receive frequency of
   the system.
 
   The syntax for the corresponding command is the following:
 
-    "set rxfrequency frequency"
+    "set frequency frequency"
 
-  Calling Sequence: cmdSetRxFrequency(bufferPtr)
+  Calling Sequence: cmdSetFrequency(bufferPtr)
 
   Inputs:
 
@@ -1681,7 +1681,7 @@ static void cmdSetRxBasebandGain(char *bufferPtr)
     None.
 
 *****************************************************************************/
-static void cmdSetRxFrequency(char *bufferPtr)
+static void cmdSetFrequency(char *bufferPtr)
 {
   bool success;
   uint64_t frequency;
@@ -1694,7 +1694,7 @@ static void cmdSetRxFrequency(char *bufferPtr)
   if ((frequency >= 1000000) && (frequency <= 6000000000))
   {
     // Set the receiver frequency.
-    success = diagUi_radioPtr->setReceiveFrequency(frequency);
+    success = diagUi_radioPtr->setFrequency(frequency);
 
     if (success)
     {
@@ -1712,7 +1712,7 @@ static void cmdSetRxFrequency(char *bufferPtr)
 
   return;
 
-} // cmdSetRxFrequency
+} // cmdSetFrequency
 
 /*****************************************************************************
 
