@@ -1163,6 +1163,7 @@ bool Radio::setReceiveFrequency(uint64_t frequency)
 {
   bool success;
   int error;
+  uint32_t decimatedIqSampleRate;  
   int64_t correctedFrequency;
   uint64_t shiftedFrequency;
 
@@ -1172,17 +1173,17 @@ bool Radio::setReceiveFrequency(uint64_t frequency)
   // Default to failure.
   success = false;
 
+  // This is the sample rate that we're interested in.
+  decimatedIqSampleRate = receiveSampleRate / 8;
+
   if (devicePtr != 0)
   {
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Tune high, upconvert when the IQ data arrives.  Where did
-    // this 440000 come from? I would have expected that all that
-    // needed to be done would be to tune high Fs/4.  This does
-    // not seem to be the case.  I need to look at the HackRF One
-    // schematic and the associated data sheets to resolve this.
-    // For now, I'll just use this magic number.
+    // Tune high, upconvert when the IQ data arrives by the
+    // ultimate sample rate of the IQ data that drives the
+    // demodulators and all signal processing blocks.
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    shiftedFrequency = frequency - 440000 + receiveSampleRate / 4;
+    shiftedFrequency = frequency + decimatedIqSampleRate / 4;
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     // Correct for warp.
