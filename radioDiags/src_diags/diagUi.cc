@@ -1739,7 +1739,7 @@ static void cmdSetFrequency(char *bufferPtr)
 static void cmdSetRxBandwidth(char *bufferPtr)
 {
   bool success;
-  uint32_t bandwidth;
+  unsigned long bandwidth;
 
   success = true;
 
@@ -1747,7 +1747,7 @@ static void cmdSetRxBandwidth(char *bufferPtr)
   sscanf(bufferPtr,"%lu",&bandwidth);
 
   // Set the receiver bandwidth.
-  success = diagUi_radioPtr->setReceiveBandwidth(bandwidth);
+  success = diagUi_radioPtr->setReceiveBandwidth((uint32_t)bandwidth);
 
   if (success)
   {
@@ -1787,7 +1787,7 @@ static void cmdSetRxBandwidth(char *bufferPtr)
 static void cmdSetRxSampleRate(char *bufferPtr)
 {
   bool success;
-  uint32_t sampleRate;
+  unsigned long sampleRate;
 
   success = true;
 
@@ -1797,7 +1797,7 @@ static void cmdSetRxSampleRate(char *bufferPtr)
   if ((sampleRate >= 2000000) && (sampleRate <= 20000000))
   {
     // Set the receiver sample rate.
-    success = diagUi_radioPtr->setReceiveSampleRate(sampleRate);
+    success = diagUi_radioPtr->setReceiveSampleRate((uint32_t)sampleRate);
 
     if (success)
     {
@@ -2481,7 +2481,7 @@ static void cmdStartFrequencySweep(char *bufferPtr)
   int64_t stepSize;
   uint64_t count;
   uint64_t upperFrequency;
-  uint32_t dwellTime;
+  unsigned long dwellTime;
 
 
   if (diagUi_frequencySweeperPtr == 0)
@@ -2508,7 +2508,7 @@ static void cmdStartFrequencySweep(char *bufferPtr)
                                                           frequency,
                                                           (uint64_t)stepSize,
                                                           count,
-                                                          dwellTime);
+                                                          (uint32_t)dwellTime);
 
         nprintf(stderr,"Frequency sweeping started.\n");
       } // if
