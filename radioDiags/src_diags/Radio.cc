@@ -583,11 +583,11 @@ bool Radio::startReceiver(void)
 
       if (status == HACKRF_SUCCESS)
       {
-        // Ensure that the proper frequency is set.
-        status = setFrequency(receiveFrequency);
-
         // Ensure that the system will accept any arriving data.
         receiveEnabled = true;
+
+        // Ensure that the proper frequency is set.
+        status = setFrequency(receiveFrequency);
       } // if
       else
       {
@@ -733,11 +733,11 @@ bool Radio::startTransmitter(void)
 
       if (status == HACKRF_SUCCESS)
       {
-        // Ensure that the proper frequency is set.
-        status = setFrequency(transmitFrequency);
-
         // Ensure that the system will allow transmission of data.
         transmitEnabled = true;
+
+        // Ensure that the proper frequency is set.
+        status = setFrequency(transmitFrequency);
       } // if
       else
       {
