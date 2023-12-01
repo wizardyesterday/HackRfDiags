@@ -206,6 +206,7 @@ below.
 Radio Internal Information
 ------------------------------------------------------
 Information Source                  : File
+Frequency Warp:                     : -28 ppm
 Receive Enabled                     : No
 Receive Front End Amp Enabled       : Yes
 Receive IF Gain:                    : 0 dB
@@ -213,7 +214,6 @@ Receive Baseband Gain:              : 0 dB
 Receive Frequency                   : 89100000 Hz
 Receive Bandwidth                   : 1750000 Hz
 Receive Sample Rate:                : 2048000 S/s
-Receive Frequency Warp:             : -30 ppm
 Receive Timestamp                   : 376176640
 Receive Block Count                 : 2870
 Transmit Enabled                    : No
@@ -222,7 +222,6 @@ Transmit IF Gain:                   : 35 dB
 Transmit Frequency                  : 89100000 Hz
 Transmit Bandwidth                  : 1750000 Hz
 Transmit Sample Rate                : 2048000 S/s
-Transmit Frequency Warp:            : -30 ppm
 Transmit Block Count                : 8789
 
 --------------------------------------------

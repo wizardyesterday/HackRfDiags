@@ -166,7 +166,7 @@ class Radio
   uint64_t receiveFrequency;
   uint32_t receiveSampleRate;
   uint32_t receiveBandwidth;
-  int receiveWarpInPartsPerMillion;
+  int warpInPartsPerMillion;
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Transmitter configuration.

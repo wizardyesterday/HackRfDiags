@@ -413,7 +413,7 @@ bool Radio::setupReceiver(void)
   radio_adjustableReceiveGainInDb = 16;  
 
   // Default to no frequency error.
-  receiveWarpInPartsPerMillion = 0;
+  warpInPartsPerMillion = 0;
 
   // Complement our cumulative result.
   success = !success;
@@ -1067,7 +1067,7 @@ bool Radio::setSampleRate(uint32_t sampleRate)
   {
     // Correct for warp.
     correctedSampleRate = (uint32_t)((double)sampleRate *
-                          (1000000 - receiveWarpInPartsPerMillion)/1000000+0.5);
+                          (1000000 - warpInPartsPerMillion)/1000000+0.5);
 
     // Set the system to the new sample rate.
     error = hackrf_set_sample_rate((hackrf_device *)devicePtr,
@@ -1123,7 +1123,7 @@ bool Radio::setWarpInPartsPerMillion(int warp)
   pthread_mutex_lock(&ioSubsystemLock);
 
   // Update attribute.
-  receiveWarpInPartsPerMillion = warp;
+  warpInPartsPerMillion = warp;
 
   // Update the sample rate and frequency to take the warp value into account.
   success = !setSampleRate(receiveSampleRate);
@@ -1188,7 +1188,7 @@ bool Radio::setReceiveFrequency(uint64_t frequency)
 
     // Correct for warp.
     correctedFrequency = shiftedFrequency *
-                         (1000000 - receiveWarpInPartsPerMillion) /1000000; 
+                         (1000000 - warpInPartsPerMillion) /1000000; 
 
     // Set the system to the new frequency.
     error = hackrf_set_freq((hackrf_device *)devicePtr,correctedFrequency);
@@ -1705,7 +1705,7 @@ bool Radio::setTransmitFrequency(uint64_t frequency)
   {
      // Correct for warp.
     correctedFrequency = frequency *
-                         (1000000 - receiveWarpInPartsPerMillion) /1000000; 
+                         (1000000 - warpInPartsPerMillion) /1000000; 
 
     // Set the system to the new frequency.
     error = hackrf_set_freq((hackrf_device *)devicePtr,correctedFrequency);
@@ -2182,7 +2182,7 @@ uint32_t Radio::getReceiveSampleRate(void)
 int Radio::getReceiveWarpInPartsPerMillion(void)
 {
 
-  return (receiveWarpInPartsPerMillion);
+  return (warpInPartsPerMillion);
   
 } // getReceiveWarpInPartsPerMillion
 
@@ -2988,7 +2988,11 @@ void Radio::displayInternalInformation(void)
     } // case
   } // switch
 
+  nprintf(stderr,"Frequency Warp:                     : %d ppm\n",
+          warpInPartsPerMillion);
+
   nprintf(stderr,"Receive Enabled                     : ");
+
   if (receiveEnabled)
   {
     nprintf(stderr,"Yes\n");
@@ -3027,8 +3031,6 @@ void Radio::displayInternalInformation(void)
           receiveBandwidth);
   nprintf(stderr,"Receive Sample Rate:                : %u S/s\n",
           receiveSampleRate);
-  nprintf(stderr,"Receive Frequency Warp:             : %d ppm\n",
-          receiveWarpInPartsPerMillion);
   nprintf(stderr,"Receive Timestamp                   : %u\n",
           receiveTimeStamp);
   nprintf(stderr,"Receive Block Count                 : %u\n",
@@ -3062,8 +3064,6 @@ void Radio::displayInternalInformation(void)
           receiveBandwidth);
   nprintf(stderr,"Transmit Sample Rate                : %u S/s\n",
           receiveSampleRate);
-  nprintf(stderr,"Transmit Frequency Warp:            : %d ppm\n",
-          receiveWarpInPartsPerMillion);
  
   nprintf(stderr,"Transmit Block Count                : %u\n",
           transmitBlockCount);
