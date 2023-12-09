@@ -561,21 +561,6 @@ bool Radio::startReceiver(void)
       // Ensure that the data consumer will accept data.
       dataConsumerPtr->start();
 
-      //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-      // We'll keep track of amplifier enable state here,
-      // since the firmware in the HackRf disables the amp
-      // when the radio is stopped.
-      //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-      if (receiveFrontEndAmplifierEnabled)
-      {
-        success = enableReceiveFrontEndAmplifier();
-      } // if
-      else
-      {
-        success = disableReceiveFrontEndAmplifier();
-      } // else
-      //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-
       // Start the receive process.
       status = hackrf_start_rx((hackrf_device *)devicePtr,
                                receiveCallbackProcedure,
@@ -588,6 +573,22 @@ bool Radio::startReceiver(void)
 
         // Ensure that the proper frequency is set.
         status = setFrequency(receiveFrequency);
+
+        //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+        // We'll keep track of amplifier enable state here,
+        // since the firmware in the HackRf disables the amp
+        // when the radio is stopped.
+        //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+        if (receiveFrontEndAmplifierEnabled)
+        {
+          success = enableReceiveFrontEndAmplifier();
+        } // if
+        else
+        {
+          success = disableReceiveFrontEndAmplifier();
+        } // else
+        //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
       } // if
       else
       {
@@ -711,21 +712,6 @@ bool Radio::startTransmitter(void)
   {
     if (devicePtr != 0)
     {
-      //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-      // We'll keep track of amplifier enable state here,
-      // since the firmware in the HackRf disables the amp
-      // when the radio is stopped.
-      //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-      if (transmitFrontEndAmplifierEnabled)
-      {
-        success = enableTransmitFrontEndAmplifier();
-      } // if
-      else
-      {
-        success = disableTransmitFrontEndAmplifier();
-      } // else
-      //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-
       // Start the transmit process.
       status = hackrf_start_tx((hackrf_device *)devicePtr,
                                transmitCallbackProcedure,
@@ -738,6 +724,22 @@ bool Radio::startTransmitter(void)
 
         // Ensure that the proper frequency is set.
         status = setFrequency(transmitFrequency);
+
+        //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+        // We'll keep track of amplifier enable state here,
+        // since the firmware in the HackRf disables the amp
+        // when the radio is stopped.
+        //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+        if (transmitFrontEndAmplifierEnabled)
+        {
+          success = enableTransmitFrontEndAmplifier();
+        } // if
+        else
+        {
+          success = disableTransmitFrontEndAmplifier();
+        } // else
+        //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
       } // if
       else
       {
