@@ -712,6 +712,9 @@ bool Radio::startTransmitter(void)
   {
     if (devicePtr != 0)
     {
+      // Ensure that the system will allow transmission of data.
+      transmitEnabled = true;
+
       // Start the transmit process.
       status = hackrf_start_tx((hackrf_device *)devicePtr,
                                transmitCallbackProcedure,
@@ -719,9 +722,6 @@ bool Radio::startTransmitter(void)
 
       if (status == HACKRF_SUCCESS)
       {
-        // Ensure that the system will allow transmission of data.
-        transmitEnabled = true;
-
         // Ensure that the proper frequency is set.
         status = setFrequency(transmitFrequency);
 
@@ -743,6 +743,9 @@ bool Radio::startTransmitter(void)
       } // if
       else
       {
+        // Don't all transmission.
+        transmitEnabled = false;
+
         // Indicate failure.
         success = false;
       } // else
