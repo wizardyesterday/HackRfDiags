@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "thread_slinger.h"
+#include "MessageQueue.h"
 
 // Make sure this agrees with the Radio RECEIVE_BUFFER_SIZE.
 #define DATA_CONSUMER_BUFFER_SIZE (262144)
@@ -19,7 +19,7 @@
 
 class IqDataProcessor;
 
-struct iqMessage : public ThreadSlinger::thread_slinger_message
+struct iqMessage
 {
   uint32_t timeStamp;
   uint32_t byteCount;
@@ -66,7 +66,7 @@ class DataConsumer
   // Message support.
   unsigned long messageIndex;
   iqMessage message[DATA_CONSUMER_NUMBER_OF_MESSAGES];
-  ThreadSlinger::thread_slinger_queue<iqMessage> iqMessageQueue;
+  MessageQueue *iqMessageQueuePtr;
 
   // Data consumer thread support.
   pthread_t dataConsumerThread;

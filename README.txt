@@ -12,14 +12,13 @@ code.  I've merely incorporated a snapshot of it into my code since it provides
 the foundation for my system, and I want people to be able to build the code
 in a standalone fashion.
 
-Next up, I did *not* write any of the pfkutils code.  I incorporated a
-snapshot of Phil's code, and I specifically use his threadslinger code to
-provide a thread-to-thread messaging mechanism in my code.  Finally, I
-didn't use makefiles, although, I don't really have anything against using
-make.  This occurred because I wanted to whip something up quick and dirty.
-The system grew though, but I still don't really have any regrets as to my
-decision.  The result is that the user need only have g++, and bash to build
-my code (and the other people's code which I have included in the system).
+Next up, I wrote my own message queue code since I needed something that
+could survive newer versions of compilers.  Finally, I didn't use makefiles,
+although, I don't really have anything against using make.  This occurred
+because I wanted to whip something up quick and dirty.  The system grew
+though, but I still don't really have any regrets as to my decision.  The
+result is that the user need only have g++, and bash to build my code (and
+the other people's code which I have included in the system).
 
 Here's how you build this stuff.
 

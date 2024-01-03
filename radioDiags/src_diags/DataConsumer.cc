@@ -38,6 +38,9 @@ DataConsumer::DataConsumer(IqDataProcessor *dataProcessorPtr)
   // Start at the beginning of the message pool.
   messageIndex = 0;
 
+  // Instiate the message queue.
+  iqMessageQueuePtr = new MessageQueue(DATA_CONSUMER_NUMBER_OF_MESSAGES);
+
   // These will be set when the first data block  is received.
   lastTimeStamp = 0;
 
@@ -81,6 +84,12 @@ DataConsumer::~DataConsumer(void)
 
   // Wait for thread to terminate.
   pthread_join(dataConsumerThread,0);
+
+  // Release resources.
+  if (iqMessageQueuePtr != NULL)
+  {
+    delete iqMessageQueuePtr;
+  } // if
 
   return;
  
@@ -179,16 +188,6 @@ void DataConsumer::reset(void)
   // Indicate that all blocks received were the proper length.
   shortBlockCount = 0;
 
-  // See how many entries are in the message queue.
-  count = iqMessageQueue.get_count();
-
-  // Clear the message queue.
-  for (i = 0; i < count; i++)
-  {
-    // Dequeue without waiting.
-    iqMessageQueue.dequeue(0);
-  } // for  
-
   return;
  
 } // reset
@@ -248,7 +247,7 @@ void DataConsumer::acceptData(uint32_t timeStamp,
     memcpy(message[messageIndex].buffer,bufferPtr,bufferLength);
 
     // Queue the message to the data consumer thread.
-    iqMessageQueue.enqueue(&message[messageIndex]);
+    iqMessageQueuePtr->enqueueEntry(&message[messageIndex]);
 
     // Reference the next message.
     messageIndex++;
@@ -333,7 +332,7 @@ void DataConsumer::dataConsumerProcedure(void *arg)
   while (!mePtr->timeToExit)
   {
     // Retrieve the queued message.
-    messagePtr = mePtr->iqMessageQueue.dequeue(100000);
+    messagePtr = (iqMessage *)mePtr->iqMessageQueuePtr->dequeueEntry();
 
     // Is a message available?
     if (messagePtr != 0)
