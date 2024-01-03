@@ -12,7 +12,6 @@ sh buildAmModulatorLib.sh
 sh buildFmModulatorLib.sh
 sh buildWbFmModulatorLib.sh
 sh buildSsbModulatorLib.sh
-sh buildMsgqLib.sh
 sh buildHackRfLib.sh
 
 exit 0
