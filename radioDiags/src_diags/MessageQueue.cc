@@ -89,17 +89,17 @@ MessageQueue:: MessageQueue(uint32_t numberOfEntries)
 MessageQueue::~MessageQueue(void)
 {
 
-  // Release resources.
-  if (queuePtr != NULL)
-  {
-    delete [] queuePtr;
-  } // if
-
   // Destroy queue lock.
   pthread_mutex_destroy(&queueLock);
 
   // Destroy the condition variable.
   pthread_cond_destroy(&dataAvailable);
+
+  // Release resources.
+  if (queuePtr != NULL)
+  {
+    delete [] queuePtr;
+  } // if
 
   return;
 
