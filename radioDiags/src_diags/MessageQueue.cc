@@ -51,7 +51,7 @@ MessageQueue:: MessageQueue(uint32_t numberOfEntries)
 
   // Set up the attribute.
   pthread_mutexattr_init(&mutexAttribute);
-  pthread_mutexattr_settype(&mutexAttribute,PTHREAD_MUTEX_RECURSIVE_NP);
+  pthread_mutexattr_settype(&mutexAttribute,PTHREAD_MUTEX_RECURSIVE);
 
   // Initialize the mutex using the attribute.
   pthread_mutex_init(&queueLock,&mutexAttribute);
