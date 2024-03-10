@@ -12,6 +12,7 @@
 #include <stdint.h>
 
 #include "Interpolator_int16.h"
+#include "Nco.h"
 
 class FmModulator
 {
@@ -93,6 +94,9 @@ class FmModulator
   Interpolator_int16 *qInterpolator6Ptr;
   Interpolator_int16 *qInterpolator7Ptr;
   Interpolator_int16 *qInterpolator8Ptr;
+
+  // The NCO really does the heavy lifting.
+  Nco *ncoPtr;
 };
 
 #endif // __FMMODULATOR__
