@@ -589,8 +589,16 @@ uint32_t WbFmModulator::modulateSignal(int16_t *bufferPtr,
 
   for (i = 0; i < bufferLength; i++)
   {
-    // Scale the PCM sample to unity and multiply by the frequency deviation.
-    ncoFrequency = frequencyDeviation * (float)bufferPtr[i] / 32768;
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // We have to scale the interpolated PCM sample to unity.  Now,
+    // the raw PCM samples [-32768,32767] have been upsampled by a
+    // factor of 32.  This means that the range of the interpolated
+    // samples is the original range divided by 32.  Hence the
+    // maximum magnitude is 32768 / 32 = 1024.  This is the scale
+    // factor that we need.  The result will be a range of [-1,1).
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Scale the PCM sample to unity and multiply by the max deviation.
+    ncoFrequency = frequencyDeviation * (float)bufferPtr[i] / 1024;
 
     // Set the frequency deviation.
     ncoPtr->setFrequency(ncoFrequency);
