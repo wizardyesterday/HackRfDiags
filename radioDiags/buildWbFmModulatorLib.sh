@@ -8,11 +8,14 @@
 CcFiles="\
     Filters/Int16/FirFilter_int16.cc \
     Filters/Int16/Interpolator_int16.cc \
+    Nco/PhaseAccumulator.cc \
+    Nco/Nco.cc \
     WbFmModulator/WbFmModulator.cc"
 
 Includes="\
     -I Filters \
     -I Filters/Int16 \
+    -I Nco \
     -I WbFmModulator"
  
 # Compile string.

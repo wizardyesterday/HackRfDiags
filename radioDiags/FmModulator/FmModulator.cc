@@ -217,8 +217,8 @@ FmModulator::FmModulator(void)
   // The frequency deviation must be less than Fs/2 (Fs = 8000S/s).
   frequencyDeviation = 3500;
 
-  // Set initial value of phase accumulator.
-  phaseAccumulator = 0;
+  // Inztantiate an NCO operating at a sample rate of 8000S/s.
+  ncoPtr = new Nco(8000,0);
 
   return;
 
@@ -262,6 +262,7 @@ FmModulator::~FmModulator(void)
   delete qInterpolator6Ptr;
   delete qInterpolator7Ptr;
   delete qInterpolator8Ptr;
+  delete ncoPtr;
 
   return;
 
@@ -588,37 +589,18 @@ uint32_t FmModulator::modulateSignal(int16_t *bufferPtr,
   uint32_t i;
   float phaseIncrement;
   float iSample, qSample;
+  float ncoFrequency;
 
   for (i = 0; i < bufferLength; i++)
   {
-    // Normalize to unity, since the input is 16-bit signed PCM.
-    phaseIncrement = (float)bufferPtr[i] / 32768;
+    // Scale the PCM sample to unity and multiply by the frequency deviation.
+    ncoFrequency = frequencyDeviation * (float)bufferPtr[i] / 32768;
 
-   // Scale to the maximum frequency deviation.
-   phaseIncrement = phaseIncrement * frequencyDeviation;
+    // Set the frequency deviation.
+    ncoPtr->setFrequency(ncoFrequency);
 
-    // Normalize to the sample rate, and convert to radians.
-    phaseIncrement = phaseIncrement / 8000;
-    phaseIncrement = phaseIncrement * 2 * M_PI;
-
-    // Update the phase accumulator.
-    phaseAccumulator = phaseAccumulator + phaseIncrement;
-
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Ensure that -PI < phaseAccumulator < PI.
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    while (phaseAccumulator > M_PI)
-    {
-      // Wrap the accumulator.
-      phaseAccumulator-= (2 * M_PI);
-    } // while
-
-    while (phaseAccumulator < (-M_PI))
-    {
-      // Wrap the accumulator.
-      phaseAccumulator += (2 * M_PI);
-    } // while
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Retrieve the new IQ sample pair.
+    ncoPtr->run(&iSample ,&qSample);
 
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     // Scale this to avoid overflow.  Note
@@ -628,8 +610,8 @@ uint32_t FmModulator::modulateSignal(int16_t *bufferPtr,
     // of 256.
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     // Create I and Q signals.
-    iSample = cos(phaseAccumulator) * 16000;
-    qSample = sin(phaseAccumulator) * 16000;
+    iSample *= 16000;
+    qSample *= 16000;
 
     iModulatedData[i] = (int16_t)iSample;
     qModulatedData[i] = (int16_t)qSample;
@@ -665,7 +647,6 @@ void FmModulator::displayInternalInformation(void)
   nprintf(stderr,"--------------------------------------------\n");
 
   nprintf(stderr,"Frequency Deviation:      : %fHz\n",frequencyDeviation);
-  nprintf(stderr,"Phase Accumulator         : %frad\n",phaseAccumulator);
 
   return;
 

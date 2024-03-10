@@ -147,7 +147,6 @@ WbFmModulator::WbFmModulator(void)
   int filter1Length, filter2Length, filter3Length, filter4Length;
   int filter5Length, filter6Length, filter7Length, filter8Length;
   int i;
-  float phaseAngle;
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Compute the number of taps in the prototype filter.
@@ -204,23 +203,8 @@ WbFmModulator::WbFmModulator(void)
   // The frequency deviation must be less than Fs/2 (Fs = 256000S/s).
   frequencyDeviation = 70000;
 
-  // Set initial value of phase accumulator.
-  phaseAccumulator = 0;
-
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  // Construct the sine and cosine tables.  The representation of the
-  // phase is in a signed fractional format with 1 sign bit, two mantissa
-  // bits and 13 fractional bits.
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-  for (i = 0; i < 16384; i++)
-  {
-    phaseAngle = (float)i * 2 * M_PI / 16384;
-
-    // Construct sine and cosine tables.
-    Sin[i] = sin(phaseAngle);
-    Cos[i] = cos(phaseAngle);
-  } // for
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  // Inztantiate an NCO operating at a sample rate of 256000S/s.
+  ncoPtr = new Nco(256000,0);
 
   return;
 
@@ -259,6 +243,7 @@ WbFmModulator::~WbFmModulator(void)
   delete qInterpolator6Ptr;
   delete qInterpolator7Ptr;
   delete qInterpolator8Ptr;
+  delete ncoPtr;
 
   return;
 
@@ -599,74 +584,27 @@ uint32_t WbFmModulator::modulateSignal(int16_t *bufferPtr,
                                        uint32_t bufferLength)
 {
   uint32_t i;
-  float phaseIncrement;
   float iSample, qSample;
-  int phaseTableIndex;
+  float ncoFrequency;
 
   for (i = 0; i < bufferLength; i++)
   {
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Normalize to unity  Note that the PCM
-    // samples are represented as 16-bit signed
-    // integers.  The sample rate has been
-    // interpolalted by a factor of 32 so that
-    // the interpolated PCM samples lie in the
-    // range of (-32768 / 32) to (32767 / 32),
-    // or -1024 to to 1023.  I've noticed that
-    // some of the iterpolated PCM samples
-    // have peak magnitudes of a little over
-    // 1200.  To be safe, I'm dividing by 1500
-    // to avoid overdeviating.
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    phaseIncrement = (float)bufferPtr[i] / 1500;
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // We have to scale the interpolated PCM sample to unity.  Now,
+    // the raw PCM samples [-32768,32767] have been upsampled by a
+    // factor of 32.  This means that the range of the interpolated
+    // samples is the original range divided by 32.  Hence the
+    // maximum magnitude is 32768 / 32 = 1024.  This is the scale
+    // factor that we need.  The result will be a range of [-1,1).
+    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Scale the PCM sample to unity and multiply by the max deviation.
+    ncoFrequency = frequencyDeviation * (float)bufferPtr[i] / 1024;
 
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Scale to the maximum frequency deviation.
-    // Note that the sample rate is 256000S/s.
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-   phaseIncrement = phaseIncrement * frequencyDeviation;
+    // Set the frequency deviation.
+    ncoPtr->setFrequency(ncoFrequency);
 
-    // Normalize to the sample rate, and convert to radians.
-    phaseIncrement = phaseIncrement / 256000;
-    phaseIncrement = phaseIncrement * 2 * M_PI;
-
-    // Update the phase accumulator.
-    phaseAccumulator = phaseAccumulator + phaseIncrement;
-
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Ensure that -PI < phaseAccumulator < PI.
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    while (phaseAccumulator > M_PI)
-    {
-      // Wrap the accumulator.
-      phaseAccumulator-= (2 * M_PI);
-    } // while
-
-    while (phaseAccumulator < (-M_PI))
-    {
-      // Wrap the accumulator.
-      phaseAccumulator += (2 * M_PI);
-    } // while
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-
-    // Map the phase to a table index.
-    phaseTableIndex = (int16_t)(roundf(phaseAccumulator) * 16384 / (2 * M_PI));
-    phaseTableIndex += 8192;
-
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // Ensure that roundoff error doesn't take
-    // the index out of bounds.
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    if (phaseTableIndex < 0)
-    {
-      phaseTableIndex = 0;
-    } // if
-
-    if (phaseTableIndex > 16383)
-    {
-      phaseTableIndex = 16383;
-    } // if
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    // Retrieve the new IQ sample pair.
+    ncoPtr->runFast(&iSample ,&qSample);
 
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     // Since, the modulated data will be
@@ -680,8 +618,8 @@ uint32_t WbFmModulator::modulateSignal(int16_t *bufferPtr,
     // 1024.
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     // Create I and Q signals.
-    iSample = Cos[phaseTableIndex] * 900;
-    qSample = Sin[phaseTableIndex] * 900;
+    iSample *= 900;
+    qSample *= 900;
 
     // Map from float to integer.
     iModulatedData[i] = (int16_t)iSample;
@@ -719,7 +657,6 @@ void WbFmModulator::displayInternalInformation(void)
   nprintf(stderr,"--------------------------------------------\n");
 
   nprintf(stderr,"Frequency Deviation:      : %fHz\n",frequencyDeviation);
-  nprintf(stderr,"Phase Accumulator         : %frad\n",phaseAccumulator);
 
   return;
 

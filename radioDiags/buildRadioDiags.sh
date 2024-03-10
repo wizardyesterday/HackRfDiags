@@ -31,6 +31,7 @@ Includes="\
     -I hdr_diags \
     -I Filters \
     -I Filters/Int16 \
+    -I Nco \
     -I AmDemodulator \
     -I FmDemodulator \
     -I WbFmDemodulator \

@@ -12,6 +12,7 @@
 #include <stdint.h>
 
 #include "Interpolator_int16.h"
+#include "Nco.h"
 
 class WbFmModulator
 {
@@ -47,19 +48,12 @@ class WbFmModulator
   // Allowable frequency deviation.
   float frequencyDeviation;
 
-  // Phase accumulator support.
-  float phaseAccumulator;
-
   // This is the interpolated PCM data presented to the modulator.
   int16_t interpolatedPcmData[16384];
 
   // This is the complex output data that is created by the modulator.
   int16_t iModulatedData[16384];
   int16_t qModulatedData[16384];
-
-  // Sine and cosine lookup tables.
-  float Sin[16384];
-  float Cos[16384];
 
   //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   // Working buffers used for the interpolation process.
@@ -91,6 +85,9 @@ class WbFmModulator
   Interpolator_int16 *qInterpolator6Ptr;
   Interpolator_int16 *qInterpolator7Ptr;
   Interpolator_int16 *qInterpolator8Ptr;
+
+  // The NCO really does the heavy lifting.
+  Nco *ncoPtr;
 };
 
 #endif // __WBFMMODULATOR__
