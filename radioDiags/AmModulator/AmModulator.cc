@@ -537,16 +537,19 @@ uint32_t AmModulator::increaseSampleRate(int8_t *bufferPtr,
   whose samples are stored in memory that is referenced by bufferPtr.
   Here's how things work.
 
-    1. An incoming sample is multiplied by the modulation index.  Let's
-    call this the scaled sample.
+    1. An incoming sample is divided by its maximum magnitude to achieve
+    a signal with range range of [-1,1).
 
-    2. A dc term is added to the scaled sample.
+    2. The sample is multiplied by the modulation index.
 
-    3. The amplitude of the scaled sample is reduced to avoid overflow
+    2. A dc term of unity is added to the sample. This results in an
+    information signal with a carrier.
+
+    3. The amplitude of the sample is reduced to avoid overflow
     conditions when the information is presented to the outgoing IQ data
     stream of the transmitter.
 
-    4. The scaled sample is stored into *both* the in-phase *and* the
+    4. The sample is stored into *both* the in-phase *and* the
     quadrature components of the output buffer.
 
   This results in a transmitted waveform that is amplitude modulated by
@@ -572,18 +575,18 @@ uint32_t AmModulator::modulateSignal(int16_t *bufferPtr,
                                      uint32_t bufferLength)
 {
   uint32_t i;
-  float scaledSample;
+  float signal;
 
   for (i = 0; i < bufferLength; i++)
   {
-    // Use these variables to make things easier.
-    scaledSample = (float)bufferPtr[i];
+    // Normalize to range [-1,1).
+    signal = (float)bufferPtr[i] / 32768;
 
-    // Scale the information signal by the modulation index.
-    scaledSample *= modulationIndex;
+    // Multiply by modulation insex.
+    signal *= modulationIndex;
 
     // Insert the dc term to create a carrier.
-    scaledSample += 65536;
+    signal = signal + 1;
 
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     // Scale this to avoid overflow.  Note
@@ -592,11 +595,11 @@ uint32_t AmModulator::modulateSignal(int16_t *bufferPtr,
     // will further be reduced by a factor
     // of 256.
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    scaledSample /= 4;
+    signal /= 2;
 
     // Save modulated sample.
-    iModulatedData[i] = (int16_t)scaledSample;
-    qModulatedData[i] = (int16_t)scaledSample;
+    iModulatedData[i] = (int16_t)(signal * 128 * 250);
+    qModulatedData[i] = (int16_t)(signal * 128 * 250);
   } // for
 
   return (i);

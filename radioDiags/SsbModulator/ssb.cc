@@ -9,7 +9,7 @@
 //  sh buildSsb.sh
 //
 // To run, type,
-// ./ssb <s | u>  < inputFile > outputFile
+// ./ssb <l | u>  < inputFile > outputFile
 //
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 

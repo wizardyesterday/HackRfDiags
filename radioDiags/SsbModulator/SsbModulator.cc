@@ -683,7 +683,7 @@ uint32_t SsbModulator::modulateSignal(int16_t *bufferPtr,
     // will further be reduced by a factor
     // of 256.
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    scaledSample /= 4;
+    scaledSample /= 2;
 
     // Delay in-phase component.
     iDelayed = delayLinePtr->filterData((int16_t)scaledSample);
