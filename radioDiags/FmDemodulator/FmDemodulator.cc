@@ -452,7 +452,13 @@ uint32_t FmDemodulator::reduceSampleRate(
   phase angle of the previous IQ sample is subtracted from theta(n).  This
   approximates the derivative of the phase angle with respect to time.
   Note that omega(n) = dtheta(n)/dn represents the instantaneous frequency
-  of the signal.  Due to the branch cut of the atan() function at PI
+  of the signal.
+  The expected maximum frequency deviation is 15kHz.
+
+  Note: The first-order differentiator has been replaced with a 6-tap FIR
+  differentiator.  This improves weak-signal performance.
+
+  Due to the branch cut of the atan() function at PI
   radians, processing is performed to ensure that the phase difference
   satisfies the equation, -PI < dtheta < PI.  Finally, the demodulated
   signal is multiplied by the demodulator gain, and the result is a
@@ -476,6 +482,13 @@ uint32_t FmDemodulator::demodulateSignal(uint32_t bufferLength)
   uint8_t iIndex, qIndex;
   float theta;
   float deltaTheta;
+  float frequencyDeviationToPcm;
+
+  // NOrmalize to maximum frequency deviation.
+  frequencyDeviationToPcm = demodulatorGain / 15000;
+
+  // Scale to maximum PCM magnitude.
+  frequencyDeviationToPcm *= 32767;
 
   for (i = 0; i < bufferLength; i++)
   {
@@ -507,7 +520,7 @@ uint32_t FmDemodulator::demodulateSignal(uint32_t bufferLength)
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     // Store the demodulated data.
-    demodulatedData[i] = demodulatorGain * deltaTheta;
+    demodulatedData[i] = frequencyDeviationToPcm * deltaTheta;
 
   } // for
 

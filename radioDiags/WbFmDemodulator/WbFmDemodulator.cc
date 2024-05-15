@@ -148,7 +148,7 @@ WbFmDemodulator::WbFmDemodulator(
   } // for
 
   // Set to a nominal gain.
-  demodulatorGain = 64000/(2 * M_PI);
+  demodulatorGain = 256000/(2 * M_PI);
 
   numberOfDeemphasisFilterNumeratorTaps =
     sizeof(deemphasisFilterNumeratorCoefficients) / sizeof(float);
@@ -361,6 +361,7 @@ void WbFmDemodulator::acceptIqData(int8_t *bufferPtr,uint32_t bufferLength)
 
   Purpose: The purpose of this function is to demodulate an FM signal that
   is stored in the iData[] and qData[] arrays.
+  The expected maximum frequency deviation is 75kHz.
 
   Calling Sequence: demodulateSignal(bufferPtr,bufferLength)
 
@@ -385,6 +386,13 @@ uint32_t WbFmDemodulator::demodulateSignal(int8_t *bufferPtr,
   uint8_t iData, qData;
   float theta;
   float deltaTheta;
+  float frequencyDeviationToPcm;
+                                                                                
+  // NOrmalize to maximum frequency d4viation.
+  frequencyDeviationToPcm = demodulatorGain / 75000;
+                                                                                
+  // Scale to maximum PCM magnitud4.
+  frequencyDeviationToPcm *= 32767;
 
   // We're mapping interleaved data into two separate buffers.
   sampleCount = bufferLength / 2;
@@ -418,8 +426,8 @@ uint32_t WbFmDemodulator::demodulateSignal(int8_t *bufferPtr,
     //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     // Store the demodulated data.
-    demodulatedData[i] =
-      fmDeemphasisFilterPtr->filterData(demodulatorGain * deltaTheta);
+    demodulatedData[i] = fmDeemphasisFilterPtr->filterData(
+                           frequencyDeviationToPcm * deltaTheta);
 
     // Update our last phase angle for the next iteration.
     previousTheta = theta;
