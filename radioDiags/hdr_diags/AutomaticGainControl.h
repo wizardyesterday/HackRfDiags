@@ -41,6 +41,9 @@ class AutomaticGainControl
   void runHarris(uint32_t signalMagnitude);
   void displayInternalInformation(void);
 
+  // This is needed by a static callback.
+  uint32_t getSignalMagnitude(void);
+
   private:
 
   //*****************************************

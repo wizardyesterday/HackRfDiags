@@ -46,19 +46,55 @@ static void signalMagnitudeCallback(uint32_t signalMagnitude,
                                    void *contextPtr)
 {
   AutomaticGainControl *thisPtr;
+  uint32_t previousMagnitude;
 
   // Reference the context pointer properly.
   thisPtr = (AutomaticGainControl *)contextPtr;
 
   if (thisPtr->isEnabled())
   {
-    // Process the signal.
+    // Retrieve previous magnitude.
+    previousMagnitude = thisPtr->getSignalMagnitude();
+
+    if (signalMagnitude != previousMagnitude)
+    {
+      // Process the signal if the magnitude has changed.
     thisPtr->run(signalMagnitude);
+      } // if
   } // if
 
   return;
 
 } // signalMagnitudeCallback
+
+/**************************************************************************
+
+  Name: getSignalMagnitude
+
+  Purpose: The purpose of this function is to return the last cached
+  signal magnitude.  This function is necessary to be used to access
+  the private signal magnitude by the statically allocated
+  signalMagnitudeCallback() function. That function can compare the
+  magnitude of a newly received signal to that of the newly received
+  signal.
+
+  Calling Sequence: signalMagnitude = getSignalMagnitude()
+
+  Inputs:
+
+    None.
+
+  Outputs:
+
+    signalMagnitude - The magnitude of a previously received signal.
+
+**************************************************************************/
+uint32_t AutomaticGainControl::getSignalMagnitude(void)
+{
+
+  return (signalMagnitude);
+
+} // getSignalMagnitude
 
 /************************************************************************
 
