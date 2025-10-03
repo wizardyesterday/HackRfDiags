@@ -59,7 +59,7 @@ static void signalMagnitudeCallback(uint32_t signalMagnitude,
     if (signalMagnitude != previousMagnitude)
     {
       // Process the signal if the magnitude has changed.
-    thisPtr->run(signalMagnitude);
+      thisPtr->run(signalMagnitude);
       } // if
   } // if
 
