@@ -46,21 +46,14 @@ static void signalMagnitudeCallback(uint32_t signalMagnitude,
                                    void *contextPtr)
 {
   AutomaticGainControl *thisPtr;
-  uint32_t previousMagnitude;
 
   // Reference the context pointer properly.
   thisPtr = (AutomaticGainControl *)contextPtr;
 
   if (thisPtr->isEnabled())
   {
-    // Retrieve previous magnitude.
-    previousMagnitude = thisPtr->getSignalMagnitude();
-
-    if (signalMagnitude != previousMagnitude)
-    {
-      // Process the signal if the magnitude has changed.
-      thisPtr->run(signalMagnitude);
-      } // if
+    // Process the signal.
+    thisPtr->run(signalMagnitude);
   } // if
 
   return;
